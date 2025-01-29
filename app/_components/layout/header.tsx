@@ -191,9 +191,9 @@ export function SiteHeader() {
         <MainNav items={navigationRoutes.main} />
       </Header.Main>
       <Header.RightElement>
-        <UserNav />
+        <UserNav items={navigationRoutes.auth} />
       </Header.RightElement>
-      <MobileNav items={navigationRoutes.main} className="md:hidden" />
+      <MobileNav items={navigationRoutes.main} />
     </Header>
   );
 }

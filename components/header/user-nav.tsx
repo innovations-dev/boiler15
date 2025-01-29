@@ -4,12 +4,19 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 
+import { navigationRoutes } from "@/config/routes.config";
 import { authClient } from "@/lib/auth/auth-client";
 import { cn } from "@/lib/utils";
 import { Spinner } from "../spinner";
 import { Button, buttonVariants } from "../ui/button";
 
-function UserNavContent() {
+function UserNavContent({
+  items,
+  className,
+}: {
+  items: typeof navigationRoutes.auth;
+  className?: string;
+}) {
   const { isPending, error, data } = authClient.useSession();
 
   if (isPending) {
@@ -35,26 +42,30 @@ function UserNavContent() {
 
   return (
     <>
-      <Link
-        href="/login"
-        className={cn(buttonVariants({ size: "sm", variant: "ghost" }))}
-      >
-        Sign In
-      </Link>
-      <Link
-        href="/register"
-        className={cn(buttonVariants({ size: "sm", variant: "outline" }))}
-      >
-        Get Started
-      </Link>
+      {items?.length
+        ? items.map((item) => (
+            <Link
+              href={item.href}
+              className={cn(buttonVariants({ size: "sm", variant: "ghost" }))}
+            >
+              {item.name}
+            </Link>
+          ))
+        : null}
     </>
   );
 }
 
-export function UserNav() {
+export function UserNav({
+  items,
+  className,
+}: {
+  items: typeof navigationRoutes.auth;
+  className?: string;
+}) {
   return (
     <Suspense fallback={<Spinner />}>
-      <UserNavContent />
+      <UserNavContent items={items} className={className} />
     </Suspense>
   );
 }
