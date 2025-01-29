@@ -1,5 +1,12 @@
+import { clsx, type ClassValue } from "clsx";
+import { env } from "process";
+import { twMerge } from "tailwind-merge";
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs));
+}
+
 export const baseURL = new URL(
-  // @TODO: update with t3oss
   process.env.NODE_ENV === "development"
     ? process.env.NEXT_PUBLIC_APP_URL!
     : process.env.VERCEL_URL!
