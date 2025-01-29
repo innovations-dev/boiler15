@@ -8,6 +8,7 @@ import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { Toaster } from "@/components/ui/sonner";
 import { generateMetadata } from "@/config/meta.config";
 import { cn } from "@/lib/utils";
+import { SiteHeader } from "./_components/layout/header";
 import { ThemeToggle } from "./_components/theme-toggle";
 import { QueryProvider } from "./_providers/query-client-provider";
 import { ThemeProvider } from "./_providers/theme-provider";
@@ -48,6 +49,7 @@ export default function RootLayout({
               enableSystem
               disableTransitionOnChange
             >
+              <SiteHeader />
               <main className="relative w-full">{children}</main>
               <div className="absolute bottom-4 right-4">
                 <ThemeToggle />

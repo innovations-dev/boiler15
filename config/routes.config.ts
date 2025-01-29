@@ -10,10 +10,10 @@ export const navigationRoutes = {
     { name: "Pricing", href: "/pricing" },
     { name: "Documentation", href: "/docs" },
   ],
-  auth: {
-    signIn: { name: "Sign in", href: "/sign-in" },
-    signUp: { name: "Get Started", href: "/register" },
-  },
+  auth: [
+    { name: "Sign in", href: "/sign-in" },
+    { name: "Get Started", href: "/register" },
+  ],
   legal: [
     { name: "Privacy", href: "/privacy" },
     { name: "Terms", href: "/terms" },

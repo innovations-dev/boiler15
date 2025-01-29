@@ -1,12 +1,13 @@
-import { createAuthClient } from "better-auth/client";
-import { baseURL } from "../utils";
-import { toast } from "sonner";
 import {
   adminClient,
   magicLinkClient,
   multiSessionClient,
   organizationClient,
 } from "better-auth/client/plugins";
+import { createAuthClient } from "better-auth/react";
+import { toast } from "sonner";
+
+import { baseURL } from "../utils";
 
 export const authClient = createAuthClient({
   baseURL: baseURL.toString(),
@@ -29,3 +30,5 @@ export const authClient = createAuthClient({
     organizationClient(),
   ],
 });
+
+export const { signOut, signIn, signUp, useSession } = authClient;
