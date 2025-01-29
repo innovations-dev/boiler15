@@ -10,9 +10,11 @@ import {
   organization,
 } from "better-auth/plugins";
 
+import { getMagicLinkEmail } from "@/emails/magic-link";
 import { env } from "@/env";
 import * as schema from "@/lib/db/schema";
 import { db } from "./db";
+import { sendEmailWithRetry } from "./email/services/send-email";
 import { baseURL } from "./utils";
 
 export const auth = betterAuth({
@@ -52,7 +54,11 @@ export const auth = betterAuth({
     magicLink({
       async sendMagicLink({ email, url }) {
         console.log("Sending magic link to", email, url);
-        // TODO: handle sendMagicLink w/ logging
+        sendEmailWithRetry({
+          to: email,
+          subject: "Login to your account.",
+          html: await getMagicLinkEmail(url),
+        });
       },
     }),
   ],

@@ -45,6 +45,7 @@ function UserNavContent({
       {items?.length
         ? items.map((item) => (
             <Link
+              key={item.name}
               href={item.href}
               className={cn(buttonVariants({ size: "sm", variant: "ghost" }))}
             >
