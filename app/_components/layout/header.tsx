@@ -11,7 +11,7 @@ import { navigationRoutes } from "@/config/routes.config";
 import { cn } from "@/lib/utils";
 
 const headerVariants = cva(
-  "w-full border-b backdrop-blur supports-[backdrop-filter]:bg-background/60",
+  "w-full border-b backdrop-blur supports-[backdrop-filter]:bg-background/60 z-50",
   {
     variants: {
       variant: {

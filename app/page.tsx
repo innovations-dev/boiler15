@@ -1,105 +1,142 @@
-import Image from "next/image";
+import {
+  ArrowRight,
+  Box,
+  Database,
+  FileText,
+  RotateCcw,
+  Search,
+  Zap,
+} from "lucide-react";
 
-import { env } from "@/env";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 
-export default function Home() {
-  console.log(env.NEXT_PUBLIC_APP_URL, env.NODE_ENV);
+export default function Page() {
   return (
-    <div className="grid min-h-[60dvh] grid-rows-[20px_1fr_20px] items-center justify-items-center gap-16 p-8 pb-20 font-[family-name:var(--font-geist-sans)] sm:p-20">
-      <div className="row-start-2 flex flex-col items-center gap-8 sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-center font-[family-name:var(--font-geist-mono)] text-sm sm:text-left">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="rounded bg-black/[.05] px-1 py-0.5 font-semibold dark:bg-white/[.06]">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-          {process.env.NEXT_PUBLIC_APP_URL}
-        </ol>
+    <div className="my-24">
+      <section className="container mx-auto px-4 pb-16 pt-20 text-center">
+        <h1 className="mx-auto mb-6 max-w-[800px] text-4xl font-bold tracking-tight sm:text-6xl">
+          Next.js 15 Boilerplate for Modern Web Apps
+        </h1>
+        <p className="mx-auto mb-8 max-w-[600px] text-lg text-gray-400">
+          Production-ready template with everything you need to build fast,
+          modern, and scalable web applications.
+        </p>
+        <div className="flex items-center justify-center gap-4">
+          <Button variant="outline" size="lg" className="gap-2">
+            <svg
+              viewBox="0 0 24 24"
+              width="16"
+              height="16"
+              stroke="currentColor"
+              strokeWidth="2"
+              fill="none"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" />
+            </svg>
+            Star on GitHub
+          </Button>
+          <Button variant="outline" size="lg" className="gap-2">
+            Documentation
+            <ArrowRight className="h-4 w-4" />
+          </Button>
+        </div>
+      </section>
 
-        <div className="flex flex-col items-center gap-4 sm:flex-row">
-          <a
-            className="flex h-10 items-center justify-center gap-2 rounded-full border border-solid border-transparent bg-foreground px-4 text-sm text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] sm:h-12 sm:px-5 sm:text-base"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="flex h-10 items-center justify-center rounded-full border border-solid border-black/[.08] px-4 text-sm transition-colors hover:border-transparent hover:bg-[#f2f2f2] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] sm:h-12 sm:min-w-44 sm:px-5 sm:text-base"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+      {/* Features Grid */}
+      <section className="container mx-auto max-w-6xl px-4 py-16">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <Card className="border-zinc-800 bg-zinc-900/50 p-6">
+            <Zap className="mb-4 h-10 w-10 text-white" />
+            <h3 className="mb-2 text-xl font-semibold">
+              Next.js 15 + TypeScript
+            </h3>
+            <p className="text-gray-400">
+              Latest Next.js features with full type safety and App Router
+            </p>
+          </Card>
+          <Card className="border-zinc-800 bg-zinc-900/50 p-6">
+            <Box className="mb-4 h-10 w-10 text-white" />
+            <h3 className="mb-2 text-xl font-semibold">Authentication Ready</h3>
+            <p className="text-gray-400">
+              Multi-tenant auth with Better-Auth integration
+            </p>
+          </Card>
+          <Card className="border-zinc-800 bg-zinc-900/50 p-6">
+            <Database className="mb-4 h-10 w-10 text-white" />
+            <h3 className="mb-2 text-xl font-semibold">Database Setup</h3>
+            <p className="text-gray-400">
+              Drizzle ORM with Turso (SQLite) for scalable data management
+            </p>
+          </Card>
+          <Card className="border-zinc-800 bg-zinc-900/50 p-6">
+            <FileText className="mb-4 h-10 w-10 text-white" />
+            <h3 className="mb-2 text-xl font-semibold">Built-in MDX Support</h3>
+            <p className="text-gray-400">
+              Write documentation and blog posts using MDX with full TypeScript
+              support
+            </p>
+          </Card>
+          <Card className="border-zinc-800 bg-zinc-900/50 p-6">
+            <Search className="mb-4 h-10 w-10 text-white" />
+            <h3 className="mb-2 text-xl font-semibold">SEO Optimization</h3>
+            <p className="text-gray-400">
+              Automated sitemap generation and type-safe metadata handling
+            </p>
+          </Card>
+          <Card className="border-zinc-800 bg-zinc-900/50 p-6">
+            <RotateCcw className="mb-4 h-10 w-10 text-white" />
+            <h3 className="mb-2 text-xl font-semibold">
+              Type-Safe Development
+            </h3>
+            <p className="text-gray-400">
+              End-to-end type safety with TypeScript and Zod validation
+            </p>
+          </Card>
+        </div>
+      </section>
+
+      {/* Tech Stack Section */}
+      <div className="container mx-auto mt-20 max-w-5xl text-center">
+        <h2 className="text-3xl font-bold">Built With Modern Stack</h2>
+        <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
+          <TechItem title="Next.js 15" />
+          <TechItem title="TypeScript" />
+          <TechItem title="Tailwind CSS" />
+          <TechItem title="Shadcn UI" />
+          <TechItem title="React Query" />
+          <TechItem title="Better-Auth" />
+          <TechItem title="Drizzle ORM" />
+          <TechItem title="Turso DB" />
+          <TechItem title="MDX" />
+          <TechItem title="React-Email" />
+          <TechItem title="Resend" />
+          <TechItem title="Nuqs" />
         </div>
       </div>
-      <footer className="row-start-3 flex flex-wrap items-center justify-center gap-6">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      {/* CTA Section */}
+      <div className="mt-20 text-center">
+        <h2 className="text-3xl font-bold">Ready to Get Started?</h2>
+        <p className="mt-4 text-muted-foreground">
+          Clone the repository and start building your next project.
+        </p>
+        <div className="mt-8">
+          <Button size="lg">
+            Get Started
+            <ArrowRight className="ml-2" />
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function TechItem({ title }: { title: string }) {
+  return (
+    <div className="flex items-center justify-center rounded-lg border bg-muted p-4">
+      <span className="text-sm font-medium">{title}</span>
     </div>
   );
 }

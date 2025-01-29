@@ -3,12 +3,17 @@ import type { Config } from "tailwindcss";
 export default {
   darkMode: ["class"],
   content: [
-    "./pages/**/*.{js,ts,jsx,tsx,mdx}",
-    "./components/**/*.{js,ts,jsx,tsx,mdx}",
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
+    "./components/**/*.{js,ts,jsx,tsx,mdx}",
+    "./emails/**/*.{js,ts,jsx,tsx,mdx}",
+    "./lib/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ["var(--font-geist-sans)"],
+        mono: ["var(--font-geist-mono)"],
+      },
       colors: {
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
@@ -55,10 +60,6 @@ export default {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
-      },
-      fontFamily: {
-        sans: ["var(--font-geist-sans)"],
-        mono: ["var(--font-geist-mono)"],
       },
     },
   },

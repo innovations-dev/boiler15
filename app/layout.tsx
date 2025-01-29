@@ -39,7 +39,8 @@ export default function RootLayout({
       <body
         className={cn(
           `${geistSans.variable} ${geistMono.variable}`,
-          "relative min-h-screen antialiased"
+          "relative min-h-screen flex-col antialiased",
+          "scroll-smooth"
         )}
       >
         <NuqsAdapter>
@@ -50,8 +51,16 @@ export default function RootLayout({
               enableSystem
               disableTransitionOnChange
             >
+              <a
+                href="#main-content"
+                className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:p-4"
+              >
+                Skip to main content
+              </a>
               <SiteHeader />
-              <main className="relative w-full">{children}</main>
+              <main id="main-content" className="relative mt-12 w-full flex-1">
+                {children}
+              </main>
               <div className="absolute bottom-4 right-4">
                 <ThemeToggle />
               </div>
