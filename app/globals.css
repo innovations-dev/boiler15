@@ -66,6 +66,9 @@ body {
   * {
     @apply border-border;
   }
+  html {
+    font-family: var(--font-geist-sans);
+  }
   body {
     @apply bg-background text-foreground;
   }

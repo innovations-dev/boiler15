@@ -16,11 +16,7 @@ export const ThemeToggle = () => {
 
   if (!mounted) {
     return (
-      <Button
-        variant="outline"
-        size="icon"
-        className="w-10 h-10 border border-primary"
-      >
+      <Button variant="outline" size="icon" className="w-10 h-10 absolute">
         <div className="w-6 h-6" />
       </Button>
     );
@@ -37,7 +33,7 @@ export const ThemeToggle = () => {
       variant="outline"
       size="icon"
       onClick={toggleTheme}
-      className="relative w-10 h-10 border border-primary"
+      className="absolute right-8 bottom-8 w-10 h-10"
       aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} theme`}
     >
       <Sun

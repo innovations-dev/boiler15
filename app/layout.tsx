@@ -4,6 +4,8 @@ import "./globals.css";
 import { generateMetadata } from "@/config/meta.config";
 import { ThemeProvider } from "./_providers/theme-provider";
 import { ThemeToggle } from "./_components/theme-toggle";
+import { QueryProvider } from "./_providers/query-client-provider";
+import { cn } from "@/lib/utils";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,26 +30,24 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen relative overflow-x-hidden`}
+        className={cn(
+          `${geistSans.variable} ${geistMono.variable}`,
+          "antialiased min-h-screen relative",
+        )}
       >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <main className="relative w-full">{children}</main>
-          <div
-            className="absolute bottom-4 right-4 border-2 border-red-500 p-1 bg-background rounded-lg shadow-lg"
-            style={{
-              transform: "translateX(0)",
-              right: "16px",
-              left: "auto",
-            }}
+        <QueryProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
           >
-            <ThemeToggle />
-          </div>
-        </ThemeProvider>
+            <main className="relative w-full">{children}</main>
+            <div className="absolute bottom-4 right-4">
+              <ThemeToggle />
+            </div>
+          </ThemeProvider>
+        </QueryProvider>
       </body>
     </html>
   );
