@@ -1,10 +1,8 @@
 "use client";
 
-import { useState } from "react";
-
+import { useAuthMode } from "@/hooks/use-auth-mode";
+import type { AuthMode } from "@/lib/types";
 import { MagicLinkForm } from "./magic-link-form";
-
-type AuthMode = "magic-link" | "credentials" | "register";
 
 interface AuthFormProps {
   mode?: AuthMode;
@@ -12,7 +10,7 @@ interface AuthFormProps {
 }
 
 export function AuthForm({ mode = "magic-link", className }: AuthFormProps) {
-  const [authMode, setAuthMode] = useState<AuthMode>(mode);
+  const { mode: authMode, setMode: setAuthMode } = useAuthMode(mode);
 
   return (
     <div className={className}>
