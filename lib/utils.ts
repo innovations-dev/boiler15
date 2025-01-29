@@ -8,10 +8,10 @@ export function cn(...inputs: ClassValue[]) {
 
 export const baseURL = new URL(
   process.env.NODE_ENV === "development"
-    ? process.env.NEXT_PUBLIC_APP_URL!
-    : process.env.VERCEL_URL!
-      ? `https://${process.env.VERCEL_URL}`
-      : process.env.NEXT_PUBLIC_APP_URL!,
+    ? env.NEXT_PUBLIC_APP_URL!
+    : env.VERCEL_URL!
+      ? `https://${env.VERCEL_URL}`
+      : env.NEXT_PUBLIC_APP_URL!,
 );
 
 export function slugify(text: string): string {

@@ -25,7 +25,7 @@
 import { Metadata, ResolvingMetadata } from "next";
 import { Robots } from "next/dist/lib/metadata/types/metadata-types";
 
-// import { env } from "@/env.mjs"; // @TODO: update with t3oss
+import { env } from "@/env";
 import { baseURL } from "@/lib/utils";
 
 /**
@@ -169,7 +169,7 @@ export async function generateMetadata(
       ...(siteConfig.default.robots as Robots),
       index: !noIndex,
       follow: !noIndex,
-      nocache: process.env.NODE_ENV !== "production",
+      nocache: env.NODE_ENV !== "production",
       googleBot: {
         index: !noIndex,
         follow: !noIndex,
@@ -219,7 +219,7 @@ export async function generateMetadata(
     // Enhanced verification handling
     verification: {
       ...siteConfig.default.verification,
-      google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
+      google: env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
     },
 
     // Enhanced alternates handling

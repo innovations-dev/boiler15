@@ -1,9 +1,4 @@
-import {
-  APIError,
-  betterAuth,
-  User,
-  type APIError as BetterAuthAPIError,
-} from "better-auth";
+import { betterAuth, User, APIError as BetterAuthAPIError } from "better-auth";
 import { baseURL } from "./utils";
 import { nextCookies } from "better-auth/next-js";
 import {
@@ -13,9 +8,11 @@ import {
   openAPI,
   organization,
 } from "better-auth/plugins";
+import { env } from "@/env";
 
 export const auth = betterAuth({
   baseURL: baseURL.toString(),
+  secret: env.BETTER_AUTH_SECRET,
   trustedOrigins: [baseURL.toString()],
   fetchOptions: {
     credentials: "include",
@@ -57,7 +54,7 @@ export const auth = betterAuth({
       deleteAccountAfter: 60 * 60 * 24 * 7, // 7 days
       beforeDelete: async (user: User) => {
         if (user.email.includes("admin")) {
-          throw new APIError("BAD_REQUEST", {
+          throw new BetterAuthAPIError("BAD_REQUEST", {
             message: "Admin accounts can't be deleted",
           });
         }
