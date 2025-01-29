@@ -1,23 +1,31 @@
-import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
+import { index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 import {
   createInsertSchema,
   createSelectSchema,
   createUpdateSchema,
 } from "drizzle-zod";
 
-export const user = sqliteTable("user", {
-  id: text("id").primaryKey(),
-  name: text("name").notNull(),
-  email: text("email").notNull().unique(),
-  emailVerified: integer("email_verified", { mode: "boolean" }).notNull(),
-  image: text("image"),
-  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
-  updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
-  role: text("role"),
-  banned: integer("banned", { mode: "boolean" }),
-  banReason: text("ban_reason"),
-  banExpires: integer("ban_expires", { mode: "timestamp" }),
-});
+export const user = sqliteTable(
+  "user",
+  {
+    id: text("id").primaryKey(),
+    name: text("name").notNull(),
+    email: text("email").notNull().unique(),
+    emailVerified: integer("email_verified", { mode: "boolean" }).notNull(),
+    image: text("image"),
+    createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
+    role: text("role"),
+    banned: integer("banned", { mode: "boolean" }),
+    banReason: text("ban_reason"),
+    banExpires: integer("ban_expires", { mode: "timestamp" }),
+  },
+  (table) => ({
+    emailIdx: index("user_email_idx").on(table.email),
+    nameIdx: index("user_name_idx").on(table.name),
+    roleIdx: index("user_role_idx").on(table.role),
+  })
+);
 
 export const session = sqliteTable("session", {
   id: text("id").primaryKey(),
