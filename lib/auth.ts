@@ -1,5 +1,6 @@
-import { betterAuth, APIError as BetterAuthAPIError, User } from "better-auth";
+import { betterAuth, User } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { APIError as BetterAuthAPIError } from "better-auth/api";
 import { nextCookies } from "better-auth/next-js";
 import {
   admin,
@@ -10,6 +11,7 @@ import {
 } from "better-auth/plugins";
 
 import { env } from "@/env";
+import * as schema from "@/lib/db/schema";
 import { db } from "./db";
 import { baseURL } from "./utils";
 
@@ -18,7 +20,7 @@ export const auth = betterAuth({
   secret: env.BETTER_AUTH_SECRET,
   database: drizzleAdapter(db, {
     provider: "sqlite",
-    // schema,
+    schema,
   }),
   trustedOrigins: [baseURL.toString()],
   fetchOptions: {
