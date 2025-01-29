@@ -8,6 +8,7 @@ import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { Toaster } from "@/components/ui/sonner";
 import { generateMetadata } from "@/config/meta.config";
 import { cn } from "@/lib/utils";
+import { SiteFooter } from "./_components/layout/footer";
 import { SiteHeader } from "./_components/layout/header";
 import { ThemeToggle } from "./_components/theme-toggle";
 import { QueryProvider } from "./_providers/query-client-provider";
@@ -58,6 +59,7 @@ export default function RootLayout({
           </QueryProvider>
         </NuqsAdapter>
         <Toaster richColors />
+        <SiteFooter />
       </body>
     </html>
   );
