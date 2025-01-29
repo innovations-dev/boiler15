@@ -11,7 +11,7 @@ export const navigationRoutes = {
     { name: "Documentation", href: "/docs" },
   ],
   auth: {
-    signIn: { name: "Sign in", href: "/login" },
+    signIn: { name: "Sign in", href: "/sign-in" },
     signUp: { name: "Get Started", href: "/register" },
   },
   legal: [
