@@ -19,7 +19,7 @@ export const authClient = createAuthClient({
         console.log("Too many requests Error.", error.error.message);
         toast.error("Too many requests. Please try again later.");
       }
-      console.error("BetterAuth general error:", error.error.message);
+      console.error("BetterAuth general error:", error);
       throw new Error(error.error.message);
     },
   },

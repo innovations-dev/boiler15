@@ -11,18 +11,37 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { authClient } from "@/lib/auth/auth-client";
+import { USER_ROLE_LABELS, USER_ROLES } from "@/lib/constants/roles";
 import { PermissionActions } from "./permission-actions";
 import { PermissionsListSkeleton } from "./permissions-list-skeleton";
 
 export function PermissionsList() {
-  const { data: roles, isLoading } = useQuery({
-    queryKey: ["roles"],
-    queryFn: () => authClient.admin.listRoles(),
+  const { data: users, isLoading } = useQuery({
+    queryKey: ["users"],
+    queryFn: () =>
+      authClient.admin.listUsers({
+        query: {
+          limit: 100,
+        },
+      }),
   });
 
   if (isLoading) {
     return <PermissionsListSkeleton />;
   }
+
+  // Group users by role
+  const usersByRole = users?.data?.users?.reduce(
+    (acc, user) => {
+      const role = user.role || "user";
+      if (!acc[role]) {
+        acc[role] = [];
+      }
+      acc[role].push(user);
+      return acc;
+    },
+    {} as Record<string, any[]>
+  );
 
   return (
     <Table>
@@ -31,21 +50,28 @@ export function PermissionsList() {
           <TableHead>Role</TableHead>
           <TableHead>Description</TableHead>
           <TableHead>Users</TableHead>
-          <TableHead>Created</TableHead>
           <TableHead className="text-right">Actions</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
-        {roles?.data?.map((role) => (
-          <TableRow key={role.id}>
-            <TableCell className="font-medium">{role.name}</TableCell>
-            <TableCell>{role.description || "—"}</TableCell>
-            <TableCell>{role.userCount || 0}</TableCell>
-            <TableCell>
-              {new Date(role.createdAt).toLocaleDateString()}
+        {Object.entries(USER_ROLES).map(([role]) => (
+          <TableRow key={role}>
+            <TableCell className="font-medium">
+              {USER_ROLE_LABELS[role as keyof typeof USER_ROLES]}
             </TableCell>
+            <TableCell>
+              {role === "ADMIN"
+                ? "Full system access and management capabilities"
+                : role === "MODERATOR"
+                  ? "Content moderation and user management"
+                  : "Standard user access"}
+            </TableCell>
+            <TableCell>{usersByRole?.[role]?.length || 0}</TableCell>
             <TableCell className="text-right">
-              <PermissionActions role={role} />
+              <PermissionActions
+                role={role as keyof typeof USER_ROLES}
+                userCount={usersByRole?.[role]?.length || 0}
+              />
             </TableCell>
           </TableRow>
         ))}
