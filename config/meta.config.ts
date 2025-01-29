@@ -137,7 +137,7 @@ export async function generateMetadata(
     params?: MetaProps["params"];
     searchParams?: MetaProps["searchParams"];
   } = {},
-  parent?: ResolvingMetadata,
+  parent?: ResolvingMetadata
 ): Promise<Metadata> {
   // Resolve dynamic values
   const resolvedTitle = typeof title === "function" ? await title() : title;
@@ -149,11 +149,11 @@ export async function generateMetadata(
   if (ogImageUrl) {
     ogImageUrl.searchParams.set(
       "title",
-      resolvedTitle ?? (siteConfig.default.title as string) ?? "",
+      resolvedTitle ?? (siteConfig.default.title as string) ?? ""
     );
     ogImageUrl.searchParams.set(
       "description",
-      resolvedDescription ?? siteConfig.default.description ?? "",
+      resolvedDescription ?? siteConfig.default.description ?? ""
     );
   }
   // Resolve parent metadata if provided

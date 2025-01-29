@@ -1,18 +1,24 @@
 import { clsx, type ClassValue } from "clsx";
-import { env } from "process";
 import { twMerge } from "tailwind-merge";
+
+import { env } from "@/env";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export const baseURL = new URL(
-  process.env.NODE_ENV === "development"
-    ? env.NEXT_PUBLIC_APP_URL!
-    : env.VERCEL_URL!
-      ? `https://${env.VERCEL_URL}`
-      : env.NEXT_PUBLIC_APP_URL!,
-);
+export const baseURL = (() => {
+  try {
+    return new URL(
+      process.env.VERCEL_URL
+        ? `https://${process.env.VERCEL_URL}`
+        : env.NEXT_PUBLIC_APP_URL
+    );
+  } catch (error) {
+    console.error("Invalid URL configuration:", error);
+    return new URL("http://localhost:3000");
+  }
+})();
 
 export function slugify(text: string): string {
   return text

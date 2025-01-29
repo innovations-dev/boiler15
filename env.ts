@@ -2,8 +2,11 @@ import { createEnv } from "@t3-oss/env-nextjs";
 import { z } from "zod";
 
 export const env = createEnv({
-  server: {
+  shared: {
     NODE_ENV: z.enum(["development", "production", "test"]),
+    VERCEL_ENV: z.enum(["development", "preview", "production"]).optional(),
+  },
+  server: {
     BETTER_AUTH_URL: z.string().url(),
     BETTER_AUTH_SECRET: z.string(),
     GITHUB_CLIENT_ID: z.string(),
@@ -13,18 +16,18 @@ export const env = createEnv({
     TEST_EMAIL: z.string(),
     TURSO_DATABASE_URL: z.string(),
     TURSO_AUTH_TOKEN: z.string(),
-    // Add other server-side environment variables here
   },
   client: {
     NEXT_PUBLIC_APP_URL: z.string().url(),
     NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION: z.string(),
-    // Add other client-side environment variables here
   },
-  // For Next.js >= 13.4.4, you only need to destructure client variables
+  // For Next.js, we need to specify experimental runtimeEnv
   experimental__runtimeEnv: {
+    NODE_ENV: process.env.NODE_ENV,
+    VERCEL_ENV: process.env.VERCEL_ENV,
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
     NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION:
       process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
   },
-  skipValidation: false || !!process.env.SKIP_ENV_VALIDATION,
+  skipValidation: !!process.env.SKIP_ENV_VALIDATION,
 });

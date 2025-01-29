@@ -1,5 +1,5 @@
-import { betterAuth, User, APIError as BetterAuthAPIError } from "better-auth";
-import { baseURL } from "./utils";
+import { betterAuth, APIError as BetterAuthAPIError, User } from "better-auth";
+import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
 import {
   admin,
@@ -8,11 +8,18 @@ import {
   openAPI,
   organization,
 } from "better-auth/plugins";
+
 import { env } from "@/env";
+import { db } from "./db";
+import { baseURL } from "./utils";
 
 export const auth = betterAuth({
   baseURL: baseURL.toString(),
   secret: env.BETTER_AUTH_SECRET,
+  database: drizzleAdapter(db, {
+    provider: "sqlite",
+    // schema,
+  }),
   trustedOrigins: [baseURL.toString()],
   fetchOptions: {
     credentials: "include",
@@ -33,7 +40,7 @@ export const auth = betterAuth({
     organization({
       sendInvitationEmail: async (data) => {
         const inviteLink = new URL(
-          `${baseURL.toString()}/accept-invite/${data?.id}`,
+          `${baseURL.toString()}/accept-invite/${data?.id}`
         ).toString();
         // TODO: handle sendInvitationEmail w/ logging
         // TODO: add active organization to session - see boiler databaseHooks
