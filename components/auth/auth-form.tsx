@@ -1,6 +1,6 @@
 "use client";
 
-import { useAuthMode } from "@/hooks/use-auth-mode";
+import { useAuthMode } from "@/hooks/auth/use-auth-mode";
 import type { AuthMode } from "@/lib/types";
 import { MagicLinkForm } from "./magic-link-form";
 
