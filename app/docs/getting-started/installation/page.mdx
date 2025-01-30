@@ -1,0 +1,114 @@
+---
+title: Installation
+description: Learn how to install and set up the Next.js 15 Boilerplate.
+slug: /docs/getting-started/installation
+order: 1
+published: true
+---
+
+## Quick Start
+
+1. Clone the repository:
+
+```bash
+git clone https://github.com/innovations-dev/boiler15.git my-app
+cd my-app
+```
+
+2. Install dependencies:
+
+```bash
+pnpm install
+```
+
+3. Set up third-party services:
+
+- [ ] You'll need to create a database. We're currently using [Turso](https://turso.tech/) for this. We'd be open to solving for other providers as well, if this project happens to be used by others.
+- [ ] You'll need a [Resend](https://resend.com) account as well.
+- [ ] You'll need a `CLIENT_ID` and `CLIENT_SECRET` from any third-party social/Oauth services you plan to use.
+
+4. Set up your environment variables:
+
+We use [@t3-oss/env](https://github.com/t3-oss/env) to manage and secure your environment variables.
+You can find the example [`.env.sample`](https://github.com/innovations-dev/boiler15/blob/main/.env.sample) file in the root of the repository.
+
+```bash
+cp .env.sample .env
+```
+
+> **NOTE:** BetterAuth seems to look specifically for a .env file. If you know of a better way to get it to also respect the next.js convention of .env.local, please let us know.
+
+```bash
+App
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION=your_verification_code
+Auth
+BETTER_AUTH_URL=your_auth_url
+BETTER_AUTH_SECRET=your_secret
+GITHUB_CLIENT_ID=your_github_client_id
+GITHUB_CLIENT_SECRET=your_github_client_secret
+Email
+RESEND_API_KEY=your_resend_api_key
+EMAIL_FROM=your_email@domain.com
+TEST_EMAIL=test@example.com
+Database
+TURSO_DATABASE_URL=your_turso_url
+TURSO_AUTH_TOKEN=your_turso_token
+```
+
+5. Initialize the database:
+
+```bash
+pnpm db:generate
+pnpm db:migrate
+```
+
+5. Start the development server:
+
+```bash
+pnpm dev
+```
+
+Your application should now be running at [http://localhost:3000](http://localhost:3000).
+
+## Project Structure
+
+```
+├── app/ # Next.js 15 app directory
+│ ├── (admin)/ # Admin routes
+│ ├── (auth)/ # Authentication routes
+│ ├── dashboard/ # Dashboard routes
+│ ├── docs/ # Documentation pages
+│ └── components/ # Shared components
+├── components/ # Reusable UI components
+├── config/ # Configuration files
+├── emails/ # Email templates
+├── lib/ # Utility functions and shared logic
+└── public/ # Static assets
+```
+
+## Available Scripts
+
+- `pnpm dev` - Start development server
+- `pnpm build` - Build for production
+- `pnpm start` - Start production server
+- `pnpm lint` - Run ESLint
+- `pnpm format` - Format code with Prettier
+- `pnpm db:generate` - Generate database migrations
+- `pnpm db:migrate` - Run database migrations
+- `pnpm mail:dev` - Start email preview server
+
+## Next Steps
+
+- [Set up authentication](/docs/authentication)
+- [Configure your database](/docs/database)
+- [Customize the UI](/docs/customization)
+- [Deploy your application](/docs/deployment)
+
+## Need Help?
+
+If you run into any issues or have questions:
+
+1. Check the [documentation](/docs)
+2. Open an issue on [GitHub](https://github.com/innovations-dev/boiler15/issues)
+3. Join our [Discord community](https://discord.gg/your-discord)
