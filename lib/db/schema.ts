@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import { index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 import {
   createInsertSchema,
@@ -28,6 +29,13 @@ export const user = sqliteTable(
   })
 );
 
+export const UserSelectSchema = createSelectSchema(user);
+export const UserInsertSchema = createInsertSchema(user);
+export const UserUpdateSchema = createUpdateSchema(user);
+
+export type User = z.infer<typeof UserSelectSchema>;
+export type UserInsert = typeof user.$inferInsert;
+
 export const session = sqliteTable("session", {
   id: text("id").primaryKey(),
   expiresAt: integer("expires_at", { mode: "timestamp" }).notNull(),
@@ -42,6 +50,19 @@ export const session = sqliteTable("session", {
   impersonatedBy: text("impersonated_by"),
   activeOrganizationId: text("active_organization_id"),
 });
+
+export const SessionSelectSchemaCoerced = createSelectSchema(session, {
+  expiresAt: z.string(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+
+export const SessionSelectSchema = createSelectSchema(session);
+export const SessionInsertSchema = createInsertSchema(session);
+export const SessionUpdateSchema = createUpdateSchema(session);
+
+export type Session = z.infer<typeof SessionSelectSchemaCoerced>;
+export type SessionInsert = typeof session.$inferInsert;
 
 export const account = sqliteTable("account", {
   id: text("id").primaryKey(),
@@ -65,6 +86,13 @@ export const account = sqliteTable("account", {
   updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
 });
 
+export const AccountSelectSchema = createSelectSchema(account);
+export const AccountInsertSchema = createInsertSchema(account);
+export const AccountUpdateSchema = createUpdateSchema(account);
+
+export type Account = z.infer<typeof AccountSelectSchema>;
+export type AccountInsert = typeof account.$inferInsert;
+
 export const verification = sqliteTable("verification", {
   id: text("id").primaryKey(),
   identifier: text("identifier").notNull(),
@@ -74,15 +102,35 @@ export const verification = sqliteTable("verification", {
   updatedAt: integer("updated_at", { mode: "timestamp" }),
 });
 
+export const VerificationSelectSchema = createSelectSchema(verification);
+export const VerificationInsertSchema = createInsertSchema(verification);
+export const VerificationUpdateSchema = createUpdateSchema(verification);
+
+export type Verification = z.infer<typeof VerificationSelectSchema>;
+export type VerificationInsert = typeof verification.$inferInsert;
+
 export const organization = sqliteTable("organization", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
   slug: text("slug").unique(),
   logo: text("logo"),
-  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
-  updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(
+    () => sql`CURRENT_TIMESTAMP`
+  ),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(
+    () => sql`CURRENT_TIMESTAMP`
+  ),
   metadata: text("metadata"),
 });
+
+export const OrganizationSelectSchema = createSelectSchema(organization);
+export const OrganizationInsertSchema = createInsertSchema(organization, {
+  slug: z.string(),
+});
+export const OrganizationUpdateSchema = createUpdateSchema(organization);
+
+export type Organization = z.infer<typeof OrganizationSelectSchema>;
+export type OrganizationInsert = z.infer<typeof OrganizationInsertSchema>;
 
 export const member = sqliteTable("member", {
   id: text("id").primaryKey(),
@@ -97,6 +145,13 @@ export const member = sqliteTable("member", {
   updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
 });
 
+export const MemberSelectSchema = createSelectSchema(member);
+export const MemberInsertSchema = createInsertSchema(member);
+export const MemberUpdateSchema = createUpdateSchema(member);
+
+export type Member = z.infer<typeof MemberSelectSchema>;
+export type MemberInsert = typeof member.$inferInsert;
+
 export const invitation = sqliteTable("invitation", {
   id: text("id").primaryKey(),
   organizationId: text("organization_id")
@@ -110,54 +165,6 @@ export const invitation = sqliteTable("invitation", {
     .notNull()
     .references(() => user.id),
 });
-
-export const UserSelectSchema = createSelectSchema(user);
-export const UserInsertSchema = createInsertSchema(user);
-export const UserUpdateSchema = createUpdateSchema(user);
-
-export type User = z.infer<typeof UserSelectSchema>;
-export type UserInsert = typeof user.$inferInsert;
-
-export const SessionSelectSchemaCoerced = createSelectSchema(session, {
-  expiresAt: z.string(),
-  createdAt: z.string(),
-  updatedAt: z.string(),
-});
-
-export const SessionSelectSchema = createSelectSchema(session);
-export const SessionInsertSchema = createInsertSchema(session);
-export const SessionUpdateSchema = createUpdateSchema(session);
-
-export type Session = z.infer<typeof SessionSelectSchemaCoerced>;
-export type SessionInsert = typeof session.$inferInsert;
-
-export const AccountSelectSchema = createSelectSchema(account);
-export const AccountInsertSchema = createInsertSchema(account);
-export const AccountUpdateSchema = createUpdateSchema(account);
-
-export type Account = z.infer<typeof AccountSelectSchema>;
-export type AccountInsert = typeof account.$inferInsert;
-
-export const VerificationSelectSchema = createSelectSchema(verification);
-export const VerificationInsertSchema = createInsertSchema(verification);
-export const VerificationUpdateSchema = createUpdateSchema(verification);
-
-export type Verification = z.infer<typeof VerificationSelectSchema>;
-export type VerificationInsert = typeof verification.$inferInsert;
-
-export const OrganizationSelectSchema = createSelectSchema(organization);
-export const OrganizationInsertSchema = createInsertSchema(organization);
-export const OrganizationUpdateSchema = createUpdateSchema(organization);
-
-export type Organization = z.infer<typeof OrganizationSelectSchema>;
-export type OrganizationInsert = typeof organization.$inferInsert;
-
-export const MemberSelectSchema = createSelectSchema(member);
-export const MemberInsertSchema = createInsertSchema(member);
-export const MemberUpdateSchema = createUpdateSchema(member);
-
-export type Member = z.infer<typeof MemberSelectSchema>;
-export type MemberInsert = typeof member.$inferInsert;
 
 export const InvitationSelectSchema = createSelectSchema(invitation);
 export const InvitationInsertSchema = createInsertSchema(invitation);

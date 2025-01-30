@@ -41,6 +41,7 @@
     "@react-email/components": "0.0.32",
     "@react-email/render": "1.0.4",
     "@react-email/tailwind": "1.0.4",
+    "@scaleway/random-name": "^5.1.1",
     "@t3-oss/env-nextjs": "^0.12.0",
     "@tanstack/react-query": "^5.65.1",
     "@tanstack/react-query-devtools": "^5.65.1",

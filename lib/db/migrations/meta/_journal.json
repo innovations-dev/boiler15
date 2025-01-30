@@ -22,6 +22,34 @@
       "when": 1738193107625,
       "tag": "0002_spooky_trish_tilby",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1738260223518,
+      "tag": "0003_daffy_roughhouse",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1738260318946,
+      "tag": "0004_absent_dragon_lord",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1738261616059,
+      "tag": "0005_dusty_blindfold",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1738263956825,
+      "tag": "0006_sturdy_luckman",
+      "breakpoints": true
     }
   ]
 }
