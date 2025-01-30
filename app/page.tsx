@@ -13,9 +13,16 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
+// Add metadata export for better SEO
+export const metadata = {
+  title: "Next.js 15 Boilerplate for Modern Web Apps",
+  description:
+    "Production-ready template with everything you need to build fast, modern, and scalable web applications.",
+};
+
 export default function Page() {
   return (
-    <div className="my-24">
+    <main className="my-24">
       <section className="container mx-auto px-4 pb-16 pt-20 text-center">
         <h1 className="mx-auto mb-6 max-w-[800px] text-4xl font-bold tracking-tight sm:text-6xl">
           Next.js 15 Boilerplate for Modern Web Apps
@@ -25,10 +32,11 @@ export default function Page() {
           modern, and scalable web applications.
         </p>
         <div className="flex items-center justify-center gap-4">
-          {/* <Button */}
           <Link
             href="https://github.com/innovations-dev/boiler15"
             target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Star project on GitHub"
             className={cn(
               buttonVariants({ variant: "outline", size: "lg" }),
               "gap-2"
@@ -48,15 +56,27 @@ export default function Page() {
             </svg>
             Star on GitHub
           </Link>
-          <Button variant="outline" size="lg" className="gap-2">
+          <Link
+            href="/docs"
+            className={cn(
+              buttonVariants({ variant: "outline", size: "lg" }),
+              "gap-2"
+            )}
+          >
             Documentation
-            <ArrowRight className="h-4 w-4" />
-          </Button>
+            <ArrowRight className="h-4 w-4" aria-hidden="true" />
+          </Link>
         </div>
       </section>
 
       {/* Features Grid */}
-      <section className="container mx-auto max-w-6xl px-4 py-16">
+      <section
+        className="container mx-auto max-w-6xl px-4 py-16"
+        aria-labelledby="features-heading"
+      >
+        <h2 id="features-heading" className="sr-only">
+          Features
+        </h2>
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           <Card className="border-zinc-800 bg-zinc-900/50 p-6">
             <Zap className="mb-4 h-10 w-10 text-white" />
@@ -109,8 +129,13 @@ export default function Page() {
       </section>
 
       {/* Tech Stack Section */}
-      <div className="container mx-auto mt-20 max-w-5xl text-center">
-        <h2 className="text-3xl font-bold">Built With Modern Stack</h2>
+      <section
+        className="container mx-auto mt-20 max-w-5xl text-center"
+        aria-labelledby="tech-stack-heading"
+      >
+        <h2 id="tech-stack-heading" className="text-3xl font-bold">
+          Built With Modern Stack
+        </h2>
         <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
           <TechItem title="Next.js 15" />
           <TechItem title="TypeScript" />
@@ -125,27 +150,36 @@ export default function Page() {
           <TechItem title="Resend" />
           <TechItem title="Nuqs" />
         </div>
-      </div>
+      </section>
+
       {/* CTA Section */}
-      <div className="mt-20 text-center">
-        <h2 className="text-3xl font-bold">Ready to Get Started?</h2>
+      <section className="mt-20 text-center" aria-labelledby="cta-heading">
+        <h2 id="cta-heading" className="text-3xl font-bold">
+          Ready to Get Started?
+        </h2>
         <p className="mt-4 text-muted-foreground">
           Clone the repository and start building your next project.
         </p>
         <div className="mt-8">
-          <Button size="lg">
+          <Link
+            href="/docs/getting-started"
+            className={cn(buttonVariants({ size: "lg" }), "gap-2")}
+          >
             Get Started
-            <ArrowRight className="ml-2" />
-          </Button>
+            <ArrowRight className="ml-2" aria-hidden="true" />
+          </Link>
         </div>
-      </div>
-    </div>
+      </section>
+    </main>
   );
 }
 
 function TechItem({ title }: { title: string }) {
   return (
-    <div className="flex items-center justify-center rounded-lg border bg-muted p-4">
+    <div
+      className="flex items-center justify-center rounded-lg border bg-muted p-4"
+      role="listitem"
+    >
       <span className="text-sm font-medium">{title}</span>
     </div>
   );
