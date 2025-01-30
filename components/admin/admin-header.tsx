@@ -1,7 +1,9 @@
+import { headers } from "next/headers";
+
 import { auth } from "@/lib/auth";
 
 export async function AdminHeader() {
-  const session = await auth.api.getSession({ headers: new Headers() });
+  const session = await auth.api.getSession({ headers: await headers() });
 
   return (
     <div className="flex items-center justify-between border-b pb-4">
