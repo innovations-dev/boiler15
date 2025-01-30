@@ -2,6 +2,7 @@
 
 import { Suspense } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { navigationRoutes } from "@/config/routes.config";
@@ -10,13 +11,8 @@ import { cn } from "@/lib/utils";
 import { Spinner } from "../spinner";
 import { Button, buttonVariants } from "../ui/button";
 
-function UserNavContent({
-  items,
-  className,
-}: {
-  items: typeof navigationRoutes.auth;
-  className?: string;
-}) {
+function UserNavContent({ items }: { items: typeof navigationRoutes.auth }) {
+  const router = useRouter();
   const { isPending, error, data } = authClient.useSession();
 
   if (isPending) {
@@ -33,7 +29,10 @@ function UserNavContent({
     return (
       <Button
         className={cn(buttonVariants({ variant: "ghost" }))}
-        onClick={() => authClient.signOut()}
+        onClick={() => {
+          authClient.signOut();
+          router.push("/");
+        }}
       >
         Sign out
       </Button>
@@ -57,16 +56,10 @@ function UserNavContent({
   );
 }
 
-export function UserNav({
-  items,
-  className,
-}: {
-  items: typeof navigationRoutes.auth;
-  className?: string;
-}) {
+export function UserNav({ items }: { items: typeof navigationRoutes.auth }) {
   return (
     <Suspense fallback={<Spinner />}>
-      <UserNavContent items={items} className={className} />
+      <UserNavContent items={items} />
     </Suspense>
   );
 }
