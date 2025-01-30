@@ -10,6 +10,11 @@ export default {
   ],
   theme: {
     extend: {
+      screens: {
+        safari: {
+          raw: "(min-color-index:0) and (-webkit-min-device-pixel-ratio:0)",
+        },
+      },
       fontFamily: {
         sans: ["var(--font-geist-sans)"],
         mono: ["var(--font-geist-mono)"],

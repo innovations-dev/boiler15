@@ -30,7 +30,7 @@ export function UsersListSkeleton() {
               <Skeleton className="h-4 w-[100px]" />
             </TableCell>
             <TableCell>
-              <Skeleton className="h-4 w-[100px]" />
+              <Skeleton className="h-6 w-[60px] rounded-full" />
             </TableCell>
             <TableCell>
               <Skeleton className="h-4 w-[100px]" />

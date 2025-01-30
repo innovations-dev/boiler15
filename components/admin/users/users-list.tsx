@@ -42,10 +42,14 @@ export function UsersList() {
       </TableHeader>
       <TableBody>
         {users?.data?.users?.map((user) => (
-          <TableRow key={user.id}>
-            <TableCell>{user.email}</TableCell>
-            <TableCell>{user.role}</TableCell>
-            {/* <TableCell>{user.status}</TableCell> */}
+          <TableRow key={user.id} className="text-center">
+            <TableCell className="font-medium">{user.email}</TableCell>
+            <TableCell>{user.role || "user"}</TableCell>
+            <TableCell>
+              <span className="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ring-1 ring-inset">
+                Active
+              </span>
+            </TableCell>
             <TableCell>
               {new Date(user.createdAt).toLocaleDateString()}
             </TableCell>
