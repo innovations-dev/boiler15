@@ -86,7 +86,7 @@ const HeaderRoot = React.forwardRef<HTMLElement, HeaderRootProps>(
         ref={ref}
         className={cn(
           headerVariants({ variant, size, position, sticky }),
-          "isolate",
+          "fixed left-0 right-0 top-0 isolate",
           className
         )}
         {...props}

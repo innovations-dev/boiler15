@@ -10,12 +10,11 @@ import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import { useMagicLink } from "@/hooks/auth/use-magic-link";
 import { magicLinkSchema, type MagicLinkInput } from "@/lib/schemas/auth";
+import { FloatingLabelInput } from "../floating-input";
 
 export function MagicLinkForm() {
   const { mutate: sendMagicLink, isPending } = useMagicLink();
@@ -38,12 +37,11 @@ export function MagicLinkForm() {
           control={form.control}
           name="email"
           render={({ field }) => (
-            <FormItem>
-              <FormLabel>Email</FormLabel>
+            <FormItem className="pt-2">
               <FormControl>
-                <Input
+                <FloatingLabelInput
+                  label="Email"
                   type="email"
-                  placeholder="name@example.com"
                   {...field}
                   disabled={isPending}
                 />

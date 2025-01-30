@@ -18,7 +18,7 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="container mx-auto flex min-h-screen gap-8 px-4 py-8">
+    <div className="container mx-auto mt-24 flex min-h-screen gap-8 px-4 py-8">
       <aside className="w-64 shrink-0">
         <Suspense fallback={<div>Loading...</div>}>
           <DashboardNav />

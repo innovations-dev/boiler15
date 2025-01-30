@@ -2,7 +2,7 @@
 
 import { Suspense } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 import { navigationRoutes } from "@/config/routes.config";
@@ -14,7 +14,7 @@ import { Button, buttonVariants } from "../ui/button";
 function UserNavContent({ items }: { items: typeof navigationRoutes.auth }) {
   const router = useRouter();
   const { isPending, error, data } = authClient.useSession();
-
+  const pathname = usePathname();
   if (isPending) {
     return <Spinner />;
   }
@@ -46,7 +46,10 @@ function UserNavContent({ items }: { items: typeof navigationRoutes.auth }) {
             <Link
               key={item.name}
               href={item.href}
-              className={cn(buttonVariants({ size: "sm", variant: "ghost" }))}
+              className={cn(
+                buttonVariants({ size: "sm", variant: "ghost" }),
+                pathname === item.href && "bg-accent"
+              )}
             >
               {item.name}
             </Link>

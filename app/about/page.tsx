@@ -86,7 +86,7 @@ export default function AboutPage() {
             >
               <div className="relative aspect-square">
                 <Image
-                  // src={`https://avatar.vercel.sh/${i}.png`}
+                  src={`https://picsum.photos/seed/${i}/400`}
                   alt={`Team Member ${i}`}
                   fill
                   className="object-cover"

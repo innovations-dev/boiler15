@@ -39,7 +39,7 @@ export default function RootLayout({
       <body
         className={cn(
           `${geistSans.variable} ${geistMono.variable}`,
-          "relative min-h-screen flex-col antialiased",
+          "relative min-h-dvh flex-col antialiased",
           "scroll-smooth"
         )}
       >
@@ -58,7 +58,7 @@ export default function RootLayout({
                 Skip to main content
               </a>
               <SiteHeader />
-              <main id="main-content" className="relative mt-12 w-full flex-1">
+              <main id="main-content" className="relative w-full flex-1">
                 {children}
               </main>
               <div className="absolute bottom-4 right-4">
