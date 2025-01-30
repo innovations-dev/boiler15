@@ -13,6 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { teamMemberSelectSchema } from "@/lib/db/queries/types";
 import { TeamListSkeleton } from "./team-list-skeleton";
 import { TeamMemberActions } from "./team-member-actions";
 
@@ -21,6 +22,8 @@ export function TeamList() {
     queryKey: ["team-members"],
     queryFn: () => getTeamMembersAction(),
   });
+
+  const parsedMembers = members?.map((m) => teamMemberSelectSchema.parse(m));
 
   if (isLoading) {
     return <TeamListSkeleton />;
@@ -38,7 +41,7 @@ export function TeamList() {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {members?.map((member) => (
+        {parsedMembers?.map((member) => (
           <TableRow key={member.id}>
             <TableCell>
               <div className="flex items-center gap-3">

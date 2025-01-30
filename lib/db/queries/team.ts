@@ -1,4 +1,6 @@
-import { and, desc, eq } from "drizzle-orm";
+"use server";
+
+import { desc, eq } from "drizzle-orm";
 
 import { db } from "@/lib/db";
 import { member, organization, user } from "@/lib/db/schema";
@@ -9,6 +11,7 @@ export async function getTeamMembers(organizationId: string) {
       id: member.id,
       role: member.role,
       createdAt: member.createdAt,
+      updatedAt: member.updatedAt,
       user: {
         id: user.id,
         name: user.name,

@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/table";
 import { authClient } from "@/lib/auth/auth-client";
 import { USER_ROLE_LABELS, USER_ROLES } from "@/lib/constants/roles";
+import { UserSelectSchema } from "@/lib/db/schema";
 import { PermissionActions } from "./permission-actions";
 import { PermissionsListSkeleton } from "./permissions-list-skeleton";
 
@@ -21,13 +22,19 @@ export function PermissionsList() {
     queryFn: () =>
       authClient.admin.listUsers({
         query: {
-          limit: 100,
+          limit: 10,
         },
       }),
   });
 
   if (isLoading) {
     return <PermissionsListSkeleton />;
+  }
+
+  const parsedUsers = UserSelectSchema.safeParse(users?.data?.users);
+  if (!parsedUsers.success) {
+    console.log(parsedUsers.error.message);
+    return <div>Error loading users</div>;
   }
 
   // Group users by role

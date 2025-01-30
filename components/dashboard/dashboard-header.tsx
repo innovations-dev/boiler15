@@ -1,10 +1,18 @@
 import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 
 import { auth } from "@/lib/auth";
+import { UserSelectSchema } from "@/lib/db/schema";
 import { OrganizationSwitcher } from "./organization-switcher";
 
 export async function DashboardHeader() {
   const session = await auth.api.getSession({ headers: await headers() });
+
+  const parsedUser = UserSelectSchema.safeParse(session?.user);
+  if (!parsedUser.success) {
+    console.log(parsedUser.error.message);
+    redirect("/sign-in");
+  }
 
   return (
     <div className="flex items-center justify-between border-b pb-4">

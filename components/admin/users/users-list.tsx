@@ -11,6 +11,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { authClient } from "@/lib/auth/auth-client";
+import { UserSelectSchema } from "@/lib/db/schema";
 import { UserActions } from "./user-actions";
 import { UsersListSkeleton } from "./users-list-skeleton";
 
@@ -24,6 +25,8 @@ export function UsersList() {
         },
       }),
   });
+
+  const parsedUsers = users?.data?.users.map((u) => UserSelectSchema.parse(u));
 
   if (isLoading) {
     return <UsersListSkeleton />;
@@ -41,7 +44,7 @@ export function UsersList() {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {users?.data?.users?.map((user) => (
+        {parsedUsers?.map((user) => (
           <TableRow key={user.id} className="text-center">
             <TableCell className="font-medium">{user.email}</TableCell>
             <TableCell>{user.role || "user"}</TableCell>

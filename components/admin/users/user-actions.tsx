@@ -23,6 +23,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { authClient } from "@/lib/auth/auth-client";
+import { UserSelectSchema } from "@/lib/db/schema";
 import { cn } from "@/lib/utils";
 
 interface ConfirmationDialogProps {
@@ -87,7 +88,8 @@ export function UserActions({ user }: { user: any }) {
         userId: user.id,
         role,
       }),
-    onSuccess: () => {
+    onSuccess: ({ data }) => {
+      UserSelectSchema.parse(data);
       queryClient.invalidateQueries({ queryKey: ["users"] });
       toast.success("Role updated successfully");
       setDialogOpen(false);

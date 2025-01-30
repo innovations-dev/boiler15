@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/table";
 import { authClient } from "@/lib/auth/auth-client";
 import { UserRole } from "@/lib/constants/roles";
+import { UserSelectSchema } from "@/lib/db/schema";
 
 export function UserRoleList({ role }: { role: UserRole }) {
   const { data: users, isLoading } = useQuery({
@@ -20,12 +21,12 @@ export function UserRoleList({ role }: { role: UserRole }) {
     queryFn: () =>
       authClient.admin.listUsers({
         query: {
-          limit: 100,
-          searchValue: role,
-          searchField: "name", // TODO: change to role when field is available for search
+          limit: 10,
         },
       }),
   });
+
+  const parsedUsers = users?.data?.users.map((u) => UserSelectSchema.parse(u));
 
   if (isLoading) {
     return (
@@ -47,7 +48,7 @@ export function UserRoleList({ role }: { role: UserRole }) {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {users?.data?.users
+        {parsedUsers
           ?.filter((user) => user.role === role)
           .map((user) => (
             <TableRow key={user.id}>

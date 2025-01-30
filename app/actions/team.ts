@@ -4,14 +4,22 @@ import { headers } from "next/headers";
 
 import { auth } from "@/lib/auth";
 import { getTeamMembers } from "@/lib/db/queries/team";
+import { SessionSelectSchema } from "@/lib/db/schema";
 
 export async function getTeamMembersAction() {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
-  if (!session?.session?.activeOrganizationId) {
-    throw new Error("No active organization");
+
+  const parsedSession = SessionSelectSchema.safeParse(session?.session);
+  if (!parsedSession.success) {
+    console.error(parsedSession.error);
+    throw new Error("Invalid session /team, action");
   }
 
-  return getTeamMembers(session.session.activeOrganizationId);
+  if (!parsedSession.data.activeOrganizationId) {
+    return []; // TODO: throw error if organization logic updates
+  }
+
+  return getTeamMembers(parsedSession.data.activeOrganizationId);
 }
