@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 
-import { CreateOrganizationButton } from "@/components/admin/organizations/create-organization-button";
+import { OrganizationSwitcher } from "@/components/admin/organizations/organization-switcher";
 import { OrganizationsList } from "@/components/admin/organizations/organizations-list";
 import { OrganizationsListSkeleton } from "@/components/admin/organizations/organizations-list-skeleton";
 
@@ -14,7 +14,7 @@ export default function OrganizationsPage() {
             Manage organizations and their members
           </p>
         </div>
-        <CreateOrganizationButton />
+        <OrganizationSwitcher />
       </div>
       <Suspense fallback={<OrganizationsListSkeleton />}>
         <OrganizationsList />
