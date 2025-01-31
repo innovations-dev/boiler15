@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { format } from "date-fns";
 
 import {
   Table,
@@ -24,6 +25,14 @@ export function OrganizationsList() {
     return <OrganizationsListSkeleton />;
   }
 
+  // Create a Map to store unique organizations by ID
+  const uniqueOrganizations = new Map();
+  organizations?.data?.forEach((org) => {
+    if (!uniqueOrganizations.has(org.id)) {
+      uniqueOrganizations.set(org.id, org);
+    }
+  });
+
   return (
     <Table>
       <TableHeader>
@@ -35,12 +44,12 @@ export function OrganizationsList() {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {organizations?.data?.map((org) => (
+        {Array.from(uniqueOrganizations.values()).map((org) => (
           <TableRow key={org.id}>
             <TableCell className="font-medium">{org.name}</TableCell>
             <TableCell>{org.slug || 0}</TableCell>
             <TableCell>
-              {new Date(org.createdAt).toLocaleDateString()}
+              {format(new Date(org.createdAt), "MMM d, yyyy")}
             </TableCell>
             <TableCell className="text-right">
               <OrganizationActions organization={org} />
