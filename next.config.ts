@@ -22,7 +22,5 @@ const nextConfig: NextConfig = {
   },
 };
 
-// Remove the options object completely since it's causing serialization issues
-const withMDX = createMDX();
-
-export default withMDX(nextConfig);
+// Merge MDX config with Next.js config
+export default createMDX()(nextConfig);
