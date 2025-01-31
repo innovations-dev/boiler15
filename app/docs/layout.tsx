@@ -1,9 +1,7 @@
 import { Metadata } from "next";
-import { redirect } from "next/navigation";
 
 import { DocsSidebar } from "@/components/docs/docs-sidebar";
 import { generateMetadata } from "@/config/meta.config";
-import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = await generateMetadata({
   title: "Documentation",
@@ -16,11 +14,6 @@ interface DocsLayoutProps {
 }
 
 export default function DocsLayout({ children }: DocsLayoutProps) {
-  // Redirect /docs to /docs/getting-started/introduction
-  if (typeof window !== "undefined" && window.location.pathname === "/docs") {
-    redirect("/docs/getting-started/introduction");
-  }
-
   return (
     <div className="container relative mx-auto mt-24 flex-1 items-start md:grid md:grid-cols-[220px_minmax(0,1fr)] md:gap-6 lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-10">
       <aside className="fixed top-14 z-30 -ml-2 hidden h-[calc(100vh-3.5rem)] w-full shrink-0 overflow-y-auto border-r md:sticky md:block">
