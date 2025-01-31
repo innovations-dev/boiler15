@@ -92,7 +92,7 @@ const HeaderRoot = React.forwardRef<HTMLElement, HeaderRootProps>(
         {...props}
       >
         <Wrapper {...wrapperProps}>
-          <div className="flex h-full items-center justify-between gap-4 px-4 py-4">
+          <div className="flex min-h-16 items-center justify-between gap-4 px-4">
             {children}
           </div>
         </Wrapper>
