@@ -15,14 +15,14 @@ interface PageProps {
 }
 
 export default async function DocPage({ params }: PageProps) {
-  const slugs = await params?.slug;
-  if (!slugs?.length) {
+  const resolvedParams = await params;
+  if (!resolvedParams?.slug?.length) {
     notFound();
   }
 
   try {
     const { default: MDXContent } = await import(
-      `../../../content/docs/${slugs.join("/")}/page.mdx`
+      `../../../content/docs/${resolvedParams.slug.join("/")}/page.mdx`
     );
 
     return (

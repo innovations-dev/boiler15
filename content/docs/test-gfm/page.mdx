@@ -1,0 +1,41 @@
+import { default as DocLayout } from "../../../app/docs/_components/mdx-layout";
+
+export const metadata = {
+  title: "GFM Test",
+  description: "Testing GitHub Flavored Markdown features",
+  section: "Tests",
+  order: 1,
+};
+
+export default function TestGfmPage({ children }) {
+  return <DocLayout metadata={metadata}>{children}</DocLayout>;
+}
+
+## GFM Features Test
+
+### Tables
+
+| Feature       | Status | Notes                    |
+| ------------- | ------ | ------------------------ |
+| Tables        | ✅     | Supported via remark-gfm |
+| Strikethrough | ✅     | ~~strikethrough~~        |
+| Task Lists    | ✅     | See below                |
+
+### Task Lists
+
+- [x] Configure remark-gfm
+- [x] Test tables
+- [x] Test strikethrough
+- [ ] Verify all features work
+
+### Autolinks
+
+Visit https://nextjs.org for more information.
+
+### Footnotes
+
+Here's a note[^1] and another[^2].
+
+[^1]: First footnote
+
+[^2]: Second footnote

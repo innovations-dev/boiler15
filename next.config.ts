@@ -1,5 +1,4 @@
 import type { NextConfig } from "next";
-import createMDX from "@next/mdx";
 
 import { env } from "@/env";
 
@@ -18,9 +17,11 @@ const nextConfig: NextConfig = {
     ],
   },
   experimental: {
-    mdxRs: true,
+    mdxRs: {
+      // Enable GitHub Flavored Markdown
+      mdxType: "gfm",
+    },
   },
 };
 
-// Merge MDX config with Next.js config
-export default createMDX()(nextConfig);
+export default nextConfig;
