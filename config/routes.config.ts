@@ -3,12 +3,12 @@ export const navigationRoutes = {
     { name: "About", href: "/about" },
     { name: "Admin", href: "/admin" },
     { name: "Dashboard", href: "/dashboard" },
-    { name: "Docs", href: "/docs" },
+    { name: "DeveloperDocs", href: "/docs" },
   ],
   product: [
     { name: "Features", href: "/features" },
     { name: "Pricing", href: "/pricing" },
-    { name: "Documentation", href: "/docs" },
+    { name: "User Documentation", href: "/docs" },
   ],
   auth: [
     { name: "Sign in", href: "/sign-in" },

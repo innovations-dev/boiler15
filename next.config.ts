@@ -6,7 +6,7 @@ import { env } from "@/env";
 const _env = env;
 
 const nextConfig: NextConfig = {
-  // Configure `pageExtensions` to include markdown and MDX files
+  // Configure `pageExtensions` to include MDX files only (removing plain md)
   pageExtensions: ["js", "jsx", "md", "mdx", "ts", "tsx"],
   images: {
     remotePatterns: [
@@ -17,11 +17,21 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  // Add experimental mdxRs for better performance
+  experimental: {
+    mdxRs: true,
+  },
 };
 
 const withMDX = createMDX({
-  // Add markdown plugins here, as desired
-  options: {},
+  options: {
+    // Enable source maps in development
+    jsx: true,
+    // Optionally, add any remark or rehype plugins here
+    // but keep it minimal as plugins can impact performance
+    remarkPlugins: [],
+    rehypePlugins: [],
+  },
 });
 
 export default withMDX(nextConfig);
