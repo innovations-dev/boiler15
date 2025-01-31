@@ -1,4 +1,4 @@
-import React, { Fragment } from "react";
+import React from "react";
 import Link from "next/link";
 import type { MDXComponents } from "mdx/types";
 import { highlight } from "sugar-high";
@@ -12,12 +12,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
-
-// Wrapper to handle whitespace in table elements
-function TableWrapper({ children }: { children: React.ReactNode }) {
-  if (typeof children === "string") return null;
-  return <Fragment>{children}</Fragment>;
-}
 
 export function useMDXComponents(components: MDXComponents): MDXComponents {
   return {
@@ -120,13 +114,13 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
       children,
       ...props
     }: React.ComponentPropsWithoutRef<"table">) => {
-      const childArray = React.Children.toArray(children).filter(
+      const cleanChildren = React.Children.toArray(children).filter(
         (child) => typeof child !== "string" || child.trim() !== ""
       );
       return (
         <div className="my-6 w-full overflow-y-auto">
           <Table className={className} {...props}>
-            {childArray}
+            {cleanChildren}
           </Table>
         </div>
       );
@@ -136,7 +130,7 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
       children,
       ...props
     }: React.ComponentPropsWithoutRef<"tr">) => {
-      const childArray = React.Children.toArray(children).filter(
+      const cleanChildren = React.Children.toArray(children).filter(
         (child) => typeof child !== "string" || child.trim() !== ""
       );
       return (
@@ -144,7 +138,7 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
           className={cn("border-b transition-colors", className)}
           {...props}
         >
-          {childArray}
+          {cleanChildren}
         </TableRow>
       );
     },
@@ -153,12 +147,12 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
       children,
       ...props
     }: React.ComponentPropsWithoutRef<"thead">) => {
-      const childArray = React.Children.toArray(children).filter(
+      const cleanChildren = React.Children.toArray(children).filter(
         (child) => typeof child !== "string" || child.trim() !== ""
       );
       return (
         <TableHeader className={className} {...props}>
-          {childArray}
+          {cleanChildren}
         </TableHeader>
       );
     },
@@ -167,12 +161,12 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
       children,
       ...props
     }: React.ComponentPropsWithoutRef<"tbody">) => {
-      const childArray = React.Children.toArray(children).filter(
+      const cleanChildren = React.Children.toArray(children).filter(
         (child) => typeof child !== "string" || child.trim() !== ""
       );
       return (
         <TableBody className={className} {...props}>
-          {childArray}
+          {cleanChildren}
         </TableBody>
       );
     },
@@ -229,27 +223,43 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
       );
     },
     // Links
-    a: ({ className, href, ...props }: React.ComponentPropsWithoutRef<"a">) => {
-      if (href?.startsWith("/")) {
+    a: ({
+      className,
+      href,
+      children,
+      ...props
+    }: React.ComponentPropsWithoutRef<"a"> & {
+      children?: React.ReactNode;
+    }) => {
+      const styles = cn("font-medium underline underline-offset-4", className);
+
+      // Handle absolute URLs that might be written as [url](url) in MDX
+      if (href && typeof children === "string" && href === children) {
         return (
-          <Link
-            className={cn(
-              "font-medium underline underline-offset-4",
-              className
-            )}
-            href={href}
-            {...props}
-          />
+          <span className={styles}>
+            <code>{href}</code>
+          </span>
         );
       }
+
+      if (href?.startsWith("/")) {
+        return (
+          <Link href={href} className={styles} {...props}>
+            {children}
+          </Link>
+        );
+      }
+
       return (
         <a
-          className={cn("font-medium underline underline-offset-4", className)}
+          href={href}
+          className={styles}
           target="_blank"
           rel="noopener noreferrer"
-          href={href}
           {...props}
-        />
+        >
+          {children}
+        </a>
       );
     },
     ...components,
