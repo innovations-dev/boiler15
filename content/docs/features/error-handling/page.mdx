@@ -5,78 +5,112 @@ export const metadata = {
   order: 6,
 };
 
+# Error Handling
+
 Our error handling approach focuses on providing clear feedback to users while maintaining type safety and proper error logging.
 
 ## Overview
 
-- 🔒 **Authentication Errors**: Better-Auth error handling
-- ✅ **Validation**: Zod schema validation
-- 🌐 **API Errors**: Consistent API error responses
-- 🎨 **UI Feedback**: Toast notifications with Sonner
-- 🔄 **Query Errors**: React Query error handling
+- 🔒 **Type-Safe Errors**: Centralized error types and utilities
+- 🌐 **API Error Handling**: Consistent error responses with status codes
+- 🔄 **Query Error Management**: React Query error handling with toast notifications
+- ✅ **Form Validation**: Zod schema validation with react-hook-form
+- 🎯 **Error Boundaries**: Next.js error boundaries for graceful UI recovery
+- 🚦 **Loading States**: Suspense boundaries with skeleton loaders
 
-## Authentication Error Handling
+## Error Types
 
-Better-Auth provides built-in error handling that we utilize in `lib/auth.ts`:
+We maintain a set of type-safe error classes in `lib/query/error.ts`:
 
 ```typescript
-export const auth = betterAuth({
-  // ...
-  fetchOptions: {
-    credentials: "include",
-    onError: (error: BetterAuthAPIError) => {
-      console.error("BetterAuth error:", error);
-      throw new Error(error.message);
-    },
-  },
-});
+export class ApiError extends Error {
+  constructor(
+    public statusCode: number,
+    message: string
+  ) {
+    super(message);
+    this.name = "ApiError";
+  }
+}
+
+export class UnauthorizedError extends ApiError {
+  constructor(message: string) {
+    super(401, message);
+    this.name = "UnauthorizedError";
+  }
+}
+
+// Additional typed errors: ForbiddenError, NotFoundError, BadRequestError
 ```
 
-## API Route Error Handling
+## API Error Handling
 
-We use try-catch patterns with type-safe error responses:
+We use a consistent pattern for handling API errors:
 
 ```typescript
-// Example from an API route
-try {
-  const json = await request.json();
-  const body = createOrgSchema.safeParse(json);
+// lib/api/error.ts
+export const handleApiError = (error: unknown): Response => {
+  console.error("API Error:", error);
 
-  if (!body.success) {
-    return Response.json({ error: "Invalid request data" }, { status: 400 });
+  if (error instanceof ApiError) {
+    return Response.json(
+      { code: error.code, message: error.message },
+      { status: error.status }
+    );
   }
 
-  // Process request...
-} catch (error) {
-  console.error("Failed to process request:", error);
-  return Response.json({ error: "Internal server error" }, { status: 500 });
-}
+  if (error instanceof z.ZodError) {
+    return Response.json(
+      {
+        code: "VALIDATION_ERROR",
+        message: "Invalid request data",
+        errors: error.errors,
+      },
+      { status: 400 }
+    );
+  }
+
+  return Response.json(
+    { code: "INTERNAL_ERROR", message: "Internal server error" },
+    { status: 500 }
+  );
+};
 ```
 
 ## Query Error Handling
 
-We handle React Query errors with toast notifications:
+Our custom hooks handle query errors with proper error handling and toast notifications:
 
 ```typescript
-// Example from components/admin/organizations/organizations-list.tsx
-const { data: organizations, isLoading } = useQuery({
-  queryKey: ["organizations"],
-  queryFn: () => authClient.organization.list(),
-  onError: (error) => {
-    toast.error("Failed to load organizations");
-    console.error("Query error:", error);
-  },
-});
+// Example from hooks/organization/use-organizations.ts
+export function useOrganizations() {
+  return useQuery<Organization[]>({
+    queryKey: queryKeys.organizations.list(),
+    queryFn: async () => {
+      const response = await getOrganizationsAction();
+      if (response.error) {
+        throw new Error(response.error.message);
+      }
+      return response.data ?? [];
+    },
+    meta: {
+      onError: (error: Error) => {
+        toast.error(`Failed to load organizations: ${error.message}`);
+      },
+    },
+  });
+}
 ```
 
 ## Form Validation
 
-We use Zod for form validation with react-hook-form:
+We use Zod with react-hook-form for type-safe form validation:
 
 ```typescript
+// Example form validation
 const createOrganizationSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  slug: z.string().min(1, "Slug is required"),
+  name: z.string().min(2, "Name must be at least 2 characters"),
+  slug: z.string().min(2, "Slug must be at least 2 characters"),
 });
 
 export function CreateOrganizationForm() {
@@ -84,22 +118,35 @@ export function CreateOrganizationForm() {
     resolver: zodResolver(createOrganizationSchema),
   });
 
-  // Form error states are handled automatically through
-  // react-hook-form and displayed using Form.Message
+  return (
+    <Form {...form}>
+      <FormField
+        control={form.control}
+        name="name"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Name</FormLabel>
+            <FormControl>
+              <Input {...field} />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+    </Form>
+  );
 }
 ```
 
-## Next.js Error Handling
+## Error Boundaries
 
-### Error Boundaries
+We implement error boundaries at different levels:
 
-Next.js 13+ provides built-in error boundaries. Create an `error.tsx` file in any route segment to handle errors:
+### Global Error Boundary
 
 ```typescript
-// app/error.tsx
-"use client";
-
-export default function Error({
+// app/global-error.tsx
+export default function GlobalError({
   error,
   reset,
 }: {
@@ -107,31 +154,54 @@ export default function Error({
   reset: () => void;
 }) {
   return (
-    <div>
-      <h2>Something went wrong!</h2>
-      <button onClick={() => reset()}>Try again</button>
+    <div className="flex min-h-screen flex-col items-center justify-center">
+      <div className="space-y-4 text-center">
+        <h1 className="text-4xl font-bold">Something went wrong!</h1>
+        <p className="text-muted-foreground">
+          {error.message || "An error occurred. Please try again later."}
+        </p>
+        <Button onClick={() => reset()}>Try again</Button>
+      </div>
     </div>
   );
 }
 ```
 
-### Not Found Handling
-
-We use Next.js's `notFound()` function for handling 404 cases:
+### Route Error Boundaries
 
 ```typescript
-// Example from a dynamic route
-if (!data) {
-  notFound();
+// app/(admin)/admin/error.tsx
+export default function OrganizationsError({
+  error,
+  reset,
+}: {
+  error: Error & { digest?: string };
+  reset: () => void;
+}) {
+  useEffect(() => {
+    console.error(error);
+  }, [error]);
+
+  return (
+    <Alert variant="destructive">
+      <AlertCircle className="h-4 w-4" />
+      <AlertTitle>Error loading organizations</AlertTitle>
+      <AlertDescription className="flex items-center gap-x-2">
+        An error occurred. Please try again.
+        <Button variant="outline" size="sm" onClick={() => reset()}>
+          Try again
+        </Button>
+      </AlertDescription>
+    </Alert>
+  );
 }
 ```
 
 ## Loading States
 
-We handle loading states with suspense boundaries and skeletons:
+We handle loading states with Suspense and skeleton components:
 
 ```typescript
-// Example from app/(admin)/admin/organizations/page.tsx
 export default function OrganizationsPage() {
   return (
     <div className="space-y-6">
@@ -143,58 +213,39 @@ export default function OrganizationsPage() {
 }
 ```
 
-## Future Improvements Roadmap
-
-1. **Error Logging Service**
-
-   - Implement structured error logging
-   - Add error reporting service (e.g., Sentry)
-   - Create error tracking dashboard
-
-2. **Enhanced Error Recovery**
-
-   - Add retry mechanisms for failed requests
-   - Implement offline support
-   - Add error boundary recovery strategies
-
-3. **Validation Enhancements**
-
-   - Create reusable validation schemas
-   - Add client-side validation patterns
-   - Implement real-time validation
-
-4. **User Feedback**
-
-   - Enhance error messages
-   - Add guided error recovery
-   - Implement progressive enhancement
-
-5. **Monitoring**
-   - Add performance monitoring
-   - Implement error tracking analytics
-   - Create error reporting dashboard
-
 ## Best Practices
 
-1. **Use Type-Safe Validation**
+1. **Type Safety First**
 
-   - Always use Zod schemas for validation
-   - Keep validation schemas in separate files
-   - Share schemas between client and server
+   - Use typed error classes for different error scenarios
+   - Implement type guards for error checking
+   - Maintain consistent error response types
 
-2. **Provide Clear User Feedback**
+2. **Graceful Error Recovery**
 
-   - Use toast notifications for temporary messages
-   - Show inline errors for form validation
-   - Include recovery actions when possible
+   - Implement retry mechanisms for transient failures
+   - Provide clear user feedback with recovery options
+   - Use error boundaries for UI isolation
 
-3. **Handle Loading States**
-   - Always include loading indicators
-   - Use skeleton loaders for better UX
-   - Handle edge cases (empty states, errors)
+3. **Error Logging**
+
+   - Log errors with appropriate context
+   - Include error codes and stack traces
+   - Maintain different log levels (info, warn, error)
+
+4. **User Experience**
+
+   - Show meaningful error messages
+   - Provide recovery actions when possible
+   - Handle loading states with skeleton loaders
+
+5. **API Error Handling**
+   - Use consistent error response format
+   - Include appropriate HTTP status codes
+   - Validate request data with Zod schemas
 
 ## Next Steps
 
-- [Form Handling](/docs/features/forms) - Learn about form validation
+- [Form Handling](/docs/features/forms) - Learn about form validation patterns
 - [API Routes](/docs/features/api-routes) - API implementation patterns
 - [Components](/docs/features/ui-components) - UI component patterns
