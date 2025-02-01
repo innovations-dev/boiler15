@@ -13,42 +13,53 @@ import {
 import { authClient } from "@/lib/auth/auth-client";
 import { USER_ROLE_LABELS, USER_ROLES } from "@/lib/constants/roles";
 import { UserSelectSchema } from "@/lib/db/schema";
+import { queryKeys } from "@/lib/query/keys";
 import { PermissionActions } from "./permission-actions";
 import { PermissionsListSkeleton } from "./permissions-list-skeleton";
 
 export function PermissionsList() {
   const { data: users, isLoading } = useQuery({
-    queryKey: ["users"],
-    queryFn: () =>
-      authClient.admin.listUsers({
-        query: {
-          limit: 10,
+    queryKey: queryKeys.users.all,
+    queryFn: async () => {
+      const response = await authClient.admin.listUsers({
+        query: { limit: 100 },
+      });
+      console.log("Raw API Response:", response); // Debug log 1
+      const parsedData = {
+        data: {
+          users:
+            response.data?.users.map((u) => UserSelectSchema.parse(u)) ?? [],
         },
-      }),
+      };
+      console.log("Parsed Data:", parsedData); // Debug log 2
+      return parsedData;
+    },
   });
 
   if (isLoading) {
     return <PermissionsListSkeleton />;
   }
 
-  const parsedUsers = UserSelectSchema.safeParse(users?.data?.users);
-  if (!parsedUsers.success) {
-    console.log(parsedUsers.error.message);
-    return <div>Error loading users</div>;
-  }
+  const parsedUsers = users?.data?.users ?? [];
+  console.log("Parsed Users:", parsedUsers); // Debug log 3
 
   // Group users by role
-  const usersByRole = users?.data?.users?.reduce(
+  const usersByRole = parsedUsers.reduce(
     (acc, user) => {
-      const role = user.role || "user";
+      const role = (
+        user.role || "USER"
+      ).toUpperCase() as keyof typeof USER_ROLES; // Ensure uppercase
       if (!acc[role]) {
         acc[role] = [];
       }
       acc[role].push(user);
       return acc;
     },
-    {} as Record<string, any[]>
+    {} as Record<keyof typeof USER_ROLES, any[]>
   );
+
+  console.log("Users By Role:", usersByRole); // Debug log 4
+  console.log("USER_ROLES:", USER_ROLES); // Debug log 5
 
   return (
     <Table>
@@ -73,11 +84,15 @@ export function PermissionsList() {
                   ? "Content moderation and user management"
                   : "Standard user access"}
             </TableCell>
-            <TableCell>{usersByRole?.[role]?.length || 0}</TableCell>
+            <TableCell>
+              {usersByRole[role as keyof typeof USER_ROLES]?.length || 0}
+            </TableCell>
             <TableCell className="text-right">
               <PermissionActions
                 role={role as keyof typeof USER_ROLES}
-                userCount={usersByRole?.[role]?.length || 0}
+                userCount={
+                  usersByRole[role as keyof typeof USER_ROLES]?.length || 0
+                }
               />
             </TableCell>
           </TableRow>

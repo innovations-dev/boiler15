@@ -8,6 +8,7 @@ export const queryKeys = {
   users: {
     all: ["users"] as const,
     byId: (id: string) => ["users", id] as const,
+    byRole: (role: string) => ["users", "role", role] as const,
   },
   sessions: {
     all: ["sessions"] as const,

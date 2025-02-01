@@ -7,7 +7,13 @@ import type { Organization } from "@/lib/db/schema";
 import { queryKeys } from "@/lib/query/keys";
 import { isQueryError } from "@/lib/query/types";
 
-export function useOrganizations() {
+interface UseOrganizationsOptions {
+  initialData?: Organization[];
+}
+
+export function useOrganizations({
+  initialData,
+}: UseOrganizationsOptions = {}) {
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -22,6 +28,7 @@ export function useOrganizations() {
     queryFn: getOrganizationsAction,
     staleTime: 1000 * 60, // 1 minute
     gcTime: 1000 * 60 * 5, // 5 minutes
+    initialData,
     meta: {
       onError: (error: unknown) => {
         const message = isQueryError(error)
