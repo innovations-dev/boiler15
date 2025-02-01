@@ -12,11 +12,11 @@ import {
 
 import { getInvitationEmail } from "@/emails/invitation";
 import { getMagicLinkEmail } from "@/emails/magic-link";
+import { getVerificationEmail } from "@/emails/verification-email";
 import { env } from "@/env";
 import * as schema from "@/lib/db/schema";
 import { db } from "./db";
 import {
-  EmailError,
   EmailRateLimitError,
   sendEmailWithRetry,
 } from "./email/services/send-email";
@@ -36,6 +36,22 @@ export const auth = betterAuth({
       console.error("BetterAuth error:", error);
       throw new Error(error.message);
     },
+  },
+  emailVerificaiton: {
+    sendVerificationEmail: async ({
+      user,
+      url,
+    }: {
+      user: User;
+      url: string;
+    }) => {
+      await sendEmailWithRetry({
+        to: user.email,
+        subject: "Verify your email",
+        html: await getVerificationEmail(url),
+      });
+    },
+    verificationEmailLifetime: 60 * 60 * 24, // 24 hours
   },
   plugins: [
     nextCookies(),
