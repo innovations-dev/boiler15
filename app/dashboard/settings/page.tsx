@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 
-import { SettingsList } from "@/components/dashboard/settings/settings-list";
-import { SettingsListSkeleton } from "@/components/dashboard/settings/settings-list-skeleton";
+import { SettingsList } from "@/app/dashboard/_components/settings/settings-list";
+import { SettingsListSkeleton } from "@/app/dashboard/_components/settings/settings-list-skeleton";
 
 export default function SettingsPage() {
   return (

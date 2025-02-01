@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 
 import { authClient } from "@/lib/auth/auth-client";
-import { Skeleton } from "../ui/skeleton";
+import { Skeleton } from "../../../components/ui/skeleton";
 
 export function RecentActivity() {
   const { data: sessions, isLoading } = useQuery({

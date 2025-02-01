@@ -20,22 +20,15 @@ cd my-app
 pnpm install
 ```
 
-3. Set up third-party services:
+## Environment Setup
 
-- [ ] You'll need to create a database. We're currently using [Turso](https://turso.tech/) for this. We'd be open to solving for other providers as well, if this project happens to be used by others.
-- [ ] You'll need a [Resend](https://resend.com) account as well.
-- [ ] You'll need a `CLIENT_ID` and `CLIENT_SECRET` from any third-party social/Oauth services you plan to use.
-
-4. Set up your environment variables:
-
-We use [@t3-oss/env](https://github.com/t3-oss/env) to manage and secure your environment variables.
-You can find the example `.env.sample` file in the root of the repository.
+1. Copy the environment variables template:
 
 ```bash
 cp .env.sample .env
 ```
 
-> **NOTE:** BetterAuth seems to look specifically for a .env file. If you know of a better way to get it to also respect the next.js convention of .env.local, please let us know.
+2. Configure your environment variables:
 
 ```bash
 App
@@ -55,14 +48,54 @@ TURSO_DATABASE_URL=your_turso_url
 TURSO_AUTH_TOKEN=your_turso_token
 ```
 
-5. Initialize the database:
+> **Note:** We use [@t3-oss/env](https://github.com/t3-oss/env) for type-safe environment variables.
+
+## Third-Party Services Setup
+
+### 1. Database Setup
+
+We use [Turso](https://turso.tech/) for our database. To set it up:
+
+1. Create a Turso account
+2. Install the Turso CLI:
+   ```bash
+   curl -sSfL https://get.tur.so/install.sh | bash
+   ```
+3. Create a new database:
+   ```bash
+   turso db create my-app
+   ```
+4. Get your credentials:
+   ```bash
+   turso db tokens create my-app
+   ```
+5. Update your `.env` file with the database URL and token
+
+### 2. Email Service
+
+1. Create a [Resend](https://resend.com) account
+2. Get your API key from the dashboard
+3. Add it to your `.env` file as `RESEND_API_KEY`
+
+### 3. Authentication
+
+1. Configure your OAuth providers (if using social login):
+   - GitHub: Create OAuth app at GitHub Developer Settings
+   - Google: Set up OAuth 2.0 credentials in Google Cloud Console
+2. Add the client IDs and secrets to your `.env` file
+
+## Database Migration
+
+Initialize and migrate your database:
 
 ```bash
 pnpm db:generate
 pnpm db:migrate
 ```
 
-6. Start the development server:
+## Development Server
+
+Start the development server:
 
 ```bash
 pnpm dev
@@ -88,26 +121,26 @@ Your application should now be running at `http://localhost:3000`
 
 ## Available Scripts
 
-- `pnpm dev` - Start development server
-- `pnpm build` - Build for production
-- `pnpm start` - Start production server
-- `pnpm lint` - Run ESLint
-- `pnpm format` - Format code with Prettier
-- `pnpm db:generate` - Generate database migrations
-- `pnpm db:migrate` - Run database migrations
-- `pnpm mail:dev` - Start email preview server
+## Development Tools
+
+### Recommended VS Code Extensions
+
+- ESLint
+- Prettier
+- Tailwind CSS IntelliSense
+- MDX
 
 ## Next Steps
 
-- [Set up authentication](/docs/authentication)
-- [Configure your database](/docs/database)
-- [Customize the UI](/docs/customization)
-- [Deploy your application](/docs/deployment)
+- [Authentication Setup](/docs/features/authentication)
+- [Database Guide](/docs/features/database)
+- [Email Configuration](/docs/features/email)
+- [UI Components](/docs/features/ui)
 
 ## Need Help?
 
-If you run into any issues or have questions:
+If you run into any issues:
 
-1. Check the [documentation](/docs)
+1. Check our [documentation](/docs)
 2. Open an issue on [GitHub](https://github.com/innovations-dev/boiler15/issues)
 3. Join our [Discord community](https://discord.gg/your-discord)

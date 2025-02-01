@@ -1,9 +1,9 @@
 import { Suspense } from "react";
 import { CreditCard, Package, Receipt } from "lucide-react";
 
-import { BillingForm } from "@/components/dashboard/billing/billing-form";
-import { BillingInfo } from "@/components/dashboard/billing/billing-info";
-import { BillingUsage } from "@/components/dashboard/billing/billing-usage";
+import { BillingForm } from "@/app/dashboard/_components/billing/billing-form";
+import { BillingInfo } from "@/app/dashboard/_components/billing/billing-info";
+import { BillingUsage } from "@/app/dashboard/_components/billing/billing-usage";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function BillingPage() {

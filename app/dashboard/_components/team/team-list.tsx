@@ -3,7 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 
-import { getTeamMembersAction } from "@/app/actions/team";
+import { getTeamMembersAction } from "@/app/dashboard/_actions/team";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Table,

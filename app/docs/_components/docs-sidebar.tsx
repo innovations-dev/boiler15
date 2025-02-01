@@ -23,8 +23,32 @@ const docsConfig = {
       ],
     },
     {
-      title: "UI Components",
+      title: "Features",
       items: [
+        {
+          title: "Authentication",
+          href: "/docs/features/authentication",
+        },
+        {
+          title: "Database",
+          href: "/docs/features/database",
+        },
+        {
+          title: "Email",
+          href: "/docs/features/email",
+        },
+        {
+          title: "Error Handling",
+          href: "/docs/features/error-handling",
+        },
+        {
+          title: "Query Patterns",
+          href: "/docs/features/query-patterns",
+        },
+        {
+          title: "UI Components",
+          href: "/docs/features/ui-components",
+        },
         {
           title: "Kitchen Sink",
           href: "/docs/kitchen-sink",

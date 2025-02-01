@@ -1,7 +1,7 @@
 import { Activity, CreditCard, DollarSign, Users } from "lucide-react";
 
-import { DashboardChart } from "@/components/dashboard/dashboard-chart";
-import { RecentActivity } from "@/components/dashboard/recent-activity";
+import { DashboardChart } from "@/app/dashboard/_components/dashboard-chart";
+import { RecentActivity } from "@/app/dashboard/_components/recent-activity";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function DashboardPage() {

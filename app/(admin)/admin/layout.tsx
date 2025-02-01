@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 
-import { AdminHeader } from "@/components/admin/admin-header";
-import { AdminNav } from "@/components/admin/admin-nav";
+import { AdminHeader } from "@/app/(admin)/_components/admin-header";
+import { AdminNav } from "@/app/(admin)/_components/admin-nav";
 
 export default function AdminLayout({
   children,

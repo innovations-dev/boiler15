@@ -1,10 +1,10 @@
 import { Suspense } from "react";
 
-import { ProfileForm } from "@/components/dashboard/profile/profile-form";
-import { ProfileFormSkeleton } from "@/components/dashboard/profile/profile-form-skeleton";
-import { ProfileInfo } from "@/components/dashboard/profile/profile-info";
-import { ProfileSessions } from "@/components/dashboard/profile/profile-sessions";
-import { ProfileSessionsSkeleton } from "@/components/dashboard/profile/profile-sessions-skeleton";
+import { ProfileForm } from "@/app/dashboard/_components/profile/profile-form";
+import { ProfileFormSkeleton } from "@/app/dashboard/_components/profile/profile-form-skeleton";
+import { ProfileInfo } from "@/app/dashboard/_components/profile/profile-info";
+import { ProfileSessions } from "@/app/dashboard/_components/profile/profile-sessions";
+import { ProfileSessionsSkeleton } from "@/app/dashboard/_components/profile/profile-sessions-skeleton";
 
 export default function ProfilePage() {
   return (

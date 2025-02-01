@@ -1,8 +1,8 @@
 import { Suspense } from "react";
 
-import { CreateUserButton } from "@/components/admin/users/create-user-button";
-import { UsersList } from "@/components/admin/users/users-list";
-import { UsersListSkeleton } from "@/components/admin/users/users-list-skeleton";
+import { CreateUserButton } from "@/app/(admin)/_components/users/create-user-button";
+import { UsersList } from "@/app/(admin)/_components/users/users-list";
+import { UsersListSkeleton } from "@/app/(admin)/_components/users/users-list-skeleton";
 
 export default function UsersPage() {
   return (

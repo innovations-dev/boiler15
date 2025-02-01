@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 
-import { DocsSidebar } from "@/components/docs/docs-sidebar";
+import { DocsSidebar } from "@/app/docs/_components/docs-sidebar";
 import { generateMetadata } from "@/config/meta.config";
 
 export const metadata: Metadata = await generateMetadata({
@@ -16,18 +16,14 @@ interface DocsLayoutProps {
 export default function DocsLayout({ children }: DocsLayoutProps) {
   return (
     <div className="relative flex min-h-screen flex-col">
-      <div className="flex-1">
-        <div className="container flex-1 items-start">
-          <aside className="fixed top-14 z-30 hidden h-[calc(100vh-3.5rem)] w-[220px] border-r md:block lg:w-[240px]">
+      <div className="container flex-1">
+        <div className="grid grid-cols-[220px_1fr] gap-8 lg:grid-cols-[240px_1fr]">
+          <aside className="fixed top-14 hidden h-[calc(100dvh-theme(spacing.footer)-3.5rem)] md:block">
             <DocsSidebar />
           </aside>
-          <div className="flex-1 md:pl-[220px] lg:pl-[240px]">
-            <main className="relative py-6 lg:gap-10 lg:py-8">
-              <article className="mx-auto mt-12 w-full min-w-0 max-w-3xl py-10">
-                {children}
-              </article>
-            </main>
-          </div>
+          <article className="relative col-start-2 w-full max-w-3xl py-10">
+            {children}
+          </article>
         </div>
       </div>
     </div>

@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 
-import { OrganizationsList } from "@/components/admin/organizations/organizations-list";
-import { OrganizationsListSkeleton } from "@/components/admin/organizations/organizations-list-skeleton";
+import { OrganizationsList } from "@/app/(admin)/_components/organizations/organizations-list";
+import { OrganizationsListSkeleton } from "@/app/(admin)/_components/organizations/organizations-list-skeleton";
 import { OrganizationSwitcher } from "@/components/shared/organization-switcher";
 
 export default function OrganizationsPage() {

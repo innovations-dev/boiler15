@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { MoreHorizontal, Users } from "lucide-react";
 
-import { UserRoleList } from "@/components/admin/permissions/user-role-list";
+import { UserRoleList } from "@/app/(admin)/_components/permissions/user-role-list";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,

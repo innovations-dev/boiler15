@@ -14,9 +14,24 @@ export const metadata = {
 - **Type Safety**: End-to-end TypeScript with Zod validation
 - **Documentation**: Built-in MDX support
 
-# Getting Started
+## Core Principles
 
-Welcome to the Next.js 15 Boilerplate documentation. This guide will help you get up and running with your new project.
+1. **Simplicity**: We prioritize simple, maintainable solutions over complex implementations
+2. **Modern Patterns**: Utilizing React Server Components and other modern React patterns
+3. **Type Safety**: Full TypeScript support throughout the application
+4. **Performance**: Optimized for Core Web Vitals and user experience
+5. **Developer Experience**: Comprehensive tooling and documentation
+
+## Project Structure
+
+```text
+├── app/ # Next.js app directory
+├── components/ # Reusable components
+├── content/ # MDX content and documentation
+├── lib/ # Utility functions and shared code
+├── styles/ # Global styles and Tailwind config
+└── types/ # TypeScript type definitions
+```
 
 ## Prerequisites
 
@@ -25,3 +40,156 @@ Before you begin, make sure you have the following installed:
 - Node.js 18.17 or later
 - pnpm 8.0 or later
 - Git
+
+## Next Steps
+
+- [Installation Guide](/docs/getting-started/installation) - Set up your project
+- [Authentication](/docs/features/authentication) - Learn about auth implementation
+- [Database](/docs/features/database) - Database setup and patterns
+- [Styling](/docs/features/styling) - UI components and styling guide
+
+# Project Roadmap
+
+This roadmap outlines the planned features and improvements for our Next.js boilerplate project.
+
+## Core Infrastructure
+
+### Authentication & Authorization
+
+- [ ] Implement role-based access control (RBAC)
+- [ ] Add social authentication providers (Google, GitHub, etc.)
+- [ ] Add passwordless authentication option
+- [ ] Implement session management and refresh token logic
+- [ ] Add 2FA support
+
+### Database & Data Management
+
+- [ ] Implement database seeding utilities
+- [ ] Add database backup and restore procedures
+- [ ] Create reusable database patterns and utilities
+- [ ] Add data validation middleware
+- [ ] Implement soft delete patterns
+
+### API & Integration
+
+- [ ] Create API rate limiting middleware (better auth has built-in rate limiting)
+- [ ] Add API documentation with Swagger/OpenAPI (better auth has built-in API docs)
+- [ ] Implement API versioning
+- [ ] Consider Adding WebSocket support
+- [ ] Create reusable API error handling patterns
+- [ ] Implement Next.js API caching best practices
+
+## Features & Functionality
+
+### UI/UX Components
+
+- [x] Add dark mode support
+- [ ] Implement skeleton loading states (Dashboard has built-in skeleton loading)
+- [ ] Enhance toast notifications system with dynamic handling
+- [ ] Implement infinite scroll components (With @tanstack/react-query)
+
+### Forms & Validation
+
+- [ ] Create reusable form components (With react-hook-form and zod)
+- [ ] Add form validation patterns
+- [ ] Implement file upload components
+- [ ] Create dynamic form builder
+
+### State Management
+
+- [ ] Implement global state management patterns
+- [ ] Add local storage utilities
+- [ ] Create session storage patterns
+- [ ] Add state persistence utilities
+
+## Performance & Optimization
+
+### SEO & Analytics
+
+- [ ] Add SEO optimization utilities
+- [ ] Implement structured data helpers
+- [x] Create sitemap generation
+- [ ] Add analytics integration
+- [ ] Implement performance monitoring
+
+### Caching & Performance
+
+- [ ] Add Redis caching layer
+- [ ] Create Blur image optimization utilities
+- [ ] Implement code splitting strategies
+
+## Developer Experience
+
+### Testing
+
+- [ ] Add unit testing setup
+- [ ] Implement integration testing
+- [ ] Add end-to-end testing
+- [ ] Create testing utilities and helpers
+- [ ] Add performance testing tools
+
+### Documentation
+
+- [x] Add comprehensive API documentation (better auth has built-in API docs)
+- [ ] Create component documentation (in progress)
+- [ ] Add usage examples (in progress)
+- [ ] Create deployment guides
+- [ ] Add contribution guidelines
+
+## Security
+
+### Security Features
+
+- [ ] Implement CSRF protection
+- [ ] Add security headers
+- [ ] Create XSS prevention utilities
+- [ ] Add SQL injection prevention
+- [ ] Implement audit logging
+
+### Compliance & Standards
+
+- [ ] Add GDPR compliance utilities
+- [ ] Implement accessibility standards (WCAG)
+- [ ] Add cookie consent management
+- [x] Create privacy policy
+- [x] Add terms of service
+
+## Internationalization
+
+### i18n Features
+
+- [ ] Add multi-language support
+- [ ] Implement RTL support
+- [ ] Create language switching utilities
+- [ ] Add translation management system
+- [ ] Implement locale-specific formatting
+
+## Monitoring & Maintenance
+
+### Error Handling & Logging
+
+- [ ] Add error tracking integration
+- [ ] Create logging system
+- [x] Implement error boundary patterns
+- [ ] Add monitoring dashboard
+- [ ] Create debug utilities
+
+### Maintenance Tools
+
+- [ ] Add database maintenance tools
+- [ ] Create cleanup utilities
+- [ ] Implement automated testing
+- [ ] Add performance monitoring
+- [ ] Create system health checks
+
+## Future Considerations
+
+### Community & Ecosystem
+
+- [ ] Create plugin system
+- [ ] Add theme customization
+- [ ] Implement marketplace features
+- [ ] Create community contribution guidelines
+- [ ] Add template system
+
+This roadmap will be regularly updated as we progress and as new requirements or technologies emerge. Contributions and suggestions from the community are welcome to help make this boilerplate more comprehensive and useful.

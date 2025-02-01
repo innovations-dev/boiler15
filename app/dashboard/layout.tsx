@@ -2,8 +2,8 @@ import { Suspense } from "react";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
-import { DashboardHeader } from "@/components/dashboard/dashboard-header";
-import { DashboardNav } from "@/components/dashboard/dashboard-nav";
+import { DashboardHeader } from "@/app/dashboard/_components/dashboard-header";
+import { DashboardNav } from "@/app/dashboard/_components/dashboard-nav";
 import { auth } from "@/lib/auth";
 import { UserSelectSchema } from "@/lib/db/schema";
 

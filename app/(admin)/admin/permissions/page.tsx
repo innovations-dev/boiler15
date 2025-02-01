@@ -1,8 +1,8 @@
 import { Suspense } from "react";
 
-import { CreatePermissionButton } from "@/components/admin/permissions/create-permission-button";
-import { PermissionsList } from "@/components/admin/permissions/permissions-list";
-import { PermissionsListSkeleton } from "@/components/admin/permissions/permissions-list-skeleton";
+import { CreatePermissionButton } from "@/app/(admin)/_components/permissions/create-permission-button";
+import { PermissionsList } from "@/app/(admin)/_components/permissions/permissions-list";
+import { PermissionsListSkeleton } from "@/app/(admin)/_components/permissions/permissions-list-skeleton";
 
 export default function PermissionsPage() {
   return (

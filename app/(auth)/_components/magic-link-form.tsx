@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/form";
 import { useMagicLink } from "@/hooks/auth/use-magic-link";
 import { magicLinkSchema, type MagicLinkInput } from "@/lib/schemas/auth";
-import { FloatingLabelInput } from "../floating-input";
+import { FloatingLabelInput } from "../../../components/floating-input";
 
 export function MagicLinkForm() {
   const { mutate: sendMagicLink, isPending } = useMagicLink();

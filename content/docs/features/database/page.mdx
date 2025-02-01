@@ -1,0 +1,274 @@
+export const metadata = {
+  title: "Database",
+  description:
+    "Learn about the database setup and ORM in Next.js 15 Boilerplate",
+  section: "Features",
+  order: 2,
+};
+
+# Database
+
+Our database system uses [Drizzle ORM](https://orm.drizzle.team) with [Turso](https://turso.tech) (SQLite) for a type-safe, performant, and developer-friendly database solution.
+
+## Overview
+
+- 🔧 **Drizzle ORM**: Type-safe SQL query builder
+- 📊 **Turso**: Distributed SQLite database
+- 🛠️ **Schema Management**: Declarative schema with migrations
+- 🔍 **Type Safety**: End-to-end type safety with TypeScript
+- 🚀 **Edge Ready**: Works in Edge Runtime
+
+## Schema Definition
+
+Our database schema is defined in `lib/db/schema.ts`:
+
+```ts
+import { relations, sql } from "drizzle-orm";
+import {
+  integer,
+  primaryKey,
+  sqliteTable,
+  text,
+} from "drizzle-orm/sqlite-core";
+
+// Users Table
+export const users = sqliteTable("user", {
+  id: text("id").primaryKey(),
+  name: text("name"),
+  email: text("email").notNull(),
+  role: text("role", { enum: ["user", "admin"] })
+    .notNull()
+    .default("user"),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
+});
+
+// Organizations Table
+export const organizations = sqliteTable("organization", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  slug: text("slug").notNull().unique(),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
+});
+
+// Organization Members Table
+export const organizationMembers = sqliteTable(
+  "organization_member",
+  {
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organizations.id, {
+        onDelete: "cascade",
+      }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, {
+        onDelete: "cascade",
+      }),
+    role: text("role", {
+      enum: ["owner", "admin", "member"],
+    })
+      .notNull()
+      .default("member"),
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.organizationId, table.userId] }),
+  })
+);
+
+// Relations
+export const userRelations = relations(users, ({ many }) => ({
+  organizations: many(organizationMembers),
+}));
+
+export const organizationRelations = relations(organizations, ({ many }) => ({
+  members: many(organizationMembers),
+}));
+```
+
+## Database Configuration
+
+We maintain separate configurations for development and production environments:
+
+```ts
+// config/drizzle-dev.config.ts
+import type { Config } from "drizzle-kit";
+
+// config/drizzle-prod.config.ts
+import { env } from "@/env";
+
+export default {
+  schema: "./lib/db/schema.ts",
+  driver: "turso",
+  dbCredentials: {
+    url: "file:file.db",
+  },
+  verbose: true,
+  strict: true,
+} satisfies Config;
+
+export default {
+  schema: "./lib/db/schema.ts",
+  driver: "turso",
+  dbCredentials: {
+    url: env.TURSO_DATABASE_URL,
+    authToken: env.TURSO_AUTH_TOKEN,
+  },
+  verbose: true,
+  strict: true,
+} satisfies Config;
+```
+
+## Database Client
+
+The database client is initialized in `lib/db.ts`:
+
+```ts
+import { createClient } from "@libsql/client";
+import { drizzle } from "drizzle-orm/libsql";
+
+import { env } from "@/env";
+import * as schema from "./db/schema";
+
+const client = createClient({
+  url: env.TURSO_DATABASE_URL,
+  authToken: env.TURSO_AUTH_TOKEN,
+});
+
+export const db = drizzle(client, { schema });
+```
+
+## Usage Examples
+
+### Querying Data
+
+```ts
+// Simple Select
+const users = await db.select().from(schema.users);
+
+// With Relations
+const orgsWithMembers = await db
+  .select()
+  .from(schema.organizations)
+  .leftJoin(
+    schema.organizationMembers,
+    eq(schema.organizations.id, schema.organizationMembers.organizationId)
+  );
+
+// With Conditions
+const adminUsers = await db
+  .select()
+  .from(schema.users)
+  .where(eq(schema.users.role, "admin"));
+```
+
+### Inserting Data
+
+```ts
+// Single Insert
+const newUser = await db
+  .insert(schema.users)
+  .values({
+    id: crypto.randomUUID(),
+    email: "user@example.com",
+    name: "John Doe",
+  })
+  .returning();
+
+// Batch Insert
+const newOrgs = await db
+  .insert(schema.organizations)
+  .values([
+    { id: "1", name: "Org 1", slug: "org-1" },
+    { id: "2", name: "Org 2", slug: "org-2" },
+  ])
+  .returning();
+```
+
+### Updating Data
+
+```ts
+const updated = await db
+  .update(schema.users)
+  .set({ name: "Jane Doe" })
+  .where(eq(schema.users.id, userId))
+  .returning();
+```
+
+## Migrations
+
+We use Drizzle Kit for database migrations:
+
+```bash
+# Generate migrations
+pnpm db:generate
+
+# Apply migrations
+pnpm db:migrate
+
+# Start Drizzle Studio
+pnpm db:studio
+```
+
+## Type Safety
+
+Drizzle provides type inference for your queries:
+
+```ts
+import { InferModel } from "drizzle-orm";
+
+import * as schema from "./schema";
+
+// Infer types from schema
+type User = InferModel<typeof schema.users>;
+type NewUser = InferModel<typeof schema.users, "insert">;
+
+// Type-safe queries
+const user: User = await db
+  .select()
+  .from(schema.users)
+  .where(eq(schema.users.id, userId))
+  .get();
+```
+
+## Best Practices
+
+1. **Use Transactions**: For operations that modify multiple tables
+
+   ```ts
+   await db.transaction(async (tx) => {
+     const user = await tx.insert(schema.users).values(/*...*/).returning();
+     await tx.insert(schema.organizationMembers).values(/*...*/);
+   });
+   ```
+
+2. **Prepared Statements**: For frequently executed queries
+
+   ```ts
+   const getUserById = db
+     .select()
+     .from(schema.users)
+     .where(eq(schema.users.id, sql.placeholder("id")))
+     .prepare();
+   ```
+
+3. **Error Handling**: Use try-catch blocks and handle database errors gracefully
+   ```ts
+   try {
+     await db.insert(schema.users).values(/*...*/);
+   } catch (error) {
+     if (error.message.includes("UNIQUE constraint failed")) {
+       throw new Error("User already exists");
+     }
+     throw error;
+   }
+   ```
+
+## Next Steps
+
+- [Query Patterns](/docs/features/database/queries) - Common query patterns
+- [Schema Design](/docs/features/database/schema) - Database schema best practices
+- [Migrations](/docs/features/database/migrations) - Managing database migrations

@@ -5,7 +5,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { Building, ChevronDown, PlusCircle } from "lucide-react";
 import { toast } from "sonner";
 
-import { CreateOrganizationDialog } from "@/components/dashboard/create-organization-dialog";
+import { CreateOrganizationDialog } from "@/app/dashboard/_components/create-organization-dialog";
 import { Spinner } from "@/components/spinner";
 import { Button } from "@/components/ui/button";
 import {

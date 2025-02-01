@@ -1,0 +1,336 @@
+export const metadata = {
+  title: "Query Patterns",
+  description: "Common query patterns and data fetching strategies",
+  section: "Features",
+  order: 3,
+};
+
+# Query Patterns
+
+Learn about common query patterns and data fetching strategies used in our Next.js 15 Boilerplate.
+
+## Overview
+
+We use [Tanstack Query](https://tanstack.com/query) (React Query) along with our Drizzle ORM setup for efficient data fetching and state management. This guide covers common patterns and best practices.
+
+## Server Components
+
+### Direct Database Queries
+
+For server components, we can query the database directly:
+
+```tsx
+// app/organizations/page.tsx
+import { db } from "@/lib/db";
+import { organizations } from "@/lib/db/schema";
+
+export default async function OrganizationsPage() {
+  const orgs = await db
+    .select()
+    .from(organizations)
+    .orderBy(organizations.createdAt);
+
+  return (
+    <div>
+      {orgs.map((org) => (
+        <div key={org.id}>{org.name}</div>
+      ))}
+    </div>
+  );
+}
+```
+
+### With Dynamic Parameters
+
+```tsx
+// app/organizations/[id]/page.tsx
+import { notFound } from "next/navigation";
+import { eq } from "drizzle-orm";
+
+import { db } from "@/lib/db";
+import { organizations } from "@/lib/db/schema";
+
+interface PageProps {
+  params: {
+    id: string;
+  };
+}
+
+export default async function OrganizationPage({ params }: PageProps) {
+  const org = await db
+    .select()
+    .from(organizations)
+    .where(eq(organizations.id, params.id))
+    .get();
+
+  if (!org) {
+    notFound();
+  }
+
+  return <div>{org.name}</div>;
+}
+```
+
+## Client Components
+
+### Basic Query Pattern
+
+For client components, we use Tanstack Query:
+
+```tsx
+"use client";
+
+import { useQuery } from "@tanstack/react-query";
+
+import { getOrganizations } from "@/lib/api/organizations";
+
+export function OrganizationsList() {
+  const { data: orgs, isLoading } = useQuery({
+    queryKey: ["organizations"],
+    queryFn: getOrganizations,
+  });
+
+  if (isLoading) return <div>Loading...</div>;
+
+  return <div>{orgs?.map((org) => <div key={org.id}>{org.name}</div>)}</div>;
+}
+```
+
+### Mutations
+
+Handle data updates with mutations:
+
+```tsx
+"use client";
+
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+
+import { createOrganization } from "@/lib/api/organizations";
+
+export function CreateOrganizationForm() {
+  const queryClient = useQueryClient();
+
+  const { mutate, isPending } = useMutation({
+    mutationFn: createOrganization,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["organizations"] });
+      toast.success("Organization created");
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+  });
+
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        const formData = new FormData(e.currentTarget);
+        mutate({
+          name: formData.get("name") as string,
+          slug: formData.get("slug") as string,
+        });
+      }}
+    >
+      {/* Form fields */}
+    </form>
+  );
+}
+```
+
+### Infinite Queries
+
+For paginated lists:
+
+```tsx
+"use client";
+
+import { useInfiniteQuery } from "@tanstack/react-query";
+
+import { getOrganizationsPage } from "@/lib/api/organizations";
+
+export function OrganizationsInfiniteList() {
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    useInfiniteQuery({
+      queryKey: ["organizations", "infinite"],
+      queryFn: ({ pageParam = 0 }) => getOrganizationsPage(pageParam),
+      getNextPageParam: (lastPage) => lastPage.nextCursor,
+    });
+
+  return (
+    <div>
+      {data?.pages.map((page) =>
+        page.items.map((org) => <div key={org.id}>{org.name}</div>)
+      )}
+
+      {hasNextPage && (
+        <button onClick={() => fetchNextPage()} disabled={isFetchingNextPage}>
+          {isFetchingNextPage ? "Loading..." : "Load More"}
+        </button>
+      )}
+    </div>
+  );
+}
+```
+
+## API Routes
+
+### Route Handlers
+
+Define type-safe API routes:
+
+```ts
+// app/api/organizations/route.ts
+import { eq } from "drizzle-orm";
+import { z } from "zod";
+
+import { db } from "@/lib/db";
+import { organizations } from "@/lib/db/schema";
+
+const createOrgSchema = z.object({
+  name: z.string().min(1),
+  slug: z.string().min(1),
+});
+
+export async function POST(request: Request) {
+  try {
+    const json = await request.json();
+    const body = createOrgSchema.parse(json);
+
+    const existing = await db
+      .select()
+      .from(organizations)
+      .where(eq(organizations.slug, body.slug))
+      .get();
+
+    if (existing) {
+      return Response.json(
+        { error: "Organization already exists" },
+        { status: 400 }
+      );
+    }
+
+    const org = await db
+      .insert(organizations)
+      .values({
+        id: crypto.randomUUID(),
+        name: body.name,
+        slug: body.slug,
+      })
+      .returning();
+
+    return Response.json(org[0]);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return Response.json({ error: "Invalid request data" }, { status: 400 });
+    }
+    return Response.json({ error: "Internal server error" }, { status: 500 });
+  }
+}
+```
+
+### API Client Functions
+
+Create type-safe API client functions:
+
+```ts
+// lib/api/organizations.ts
+import { Organization } from "@/lib/db/schema";
+
+export async function getOrganizations() {
+  const res = await fetch("/api/organizations");
+  if (!res.ok) throw new Error("Failed to fetch organizations");
+  return res.json() as Promise<Organization[]>;
+}
+
+export async function createOrganization(data: { name: string; slug: string }) {
+  const res = await fetch("/api/organizations", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(error.message ?? "Failed to create organization");
+  }
+
+  return res.json() as Promise<Organization>;
+}
+```
+
+## Best Practices
+
+1. **Optimistic Updates**
+
+```tsx
+const { mutate } = useMutation({
+  mutationFn: updateOrganization,
+  onMutate: async (newOrg) => {
+    await queryClient.cancelQueries({ queryKey: ["org", newOrg.id] });
+    const previousOrg = queryClient.getQueryData(["org", newOrg.id]);
+
+    queryClient.setQueryData(["org", newOrg.id], newOrg);
+
+    return { previousOrg };
+  },
+  onError: (err, newOrg, context) => {
+    queryClient.setQueryData(["org", newOrg.id], context?.previousOrg);
+  },
+});
+```
+
+2. **Prefetching Data**
+
+```tsx
+// Prefetch on hover
+<Link
+  href={`/org/${org.id}`}
+  onMouseEnter={() => {
+    queryClient.prefetchQuery({
+      queryKey: ["org", org.id],
+      queryFn: () => getOrganization(org.id),
+    });
+  }}
+>
+  {org.name}
+</Link>
+```
+
+3. **Error Boundaries**
+
+```tsx
+"use client";
+
+import { QueryErrorResetBoundary } from "@tanstack/react-query";
+import { ErrorBoundary } from "react-error-boundary";
+
+export function OrganizationsWrapper() {
+  return (
+    <QueryErrorResetBoundary>
+      {({ reset }) => (
+        <ErrorBoundary
+          onReset={reset}
+          fallbackRender={({ resetErrorBoundary }) => (
+            <div>
+              Error loading organizations.
+              <button onClick={resetErrorBoundary}>Try again</button>
+            </div>
+          )}
+        >
+          <OrganizationsList />
+        </ErrorBoundary>
+      )}
+    </QueryErrorResetBoundary>
+  );
+}
+```
+
+## Next Steps
+
+- [Database Schema](/docs/features/database/schema) - Learn about our database schema
+- [Authentication](/docs/features/authentication) - Understand auth integration
+- [Error Handling](/docs/features/error-handling) - Error handling patterns

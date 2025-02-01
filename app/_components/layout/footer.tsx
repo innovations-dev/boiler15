@@ -165,11 +165,7 @@ export { Footer, footerVariants };
 
 export function SiteFooter() {
   return (
-    <Footer
-      variant="floating"
-      size="default"
-      className="mx-auto max-w-7xl px-4"
-    >
+    <Footer variant="floating" size="default" className="mx-auto max-w-7xl">
       <Footer.Nav>
         <Footer.Brand>
           <Footer.Link href="/" className="text-xl font-bold">

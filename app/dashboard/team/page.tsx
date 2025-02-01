@@ -1,8 +1,8 @@
 import { Suspense } from "react";
 
-import { InviteMemberButton } from "@/components/dashboard/team/invite-member-button";
-import { TeamList } from "@/components/dashboard/team/team-list";
-import { TeamListSkeleton } from "@/components/dashboard/team/team-list-skeleton";
+import { InviteMemberButton } from "@/app/dashboard/_components/team/invite-member-button";
+import { TeamList } from "@/app/dashboard/_components/team/team-list";
+import { TeamListSkeleton } from "@/app/dashboard/_components/team/team-list-skeleton";
 
 export default function TeamPage() {
   return (

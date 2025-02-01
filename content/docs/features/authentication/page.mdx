@@ -1,0 +1,211 @@
+export const metadata = {
+  title: "Authentication",
+  description:
+    "Learn about the authentication system in Next.js 15 Boilerplate",
+  section: "Features",
+  order: 1,
+};
+
+# Authentication
+
+Our authentication system is built on [Better-Auth](https://better-auth.dev), providing a robust, secure, and flexible authentication solution with built-in support for multiple authentication methods and organization management.
+
+## Features
+
+- 🔐 Multiple authentication methods
+- 👥 Organization and team management
+- 📧 Magic link authentication
+- 🔄 Multi-session support
+- 👤 User impersonation (admin)
+- 🔒 Account linking
+- 📱 Device management
+
+## Configuration
+
+The authentication system is configured in `lib/auth.ts`:
+
+```ts
+import { betterAuth } from "better-auth";
+import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import {
+  admin,
+  magicLink,
+  multiSession,
+  organization,
+} from "better-auth/plugins";
+
+import { env } from "@/env";
+import { db } from "@/lib/db";
+import { schema } from "@/lib/db/schema";
+
+typescript;
+
+export const auth = betterAuth({
+  baseURL: baseURL.toString(),
+  secret: env.BETTER_AUTH_SECRET,
+  database: drizzleAdapter(db, {
+    provider: "sqlite",
+    schema,
+  }),
+  plugins: [
+    nextCookies(),
+    openAPI(),
+    multiSession(),
+    admin(),
+    organization(),
+    magicLink(),
+  ],
+});
+```
+
+## Authentication Methods
+
+### 1. Magic Link Authentication
+
+Users can sign in using passwordless magic links sent to their email:
+
+```ts
+magicLink({
+async sendMagicLink({ email, url }) {
+  sendEmailWithRetry({
+      to: email,
+      subject: "Login to your account",
+      html: await getMagicLinkEmail(url),
+    });
+  },
+}),
+```
+
+### 2. OAuth Providers
+
+Support for social login providers like GitHub:
+
+```ts
+account: {
+  accountLinking: {
+    enabled: true,
+    trustedProviders: ["github"],
+  },
+},
+```
+
+## Organization Management
+
+Multi-tenant organizations are supported out of the box:
+
+```ts
+organization({
+  sendInvitationEmail: async (data) => {
+    const inviteLink = new URL(
+    ${baseURL.toString()}/accept-invite/${data?.id}
+    ).toString();
+    // Handle invitation emails
+  },
+}),
+```
+
+## Protected Routes
+
+Routes are protected using the middleware:
+
+```ts
+// middleware.ts
+export default async function authMiddleware(request: NextRequest) {
+  const { data: session } = await betterFetch<Session>(
+    "/api/auth/get-session",
+    {
+      baseURL: request.nextUrl.origin,
+      headers: {
+        cookie: request.headers.get("cookie") || "",
+      },
+    }
+  );
+  if (!session?.session) {
+    return NextResponse.redirect(new URL("/sign-in", request.url));
+  }
+  return NextResponse.next();
+}
+
+export const config = {
+  matcher: ["/dashboard", "/admin"],
+};
+```
+
+## User Management
+
+### Account Deletion
+
+Users can delete their accounts with a grace period:
+
+```ts
+user: {
+  deleteUser: {
+    enabled: true,
+    deleteAccount: true,
+    deleteAccountAfter: 60 * 60 * 24 * 7, // 7 days
+    beforeDelete: async (user: User) => {
+      if (user.email.includes("admin")) {
+          throw new BetterAuthAPIError("BAD_REQUEST", {
+          message: "Admin accounts can't be deleted",
+        });
+      }
+    },
+  },
+},
+```
+
+## Session Management
+
+### Multi-Session Support
+
+Users can maintain multiple active sessions:
+
+```ts
+plugins: [
+  multiSession(),
+  // ...other plugins
+],
+```
+
+### Admin Features
+
+Administrators have additional capabilities:
+
+```ts
+admin({
+  defaultBanReason: "Violated terms of service",
+  defaultBanExpiresIn: 60 * 60 * 24 * 30, // 30 days
+  impersonationSessionDuration: 60 * 60, // 1 hour
+}),
+```
+
+## Usage Examples
+
+### Protecting Client Components
+
+```tsx
+"use client";
+
+import { useAuth } from "@/lib/auth";
+
+export function ProtectedComponent() {
+  const { session } = useAuth();
+  if (!session) {
+    return <div>Please sign in</div>;
+  }
+  return <div>Protected content</div>;
+}
+```
+
+### Protecting Server Components
+
+```ts
+import { auth } from "@/lib/auth";
+
+export default async function ProtectedServerComponent() {
+  const session = await auth.getSession();
+  if (!session) {
+    redirect("/sign-in");
+  }
+}
+```
