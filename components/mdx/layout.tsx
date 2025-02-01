@@ -10,7 +10,7 @@ interface MDXLayoutProps {
 
 export default function MDXLayout({ children, metadata }: MDXLayoutProps) {
   return (
-    <div className="mx-auto max-w-3xl py-10">
+    <div className="mx-auto max-w-3xl">
       {metadata?.title && (
         <h1 className="mb-6 text-3xl font-bold">{metadata.title}</h1>
       )}

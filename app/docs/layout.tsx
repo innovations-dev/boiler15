@@ -23,7 +23,9 @@ export default function DocsLayout({ children }: DocsLayoutProps) {
           </aside>
           <div className="flex-1 md:pl-[220px] lg:pl-[240px]">
             <main className="relative py-6 lg:gap-10 lg:py-8">
-              <div className="mx-auto w-full min-w-0">{children}</div>
+              <article className="mx-auto mt-12 w-full min-w-0 max-w-3xl py-10">
+                {children}
+              </article>
             </main>
           </div>
         </div>

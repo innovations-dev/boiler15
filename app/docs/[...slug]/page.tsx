@@ -21,14 +21,17 @@ export default async function DocPage({ params }: PageProps) {
   }
 
   try {
-    const { default: MDXContent } = await import(
+    const { default: MDXContent, metadata } = await import(
       `../../../content/docs/${resolvedParams.slug.join("/")}/page.mdx`
     );
 
     return (
-      <article className="mx-auto max-w-3xl py-10">
+      <>
+        {metadata?.title && (
+          <h1 className="mb-6 text-3xl font-bold">{metadata.title}</h1>
+        )}
         <MDXContent />
-      </article>
+      </>
     );
   } catch (error) {
     console.error("Failed to import MDX:", error);
