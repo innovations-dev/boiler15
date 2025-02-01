@@ -28,7 +28,7 @@ function UserNavContent({ items }: { items: typeof navigationRoutes.auth }) {
   if (!error && data?.session && data?.user) {
     return (
       <Button
-        className={cn(buttonVariants({ variant: "ghost" }))}
+        className={cn(buttonVariants({ variant: "ghost", size: "sm" }))}
         onClick={() => {
           authClient.signOut();
           router.push("/");

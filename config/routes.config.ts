@@ -15,7 +15,7 @@ export const navigationRoutes = {
     { name: "Get Started", href: "/register" },
   ],
   legal: [
-    { name: "Privacy", href: "/privacy" },
-    { name: "Terms", href: "/terms" },
+    { name: "Privacy Policy", href: "/policies/privacy" },
+    { name: "Terms of Service", href: "/policies/terms" },
   ],
 } as const;

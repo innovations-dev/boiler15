@@ -1,8 +1,10 @@
 import { Metadata } from "next";
+import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
 import { AuthForm } from "@/components/auth/auth-form";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: "Sign In",
@@ -52,19 +54,25 @@ export default function SignInPage() {
           <AuthForm className="grid gap-6" />
           <p className="px-8 text-center text-sm text-muted-foreground">
             By clicking the button above, you agree to our{" "}
-            <Button
-              variant="link"
-              className="px-0 underline underline-offset-4 hover:text-primary"
+            <Link
+              href="/policies/terms"
+              className={cn(
+                buttonVariants({ variant: "link" }),
+                "px-0 underline underline-offset-4 hover:text-primary"
+              )}
             >
               Terms of Service
-            </Button>{" "}
+            </Link>{" "}
             and{" "}
-            <Button
-              variant="link"
-              className="px-0 underline underline-offset-4 hover:text-primary"
+            <Link
+              href="/policies/privacy"
+              className={cn(
+                buttonVariants({ variant: "link" }),
+                "px-0 underline underline-offset-4 hover:text-primary"
+              )}
             >
               Privacy Policy
-            </Button>
+            </Link>
             .
           </p>
         </div>
