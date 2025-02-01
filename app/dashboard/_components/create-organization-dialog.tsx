@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import randomName from "@scaleway/random-name";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { authClient } from "@/lib/auth/auth-client";
+import { useCreateOrganization } from "@/hooks/organization/use-create-organization";
+import type { OrganizationInsert } from "@/lib/db/schema";
 import { slugify } from "@/lib/utils";
 
 interface CreateOrganizationDialogProps {
@@ -26,32 +27,27 @@ export function CreateOrganizationDialog({
   open,
   onOpenChangeAction,
 }: CreateOrganizationDialogProps) {
-  const queryClient = useQueryClient();
-  const [newOrgName, setNewOrgName] = useState("");
+  const [name, setName] = useState(randomName());
+  const { mutate: createOrganization, isPending } = useCreateOrganization();
 
-  const { mutate: createOrganization, isPending: isCreating } = useMutation({
-    mutationFn: async () => {
-      return authClient.organization.create({
-        name: newOrgName,
-        slug: slugify(newOrgName),
-      });
-    },
-    onSuccess: () => {
-      toast.success("Organization created successfully");
-      onOpenChangeAction(false);
-      setNewOrgName("");
-      queryClient.invalidateQueries({ queryKey: ["organizations"] });
-    },
-    onError: (error) => {
-      console.error("[CreateOrganization] Creation failed:", error);
-      toast.error("Failed to create organization");
-    },
-  });
-
-  const handleCreateOrg = async (e: React.FormEvent) => {
+  const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newOrgName.trim()) return;
-    createOrganization();
+    if (!name) {
+      toast.error("Please enter an organization name");
+      return;
+    }
+
+    const data: OrganizationInsert = {
+      name,
+      slug: slugify(name),
+    };
+
+    createOrganization(data, {
+      onSuccess: () => {
+        setName(randomName());
+        onOpenChangeAction(false);
+      },
+    });
   };
 
   return (
@@ -60,33 +56,45 @@ export function CreateOrganizationDialog({
         <DialogHeader>
           <DialogTitle>Create Organization</DialogTitle>
           <DialogDescription>
-            Add a new organization to manage your team and projects.
+            Add a new organization to manage teams and projects.
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleCreateOrg}>
+        <form onSubmit={onSubmit}>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Input
-                id="name"
                 placeholder="Organization name"
-                value={newOrgName}
-                onChange={(e) => setNewOrgName(e.target.value)}
-                disabled={isCreating}
+                value={name}
+                onChange={(e) => setName(e.target.value)}
               />
             </div>
           </div>
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => onOpenChangeAction(false)}
-              disabled={isCreating}
-              type="button"
-            >
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isCreating}>
-              {isCreating ? "Creating..." : "Create Organization"}
-            </Button>
+            <div className="flex w-full justify-between">
+              <div>
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    setName(randomName());
+                  }}
+                  type="button"
+                >
+                  Random
+                </Button>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="ghost"
+                  onClick={() => onOpenChangeAction(false)}
+                  type="button"
+                >
+                  Cancel
+                </Button>
+                <Button variant="default" type="submit" disabled={isPending}>
+                  {isPending ? "Creating..." : "Create"}
+                </Button>
+              </div>
+            </div>
           </DialogFooter>
         </form>
       </DialogContent>

@@ -131,6 +131,7 @@ const omittedOrganizationSelectSchema = OrganizationSelectSchema.omit({
   updatedAt: true,
 });
 export const OrganizationInsertSchema = createInsertSchema(organization, {
+  id: z.string().optional(),
   slug: z.string(),
 });
 export const OrganizationUpdateSchema = createUpdateSchema(organization);
