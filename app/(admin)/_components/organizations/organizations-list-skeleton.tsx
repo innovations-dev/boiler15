@@ -14,7 +14,7 @@ export function OrganizationsListSkeleton() {
       <TableHeader>
         <TableRow>
           <TableHead>Name</TableHead>
-          <TableHead>Members</TableHead>
+          <TableHead>Slug</TableHead>
           <TableHead>Created</TableHead>
           <TableHead className="text-right">Actions</TableHead>
         </TableRow>
@@ -23,10 +23,10 @@ export function OrganizationsListSkeleton() {
         {Array.from({ length: 5 }).map((_, i) => (
           <TableRow key={i}>
             <TableCell>
-              <Skeleton className="h-4 w-[200px]" />
+              <Skeleton className="h-4 w-[150px]" />
             </TableCell>
             <TableCell>
-              <Skeleton className="h-4 w-[50px]" />
+              <Skeleton className="h-4 w-[100px]" />
             </TableCell>
             <TableCell>
               <Skeleton className="h-4 w-[100px]" />
