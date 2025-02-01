@@ -42,9 +42,11 @@ export function useOrganizations() {
     },
     staleTime: 1000 * 60,
     gcTime: 1000 * 60 * 5,
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
     meta: {
       onError: (error: Error) => {
-        toast.error(error.message);
+        toast.error(`Failed to load organizations: ${error.message}`);
       },
     },
   });
