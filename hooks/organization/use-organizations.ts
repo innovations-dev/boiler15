@@ -1,4 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
+import { useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import { getOrganizationsAction } from "@/app/(admin)/_actions/organization";
@@ -7,6 +8,15 @@ import { queryKeys } from "@/lib/query/keys";
 import { isQueryError } from "@/lib/query/types";
 
 export function useOrganizations() {
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    void queryClient.prefetchQuery({
+      queryKey: queryKeys.organizations.list(),
+      queryFn: getOrganizationsAction,
+    });
+  }, [queryClient]);
+
   return useQuery<Organization[]>({
     queryKey: queryKeys.organizations.list(),
     queryFn: getOrganizationsAction,
