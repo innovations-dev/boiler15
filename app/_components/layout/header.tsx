@@ -188,7 +188,9 @@ export function SiteHeader() {
         </Link>
       </Header.LeftElement>
       <Header.Main>
-        <MainNav items={navigationRoutes.main} />
+        <MainNav
+          items={[...navigationRoutes.main, ...navigationRoutes.product]}
+        />
       </Header.Main>
       <Header.RightElement>
         <UserNav items={navigationRoutes.auth} />

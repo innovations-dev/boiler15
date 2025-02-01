@@ -7,7 +7,8 @@ import type { navigationRoutes } from "@/config/routes.config";
 import { cn } from "@/lib/utils";
 
 interface MainNavProps {
-  items: (typeof navigationRoutes)["main"];
+  items: (typeof navigationRoutes)["main"] &
+    (typeof navigationRoutes)["product"];
   className?: string;
 }
 
