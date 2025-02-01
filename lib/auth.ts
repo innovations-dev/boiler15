@@ -14,7 +14,10 @@ import { getMagicLinkEmail } from "@/emails/magic-link";
 import { env } from "@/env";
 import * as schema from "@/lib/db/schema";
 import { db } from "./db";
-import { sendEmailWithRetry } from "./email/services/send-email";
+import {
+  EmailRateLimitError,
+  sendEmailWithRetry,
+} from "./email/services/send-email";
 import { baseURL } from "./utils";
 
 export const auth = betterAuth({
@@ -53,12 +56,41 @@ export const auth = betterAuth({
     }),
     magicLink({
       async sendMagicLink({ email, url }) {
-        console.log("Sending magic link to", email, url);
-        sendEmailWithRetry({
-          to: email,
-          subject: "Login to your account.",
-          html: await getMagicLinkEmail(url),
-        });
+        try {
+          const result = await sendEmailWithRetry({
+            to: email,
+            subject: "Login to your account",
+            html: await getMagicLinkEmail(url),
+          });
+
+          if (!result.success) {
+            throw result.error;
+          }
+
+          // Log successful magic link email sent (without sensitive data)
+          console.log("Magic link email sent successfully:", {
+            to: email.split("@")[0] + "@***",
+            timestamp: new Date().toISOString(),
+          });
+        } catch (error) {
+          // Handle rate limiting specifically
+          if (error instanceof EmailRateLimitError) {
+            throw new BetterAuthAPIError("TOO_MANY_REQUESTS", {
+              message: "Too many login attempts. Please try again later.",
+            });
+          }
+
+          // Log the error with appropriate context
+          console.error("Failed to send magic link email:", {
+            error: error instanceof Error ? error.message : "Unknown error",
+            timestamp: new Date().toISOString(),
+          });
+
+          // Throw appropriate auth error
+          throw new BetterAuthAPIError("INTERNAL_SERVER_ERROR", {
+            message: "Failed to send login email. Please try again later.",
+          });
+        }
       },
     }),
   ],
