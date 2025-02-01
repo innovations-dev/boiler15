@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { Building, ChevronDown, PlusCircle } from "lucide-react";
 import { toast } from "sonner";
 
@@ -22,7 +22,18 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { useOrganizations } from "@/hooks/organization/use-organizations";
 import { authClient } from "@/lib/auth/auth-client";
+import type { Organization } from "@/lib/db/schema";
+
+type APIOrganization = {
+  id: string;
+  name: string;
+  slug: string;
+  createdAt: Date;
+  metadata?: string | null;
+  logo?: string | null;
+};
 
 interface OrganizationSwitcherProps {
   hideCreate?: boolean;
@@ -36,11 +47,7 @@ export function OrganizationSwitcher({
 
   // Get current session and organizations
   const { data: session } = authClient.useSession();
-  const { data: organizations, isLoading: isLoadingOrgs } = useQuery({
-    queryKey: ["organizations"],
-    queryFn: () => authClient.organization.list(),
-    staleTime: 1000 * 60, // 1 minute
-  });
+  const { data: organizations, isLoading: isLoadingOrgs } = useOrganizations();
 
   // Set active organization mutation
   const { mutate: setActiveOrganization, isPending: isSwitching } = useMutation(
@@ -101,7 +108,7 @@ export function OrganizationSwitcher({
             <CommandList>
               <CommandEmpty>No organization found.</CommandEmpty>
               <CommandGroup heading="Organizations">
-                {organizations?.data?.map((org) => (
+                {organizations?.data?.map((org: Organization) => (
                   <CommandItem
                     key={org.id}
                     onSelect={() => setActiveOrganization(org.id)}

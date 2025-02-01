@@ -123,13 +123,19 @@ export const organization = sqliteTable("organization", {
   metadata: text("metadata"),
 });
 
-export const OrganizationSelectSchema = createSelectSchema(organization);
+export const OrganizationSelectSchema = createSelectSchema(organization, {
+  metadata: z.string().optional(),
+  logo: z.string().nullish(),
+});
+const omittedOrganizationSelectSchema = OrganizationSelectSchema.omit({
+  updatedAt: true,
+});
 export const OrganizationInsertSchema = createInsertSchema(organization, {
   slug: z.string(),
 });
 export const OrganizationUpdateSchema = createUpdateSchema(organization);
 
-export type Organization = z.infer<typeof OrganizationSelectSchema>;
+export type Organization = z.infer<typeof omittedOrganizationSelectSchema>;
 export type OrganizationInsert = z.infer<typeof OrganizationInsertSchema>;
 
 export const member = sqliteTable("member", {
