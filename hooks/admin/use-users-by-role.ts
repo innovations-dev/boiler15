@@ -4,7 +4,7 @@ import { toast } from "sonner";
 
 import { authClient } from "@/lib/auth/auth-client";
 import { UserRole } from "@/lib/constants/roles";
-import { UserSelectSchema } from "@/lib/db/schema";
+import { userSelectSchema } from "@/lib/db/schema";
 import { queryKeys } from "@/lib/query/keys";
 import { isQueryError } from "@/lib/query/types";
 
@@ -45,7 +45,7 @@ export function useUsersByRole({ role, limit = 10 }: UseUsersByRoleOptions) {
       return {
         data: {
           users:
-            response.data?.users.map((u) => UserSelectSchema.parse(u)) ?? [],
+            response.data?.users.map((u) => userSelectSchema.parse(u)) ?? [],
         },
       };
     },

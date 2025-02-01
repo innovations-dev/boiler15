@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/table";
 import { authClient } from "@/lib/auth/auth-client";
 import { USER_ROLE_LABELS, USER_ROLES } from "@/lib/constants/roles";
-import { UserSelectSchema } from "@/lib/db/schema";
+import { userSelectSchema } from "@/lib/db/schema";
 import { queryKeys } from "@/lib/query/keys";
 import { isQueryError } from "@/lib/query/types";
 import { PermissionActions } from "./permission-actions";
@@ -33,7 +33,7 @@ export function PermissionsList() {
       return {
         data: {
           users:
-            response.data?.users.map((u) => UserSelectSchema.parse(u)) ?? [],
+            response.data?.users.map((u) => userSelectSchema.parse(u)) ?? [],
         },
       };
     },

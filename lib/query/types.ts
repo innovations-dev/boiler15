@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import type { UserSelectSchema } from "@/lib/db/schema";
+import type { userSelectSchema } from "@/lib/db/schema";
 
 export type QueryError = {
   message: string;

@@ -9,14 +9,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useUsers } from "@/hooks/auth/use-users";
-import { UserSelectSchema } from "@/lib/db/schema";
+import { userSelectSchema } from "@/lib/db/schema";
 import { UserActions } from "./user-actions";
 import { UsersListSkeleton } from "./users-list-skeleton";
 
 export function UsersList() {
   const { data: users, isLoading } = useUsers(10);
 
-  const parsedUsers = users?.data?.users.map((u) => UserSelectSchema.parse(u));
+  const parsedUsers = users?.data?.users.map((u) => userSelectSchema.parse(u));
 
   if (isLoading) {
     return <UsersListSkeleton />;

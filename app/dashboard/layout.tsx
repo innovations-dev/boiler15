@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { DashboardHeader } from "@/app/dashboard/_components/dashboard-header";
 import { DashboardNav } from "@/app/dashboard/_components/dashboard-nav";
 import { auth } from "@/lib/auth";
-import { UserSelectSchema } from "@/lib/db/schema";
+import { userSelectSchema } from "@/lib/db/schema";
 
 export default async function DashboardLayout({
   children,
@@ -14,7 +14,7 @@ export default async function DashboardLayout({
 }) {
   const session = await auth.api.getSession({ headers: await headers() });
 
-  const parsedUser = UserSelectSchema.safeParse(session?.user);
+  const parsedUser = userSelectSchema.safeParse(session?.user);
   if (!parsedUser.success) {
     console.log(parsedUser.error.message);
     redirect("/sign-in");

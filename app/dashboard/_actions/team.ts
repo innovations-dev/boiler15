@@ -4,14 +4,14 @@ import { headers } from "next/headers";
 
 import { auth } from "@/lib/auth";
 import { getTeamMembers } from "@/lib/db/queries/team";
-import { SessionSelectSchema } from "@/lib/db/schema";
+import { sessionSelectSchema } from "@/lib/db/schema";
 
 export async function getTeamMembersAction() {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
 
-  const parsedSession = SessionSelectSchema.safeParse(session?.session);
+  const parsedSession = sessionSelectSchema.safeParse(session?.session);
   if (!parsedSession.success) {
     console.error(parsedSession.error);
     throw new Error("Invalid session /team, action");

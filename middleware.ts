@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { betterFetch } from "@better-fetch/fetch";
 
 import type { auth } from "@/lib/auth";
-import { SessionSelectSchemaCoerced } from "./lib/db/schema";
+import { sessionSelectSchemaCoerced } from "./lib/db/schema";
 
 type Session = typeof auth.$Infer.Session;
 
@@ -18,7 +18,7 @@ export default async function authMiddleware(request: NextRequest) {
     }
   );
 
-  const parsedSession = SessionSelectSchemaCoerced.safeParse(session?.session);
+  const parsedSession = sessionSelectSchemaCoerced.safeParse(session?.session);
   if (!parsedSession.success) {
     console.log(parsedSession.error.message);
     return NextResponse.redirect(new URL("/sign-in", request.url));
