@@ -1,6 +1,8 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { format } from "date-fns";
+import { toast } from "sonner";
 
 import { getTeamMembersAction } from "@/app/dashboard/_actions/team";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -14,7 +16,7 @@ import {
 } from "@/components/ui/table";
 import type { TeamMember } from "@/lib/db/schema";
 import { queryKeys } from "@/lib/query/keys";
-import { TeamListSkeleton } from "./team-list-skeleton";
+import { isQueryError } from "@/lib/query/types";
 import { TeamMemberActions } from "./team-member-actions";
 
 interface TeamListClientProps {
@@ -22,15 +24,19 @@ interface TeamListClientProps {
 }
 
 export function TeamListClient({ initialMembers }: TeamListClientProps) {
-  const { data: members, isLoading } = useQuery({
+  const { data: members } = useQuery({
     queryKey: queryKeys.organizations.members("current"),
     queryFn: () => getTeamMembersAction(),
     initialData: initialMembers,
+    meta: {
+      onError: (error: unknown) => {
+        const message = isQueryError(error)
+          ? error.message
+          : "Failed to load team members";
+        toast.error(message);
+      },
+    },
   });
-
-  if (isLoading) {
-    return <TeamListSkeleton />;
-  }
 
   if (!members?.length) {
     return (
@@ -82,7 +88,7 @@ export function TeamListClient({ initialMembers }: TeamListClientProps) {
               </div>
             </TableCell>
             <TableCell>
-              {new Date(member.createdAt).toLocaleDateString()}
+              {format(new Date(member.createdAt), "MMM d, yyyy")}
             </TableCell>
             <TableCell className="text-right">
               <TeamMemberActions member={member} />
