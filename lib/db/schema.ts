@@ -159,6 +159,25 @@ export const MemberUpdateSchema = createUpdateSchema(member);
 export type Member = z.infer<typeof MemberSelectSchema>;
 export type MemberInsert = typeof member.$inferInsert;
 
+export const teamMemberSelectSchema = z.object({
+  id: z.string(),
+  role: z.string(),
+  createdAt: z.date(),
+  updatedAt: z.date().nullable(),
+  user: z.object({
+    id: z.string(),
+    name: z.string(),
+    email: z.string(),
+    image: z.string().nullable(),
+  }),
+  organization: z.object({
+    id: z.string(),
+    name: z.string(),
+  }),
+});
+
+export type TeamMember = z.infer<typeof teamMemberSelectSchema>;
+
 export const invitation = sqliteTable("invitation", {
   id: text("id").primaryKey(),
   organizationId: text("organization_id")

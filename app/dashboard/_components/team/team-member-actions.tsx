@@ -13,13 +13,17 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { authClient } from "@/lib/auth/auth-client";
+import type { TeamMember } from "@/lib/db/schema";
 
-export function TeamMemberActions({ member }: { member: any }) {
+export function TeamMemberActions({ member }: { member: TeamMember }) {
   const queryClient = useQueryClient();
   const [isOpen, setIsOpen] = useState(false);
 
   const { mutate: removeMember } = useMutation({
-    mutationFn: () => authClient.organization.removeMember(member.id),
+    mutationFn: () =>
+      authClient.organization.removeMember({
+        memberIdOrEmail: member.user.email,
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["team-members"] });
       toast.success("Member removed successfully");

@@ -4,7 +4,7 @@ export const teamMemberSelectSchema = z.object({
   id: z.string(),
   role: z.string(),
   createdAt: z.date(),
-  updatedAt: z.string().nullable(),
+  updatedAt: z.date().nullable(),
   user: z.object({
     id: z.string(),
     name: z.string(),
