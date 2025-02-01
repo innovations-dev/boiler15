@@ -1,6 +1,5 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 
 import {
@@ -11,15 +10,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { authClient } from "@/lib/auth/auth-client";
+import { useOrganizations } from "@/hooks/organization/use-organizations";
 import { OrganizationActions } from "./organization-actions";
 import { OrganizationsListSkeleton } from "./organizations-list-skeleton";
 
 export function OrganizationsList() {
-  const { data: organizations, isLoading } = useQuery({
-    queryKey: ["organizations"],
-    queryFn: () => authClient.organization.list(),
-  });
+  const { data: organizations, isLoading } = useOrganizations();
 
   if (isLoading) {
     return <OrganizationsListSkeleton />;

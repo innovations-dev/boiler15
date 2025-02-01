@@ -172,6 +172,66 @@ export function OrganizationsInfiniteList() {
 }
 ```
 
+### Centralized Query Keys
+
+We maintain type-safe query keys in a central location:
+
+```typescript
+// lib/query/keys.ts
+export const queryKeys = {
+  organizations: {
+    all: ["organizations"] as const,
+    byId: (id: string) => ["organizations", id] as const,
+    members: (id: string) => ["organizations", id, "members"] as const,
+  },
+  // ... other query keys
+} as const;
+```
+
+### Custom Query Hooks
+
+We encapsulate query logic in custom hooks:
+
+```typescript
+// lib/query/hooks/use-organizations.ts
+export function useOrganizations() {
+  return useQuery({
+    queryKey: queryKeys.organizations.all,
+    queryFn: () => authClient.organization.list(),
+  });
+}
+```
+
+// ... keep existing Server Components section with database examples ...
+
+## Client Components
+
+### Using Custom Hooks
+
+```tsx
+"use client";
+
+export function OrganizationsList() {
+  const { data: organizations, isLoading } = useOrganizations();
+
+  if (isLoading) {
+    return <OrganizationsListSkeleton />;
+  }
+
+  return (
+    <Table>
+      <TableBody>
+        {organizations?.data?.map((org) => (
+          <TableRow key={org.id}>
+            <TableCell>{org.name}</TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  );
+}
+```
+
 ## API Routes
 
 ### Route Handlers

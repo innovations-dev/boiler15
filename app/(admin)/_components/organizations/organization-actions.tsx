@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { MoreHorizontal, Trash, Users } from "lucide-react";
 import { toast } from "sonner";
 
@@ -12,19 +11,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { authClient } from "@/lib/auth/auth-client";
+import { useDeleteOrganization } from "@/hooks/organization/use-organization-mutation";
 
 export function OrganizationActions({ organization }: { organization: any }) {
-  const queryClient = useQueryClient();
   const [isOpen, setIsOpen] = useState(false);
-
-  const { mutate: deleteOrganization } = useMutation({
-    mutationFn: () => authClient.organization.delete(organization.id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["organizations"] });
-      toast.success("Organization deleted successfully");
-    },
-  });
+  const { mutate: deleteOrganization } = useDeleteOrganization();
 
   return (
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
@@ -36,7 +27,6 @@ export function OrganizationActions({ organization }: { organization: any }) {
       <DropdownMenuContent align="end">
         <DropdownMenuItem
           onClick={() => {
-            // TODO: Implement view members modal
             toast.info("View members feature coming soon");
           }}
         >
@@ -45,7 +35,7 @@ export function OrganizationActions({ organization }: { organization: any }) {
         </DropdownMenuItem>
         <DropdownMenuItem
           className="text-destructive"
-          onClick={() => deleteOrganization()}
+          onClick={() => deleteOrganization(organization.id)}
         >
           <Trash className="mr-2 h-4 w-4" />
           Delete Organization
