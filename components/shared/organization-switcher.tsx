@@ -5,7 +5,7 @@ import { useMutation } from "@tanstack/react-query";
 import { Building, ChevronDown, PlusCircle } from "lucide-react";
 import { toast } from "sonner";
 
-import { CreateOrganizationDialog } from "@/app/dashboard/_components/create-organization-dialog";
+import { CreateOrganizationDialog } from "@/components/shared/create-organization-dialog";
 import { Spinner } from "@/components/spinner";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,15 +25,6 @@ import {
 import { useOrganizations } from "@/hooks/organization/use-organizations";
 import { authClient } from "@/lib/auth/auth-client";
 import type { Organization } from "@/lib/db/schema";
-
-type APIOrganization = {
-  id: string;
-  name: string;
-  slug: string;
-  createdAt: Date;
-  metadata?: string | null;
-  logo?: string | null;
-};
 
 interface OrganizationSwitcherProps {
   hideCreate?: boolean;
@@ -141,12 +132,10 @@ export function OrganizationSwitcher({
         </PopoverContent>
       </Popover>
 
-      {!hideCreate && (
-        <CreateOrganizationDialog
-          open={showCreateDialog}
-          onOpenChangeAction={setShowCreateDialog}
-        />
-      )}
+      <CreateOrganizationDialog
+        open={showCreateDialog}
+        onOpenChangeAction={setShowCreateDialog}
+      />
     </>
   );
 }
