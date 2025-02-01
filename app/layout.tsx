@@ -7,6 +7,7 @@ import { NuqsAdapter } from "nuqs/adapters/next/app";
 
 import { Toaster } from "@/components/ui/sonner";
 import { generateMetadata } from "@/config/meta.config";
+import { ErrorHandler } from "@/lib/auth/errors";
 import { cn } from "@/lib/utils";
 import { SiteFooter } from "./_components/layout/footer";
 import { SiteHeader } from "./_components/layout/header";
@@ -68,6 +69,7 @@ export default function RootLayout({
           </QueryProvider>
         </NuqsAdapter>
         <Toaster richColors />
+        <ErrorHandler />
         <SiteFooter />
       </body>
     </html>

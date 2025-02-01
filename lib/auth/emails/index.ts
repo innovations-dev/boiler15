@@ -6,7 +6,6 @@ import { UserWithRole } from "better-auth/plugins";
 import { getResetPasswordEmail } from "@/emails/reset-password";
 import { getVerificationEmail } from "@/emails/verification-email";
 import {
-  EmailError,
   EmailRateLimitError,
   sendEmailWithRetry,
 } from "@/lib/email/services/send-email";
