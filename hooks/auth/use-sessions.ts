@@ -1,21 +1,32 @@
-import { useQuery } from "@tanstack/react-query";
-import { toast } from "sonner";
-
 import { authClient } from "@/lib/auth/auth-client";
+import { sessionSelectSchema } from "@/lib/db/schema";
+import { useApiQuery } from "@/lib/hooks/use-api-query";
 import { queryKeys } from "@/lib/query/keys";
-import { isQueryError } from "@/lib/query/types";
 
 export function useSessions() {
-  return useQuery({
-    queryKey: queryKeys.sessions.all,
-    queryFn: () => authClient.listSessions(),
-    meta: {
-      onError: (error: unknown) => {
-        const message = isQueryError(error)
-          ? error.message
-          : "Failed to load sessions";
-        toast.error(message);
-      },
+  return useApiQuery(
+    queryKeys.sessions.all,
+    async () => {
+      const response = await authClient.listSessions();
+      const sessions = (response.data ?? []).map((session) => ({
+        ...session,
+        impersonatedBy: null,
+        activeOrganizationId: null,
+        ipAddress: session.ipAddress ?? null,
+        userAgent: session.userAgent ?? null,
+      }));
+      return sessions;
     },
-  });
+    sessionSelectSchema.array(),
+    {
+      retry: 1,
+      initialData: {
+        data: [],
+        metadata: {
+          timestamp: Date.now(),
+          requestId: crypto.randomUUID(),
+        },
+      },
+    }
+  );
 }

@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useEffect } from "react";
 import { APIError as BetterAuthAPIError } from "better-auth/api";
 import { toast } from "sonner";

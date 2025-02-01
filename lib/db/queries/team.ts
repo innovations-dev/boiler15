@@ -6,7 +6,7 @@ import { db } from "@/lib/db";
 import { member, organization, user } from "@/lib/db/schema";
 
 export async function getTeamMembers(organizationId: string) {
-  return db
+  const results = await db
     .select({
       id: member.id,
       role: member.role,
@@ -28,4 +28,9 @@ export async function getTeamMembers(organizationId: string) {
     .innerJoin(organization, eq(member.organizationId, organization.id))
     .where(eq(member.organizationId, organizationId))
     .orderBy(desc(member.createdAt));
+
+  return results.map((result) => ({
+    ...result,
+    updatedAt: result.updatedAt || null,
+  }));
 }

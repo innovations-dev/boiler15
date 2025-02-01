@@ -6,5 +6,9 @@ export interface AdminStats {
 
 export interface AdminStatsResponse {
   data: AdminStats | null;
-  error: { message: string } | null;
+  error?: {
+    message: string;
+    code?: string;
+    status?: number;
+  };
 }

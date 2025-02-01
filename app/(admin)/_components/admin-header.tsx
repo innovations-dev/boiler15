@@ -1,29 +1,35 @@
 import { headers } from "next/headers";
-import { redirect } from "next/navigation";
 
-import { auth } from "@/lib/auth";
-import { USER_ROLES } from "@/lib/constants/roles";
-import { userSelectSchema } from "@/lib/db/schema";
+import { guardAdminRoute } from "@/lib/auth/admin-guard";
+
+export interface ApiErrorResponse {
+  message: string;
+  code?: string;
+  status?: number;
+}
+
+export interface ApiResponse<T> {
+  data: T | null;
+  error?: ApiErrorResponse;
+}
+
+export interface PaginatedApiResponse<T> extends ApiResponse<T[]> {
+  metadata?: {
+    hasMore: boolean;
+    nextCursor?: string;
+    total?: number;
+  };
+}
 
 export async function AdminHeader() {
-  const session = await auth.api.getSession({ headers: await headers() });
-
-  const parsedUser = userSelectSchema.safeParse(session?.user);
-  if (!parsedUser.success) {
-    console.log(parsedUser.error.message);
-    redirect("/sign-in");
-  }
-
-  if (parsedUser.data.role !== USER_ROLES.ADMIN) {
-    redirect("/dashboard");
-  }
+  const user = await guardAdminRoute();
 
   return (
     <div className="flex items-center justify-between border-b pb-4">
       <div>
         <h2 className="text-lg font-medium">Admin Dashboard</h2>
         <p className="text-sm text-muted-foreground">
-          Logged in as {session?.user?.name}
+          Logged in as {user.name}
         </p>
       </div>
     </div>
