@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { MoreHorizontal, Trash, Users } from "lucide-react";
 import { toast } from "sonner";
+import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -12,10 +13,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useDeleteOrganization } from "@/hooks/organization/use-organization-mutation";
-import type { Organization } from "@/lib/db/schema";
+import type { omittedOrganizationSelectSchema } from "@/lib/db/schema";
 
 interface OrganizationActionsProps {
-  organization: Organization;
+  organization: z.infer<typeof omittedOrganizationSelectSchema>;
 }
 
 export function OrganizationActions({

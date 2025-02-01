@@ -127,7 +127,7 @@ export const OrganizationSelectSchema = createSelectSchema(organization, {
   metadata: z.string().optional(),
   logo: z.string().nullish(),
 });
-const omittedOrganizationSelectSchema = OrganizationSelectSchema.omit({
+export const omittedOrganizationSelectSchema = OrganizationSelectSchema.omit({
   updatedAt: true,
 });
 export const OrganizationInsertSchema = createInsertSchema(organization, {

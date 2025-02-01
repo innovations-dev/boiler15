@@ -1,6 +1,7 @@
 export const queryKeys = {
   organizations: {
     all: ["organizations"] as const,
+    list: () => ["organizations", "list"] as const,
     byId: (id: string) => ["organizations", id] as const,
     members: (id: string) => ["organizations", id, "members"] as const,
   },
