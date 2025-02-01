@@ -1,9 +1,11 @@
 export const queryKeys = {
   organizations: {
     all: ["organizations"] as const,
-    list: () => ["organizations", "list"] as const,
-    byId: (id: string) => ["organizations", id] as const,
-    members: (id: string) => ["organizations", id, "members"] as const,
+    list: () => [...queryKeys.organizations.all, "list"] as const,
+    listApi: () => [...queryKeys.organizations.all, "list", "api"] as const,
+    byId: (id: string) => [...queryKeys.organizations.all, id] as const,
+    members: (id: string) =>
+      [...queryKeys.organizations.all, id, "members"] as const,
   },
   users: {
     all: ["users"] as const,

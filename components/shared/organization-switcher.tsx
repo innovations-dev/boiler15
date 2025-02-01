@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { format } from "date-fns";
 import { Building, ChevronDown, PlusCircle } from "lucide-react";
 import { toast } from "sonner";
 
@@ -25,12 +26,9 @@ import {
 } from "@/components/ui/popover";
 import { useOrganizations } from "@/hooks/organization/use-organizations";
 import { authClient } from "@/lib/auth/auth-client";
+import { queryKeys } from "@/lib/query/keys";
 
-export function OrganizationSwitcher({
-  hideCreate = false,
-}: {
-  hideCreate?: boolean;
-}) {
+function OrganizationSwitcherContent() {
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const queryClient = useQueryClient();
@@ -45,10 +43,15 @@ export function OrganizationSwitcher({
         await authClient.organization.setActive({ organizationId });
         return authClient.getSession();
       },
-      onSuccess: () => {
+      onSuccess: async () => {
         setPopoverOpen(false);
-        queryClient.invalidateQueries({ queryKey: ["session"] });
-        router.refresh();
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: queryKeys.sessions.all }),
+          queryClient.invalidateQueries({
+            queryKey: queryKeys.organizations.all,
+          }),
+        ]);
+        window.location.reload();
       },
       onError: (error) => {
         console.error("[OrganizationSwitcher] Switch failed:", error);
@@ -107,23 +110,18 @@ export function OrganizationSwitcher({
                   </CommandItem>
                 ))}
               </CommandGroup>
-              {!hideCreate && (
-                <>
-                  <CommandSeparator />
-                  <CommandGroup>
-                    <CommandItem
-                      onSelect={() => {
-                        setPopoverOpen(false);
-                        setShowCreateDialog(true);
-                      }}
-                      className="cursor-pointer"
-                    >
-                      <PlusCircle className="mr-2 h-4 w-4" />
-                      Create Organization
-                    </CommandItem>
-                  </CommandGroup>
-                </>
-              )}
+              <CommandGroup>
+                <CommandItem
+                  onSelect={() => {
+                    setPopoverOpen(false);
+                    setShowCreateDialog(true);
+                  }}
+                  className="cursor-pointer"
+                >
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  Create Organization
+                </CommandItem>
+              </CommandGroup>
             </CommandList>
           </Command>
         </PopoverContent>
@@ -134,5 +132,13 @@ export function OrganizationSwitcher({
         onOpenChangeAction={setShowCreateDialog}
       />
     </>
+  );
+}
+
+export function OrganizationSwitcher() {
+  return (
+    <Suspense>
+      <OrganizationSwitcherContent />
+    </Suspense>
   );
 }

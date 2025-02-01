@@ -1,6 +1,7 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
+import { OrganizationSwitcher } from "@/components/shared/organization-switcher";
 import { auth } from "@/lib/auth";
 import { USER_ROLES } from "@/lib/constants/roles";
 import { userSelectSchema } from "@/lib/db/schema";

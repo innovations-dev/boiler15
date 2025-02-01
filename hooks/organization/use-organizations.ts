@@ -3,7 +3,11 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import { getOrganizationsAction } from "@/app/(admin)/_actions/organization";
-import type { Organization } from "@/lib/db/schema";
+import {
+  omittedOrganizationSelectSchema,
+  type Organization,
+} from "@/lib/db/schema";
+import { useApiQuery } from "@/lib/hooks/use-api-query";
 import { queryKeys } from "@/lib/query/keys";
 import { isQueryError } from "@/lib/query/types";
 
@@ -26,8 +30,8 @@ export function useOrganizations({
   return useQuery<Organization[]>({
     queryKey: queryKeys.organizations.list(),
     queryFn: getOrganizationsAction,
-    staleTime: 1000 * 60, // 1 minute
-    gcTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 1000 * 60,
+    gcTime: 1000 * 60 * 5,
     initialData,
     meta: {
       onError: (error: unknown) => {
@@ -38,4 +42,36 @@ export function useOrganizations({
       },
     },
   });
+}
+
+export function useOrganizationsApi({
+  initialData,
+}: UseOrganizationsOptions = {}) {
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    void queryClient.prefetchQuery({
+      queryKey: queryKeys.organizations.listApi(),
+      queryFn: getOrganizationsAction,
+    });
+  }, [queryClient]);
+
+  return useApiQuery(
+    queryKeys.organizations.listApi(),
+    getOrganizationsAction,
+    omittedOrganizationSelectSchema.array(),
+    {
+      staleTime: 1000 * 60,
+      gcTime: 1000 * 60 * 5,
+      initialData: initialData
+        ? {
+            data: initialData,
+            metadata: {
+              timestamp: Date.now(),
+              requestId: crypto.randomUUID(),
+            },
+          }
+        : undefined,
+    }
+  );
 }

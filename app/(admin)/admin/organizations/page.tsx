@@ -1,8 +1,7 @@
 import { Suspense } from "react";
 
-import { OrganizationsList } from "@/app/(admin)/_components/organizations/organizations-list";
-import { OrganizationsListSkeleton } from "@/app/(admin)/_components/organizations/organizations-list-skeleton";
 import { OrganizationSwitcher } from "@/components/shared/organization-switcher";
+import { OrganizationsListWrapper } from "../../_components/organizations/organizations-list-wrapper";
 
 export default function OrganizationsPage() {
   return (
@@ -14,11 +13,11 @@ export default function OrganizationsPage() {
             Manage organizations and their members
           </p>
         </div>
-        <OrganizationSwitcher />
+        <Suspense>
+          <OrganizationSwitcher />
+        </Suspense>
       </div>
-      <Suspense fallback={<OrganizationsListSkeleton />}>
-        <OrganizationsList />
-      </Suspense>
+      <OrganizationsListWrapper />
     </div>
   );
 }
