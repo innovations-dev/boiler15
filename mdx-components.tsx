@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { MDXComponents } from "mdx/types";
 import { highlight } from "sugar-high";
 
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -56,7 +57,16 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     ),
     // Basic elements
     p: ({ className, ...props }: React.ComponentPropsWithoutRef<"p">) => (
-      <p className={cn("mb-4 leading-7", className)} {...props} />
+      <p
+        className={cn("leading-7 [&:not(:first-child)]:mt-6", className)}
+        {...props}
+      />
+    ),
+    div: ({ className, ...props }: React.ComponentPropsWithoutRef<"div">) => (
+      <div className={cn(className)} {...props} />
+    ),
+    pre: ({ className, ...props }: React.ComponentPropsWithoutRef<"pre">) => (
+      <pre className={cn("overflow-x-auto", className)} {...props} />
     ),
     em: ({ className, ...props }: React.ComponentPropsWithoutRef<"em">) => (
       <em className={cn("italic", className)} {...props} />
@@ -233,15 +243,6 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     }) => {
       const styles = cn("font-medium underline underline-offset-4", className);
 
-      // Handle absolute URLs that might be written as [url](url) in MDX
-      if (href && typeof children === "string" && href === children) {
-        return (
-          <span className={styles}>
-            <code>{href}</code>
-          </span>
-        );
-      }
-
       if (href?.startsWith("/")) {
         return (
           <Link href={href} className={styles} {...props}>
@@ -262,6 +263,13 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
         </a>
       );
     },
+    // Custom components
+    Button: ({
+      className,
+      ...props
+    }: React.ComponentPropsWithoutRef<typeof Button>) => (
+      <Button className={cn(className)} {...props} />
+    ),
     ...components,
   };
 }

@@ -1,0 +1,231 @@
+import { Loader2 } from "lucide-react";
+
+import { default as DocLayout } from "@/components/mdx/layout";
+import { Button } from "@/components/ui/button";
+
+export const metadata = {
+  title: "Kitchen Sink",
+  description: "A showcase of Tailwind CSS utilities and components",
+  section: "UI Components",
+  order: 1,
+};
+
+export default function KitchenSinkPage({ children }) {
+  return <DocLayout metadata={metadata}>{children}</DocLayout>;
+}
+
+# Kitchen Sink
+
+Welcome to our Kitchen Sink page. This page demonstrates various Tailwind CSS utilities and components available in our design system.
+
+## Typography
+
+### Font Sizes
+
+<div className="space-y-6">
+  <div>
+    <span className="text-xs">text-xs</span>
+    <span className="ml-4 text-sm">text-sm</span>
+    <span className="ml-4 text-base">text-base</span>
+    <span className="ml-4 text-lg">text-lg</span>
+    <span className="ml-4 text-xl">text-xl</span>
+    <span className="ml-4 text-2xl">text-2xl</span>
+    <span className="ml-4 text-3xl">text-3xl</span>
+  </div>
+</div>
+
+### Font Weights
+
+<div className="space-y-4">
+  <div className="font-light">
+    Font Light - The quick brown fox jumps over the lazy dog.
+  </div>
+  <div className="font-normal">
+    Font Normal - The quick brown fox jumps over the lazy dog.
+  </div>
+  <div className="font-medium">
+    Font Medium - The quick brown fox jumps over the lazy dog.
+  </div>
+  <div className="font-semibold">
+    Font Semibold - The quick brown fox jumps over the lazy dog.
+  </div>
+  <div className="font-bold">
+    Font Bold - The quick brown fox jumps over the lazy dog.
+  </div>
+</div>
+
+## Colors
+
+### Text Colors
+
+<div className="space-y-2">
+  <div className="text-primary">Primary Text</div>
+  <div className="text-secondary">Secondary Text</div>
+  <div className="text-muted-foreground">Muted Text</div>
+  <div className="text-destructive">Destructive Text</div>
+</div>
+
+### Background Colors
+
+<div className="my-6 grid grid-cols-2 gap-4 md:grid-cols-4">
+  <div className="flex h-24 items-center justify-center rounded-lg bg-background">
+    background
+  </div>
+  <div className="flex h-24 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+    primary
+  </div>
+  <div className="flex h-24 items-center justify-center rounded-lg bg-secondary">
+    secondary
+  </div>
+  <div className="flex h-24 items-center justify-center rounded-lg bg-muted">
+    muted
+  </div>
+</div>
+
+## Spacing & Layout
+
+### Margin Examples
+
+<div className="space-y-4">
+  <div className="m-2 bg-muted p-4">m-2</div>
+  <div className="m-4 bg-muted p-4">m-4</div>
+  <div className="m-8 bg-muted p-4">m-8</div>
+</div>
+
+### Padding Examples
+
+<div className="space-y-4">
+  <div className="border bg-muted p-2">p-2</div>
+  <div className="border bg-muted p-4">p-4</div>
+  <div className="border bg-muted p-8">p-8</div>
+</div>
+
+## Flexbox & Grid
+
+### Flex Examples
+
+<div className="my-6 flex space-x-4">
+  <div className="bg-muted p-4">Flex 1</div>
+  <div className="bg-muted p-4">Flex 2</div>
+  <div className="bg-muted p-4">Flex 3</div>
+</div>
+
+### Grid Examples
+
+<div className="my-6 grid grid-cols-1 gap-4 md:grid-cols-3">
+  <div className="bg-muted p-4">Grid 1</div>
+  <div className="bg-muted p-4">Grid 2</div>
+  <div className="bg-muted p-4">Grid 3</div>
+</div>
+
+## Responsive Design
+
+### Responsive Text
+
+<div className="text-sm md:text-base lg:text-lg xl:text-xl">
+  This text changes size at different breakpoints
+</div>
+
+### Responsive Grid
+
+<div className="my-6 grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+  <div className="bg-muted p-4">Item 1</div>
+  <div className="bg-muted p-4">Item 2</div>
+  <div className="bg-muted p-4">Item 3</div>
+  <div className="bg-muted p-4">Item 4</div>
+</div>
+
+## Button Variants
+
+<div className="my-6 space-y-6">
+  <div className="flex flex-col gap-4">
+    <h4 className="text-sm font-medium">Button Styles</h4>
+    <div className="flex flex-wrap gap-4">
+      <Button variant="default">Default</Button>
+      <Button variant="secondary">Secondary</Button>
+      <Button variant="destructive">Destructive</Button>
+      <Button variant="outline">Outline</Button>
+      <Button variant="ghost">Ghost</Button>
+      <Button variant="link">Link</Button>
+    </div>
+  </div>
+
+{" "}
+
+<div className="flex flex-col gap-4">
+  <h4 className="text-sm font-medium">Button Sizes</h4>
+  <div className="flex flex-wrap items-center gap-4">
+    <Button size="lg">Large</Button>
+    <Button size="default">Default</Button>
+    <Button size="sm">Small</Button>
+  </div>
+</div>
+
+  <div className="flex flex-col gap-4">
+    <h4 className="text-sm font-medium">Button States</h4>
+    <div className="flex flex-wrap gap-4">
+      <Button disabled>Disabled</Button>
+      <Button disabled>
+        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+        Loading
+      </Button>
+    </div>
+  </div>
+</div>
+
+## Interactive Elements
+
+<div className="my-6 space-y-6">
+  <div className="flex flex-col gap-4">
+    <h4 className="text-sm font-medium">Hover Effects</h4>
+    <div className="cursor-pointer rounded-lg bg-card p-6 shadow-sm transition-all duration-200 hover:bg-muted hover:shadow-md">
+      Hover me for background change and shadow
+    </div>
+    <div className="cursor-pointer text-lg transition-all duration-200 hover:text-primary hover:underline">
+      Hover for text color and underline
+    </div>
+  </div>
+
+{" "}
+
+<div className="flex flex-col gap-4">
+  <h4 className="text-sm font-medium">Transform Effects</h4>
+  <div className="flex gap-4">
+    <div className="cursor-pointer rounded-lg bg-muted p-6 transition-all duration-200 hover:scale-105 hover:shadow-lg">
+      Scale Up
+    </div>
+    <div className="cursor-pointer rounded-lg bg-muted p-6 transition-all duration-200 hover:-translate-y-1 hover:shadow-lg">
+      Float Up
+    </div>
+  </div>
+</div>
+
+{" "}
+
+<div className="flex flex-col gap-4">
+  <h4 className="text-sm font-medium">Animations</h4>
+  <div className="flex gap-4">
+    <div className="flex h-24 w-24 animate-pulse items-center justify-center rounded-lg bg-muted">
+      Pulse
+    </div>
+    <div className="flex h-24 w-24 animate-bounce items-center justify-center rounded-lg bg-muted">
+      Bounce
+    </div>
+    <div className="flex h-24 w-24 items-center justify-center">
+      <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+    </div>
+  </div>
+</div>
+
+  <div className="flex flex-col gap-4">
+    <h4 className="text-sm font-medium">Group Hover</h4>
+    <div className="group cursor-pointer rounded-lg border border-border bg-card p-6 transition-all duration-300 hover:border-primary hover:bg-accent">
+      <div className="text-lg font-medium transition-colors group-hover:text-primary">
+        Hover Group Example
+      </div>
+      <div className="text-muted-foreground transition-colors group-hover:text-primary/80">
+        This entire card changes when you hover, including child elements
+      </div>
+    </div>
+  </div>
+</div>

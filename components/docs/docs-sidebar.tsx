@@ -22,6 +22,15 @@ const docsConfig = {
         },
       ],
     },
+    {
+      title: "UI Components",
+      items: [
+        {
+          title: "Kitchen Sink",
+          href: "/docs/kitchen-sink",
+        },
+      ],
+    },
   ],
 } as const;
 

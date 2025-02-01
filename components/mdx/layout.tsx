@@ -14,7 +14,9 @@ export default function MDXLayout({ children, metadata }: MDXLayoutProps) {
       {metadata?.title && (
         <h1 className="mb-6 text-3xl font-bold">{metadata.title}</h1>
       )}
-      <div className="prose dark:prose-invert max-w-none">{children}</div>
+      <div className="mdx prose prose-zinc dark:prose-invert max-w-none">
+        {children}
+      </div>
     </div>
   );
 }
