@@ -6,8 +6,9 @@ import { eq, sql } from "drizzle-orm";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { organization, session, user } from "@/lib/db/schema";
+import type { AdminStatsResponse } from "@/lib/types/admin";
 
-export async function getAdminStatsAction() {
+export async function getAdminStatsAction(): Promise<AdminStatsResponse> {
   try {
     const authSession = await auth.api.getSession({
       headers: await headers(),
@@ -25,7 +26,6 @@ export async function getAdminStatsAction() {
       throw new Error("Unauthorized: Admin access required");
     }
 
-    // Single query for all counts
     const [stats] = await db
       .select({
         userCount: sql`count(distinct ${user.id})`,
@@ -33,8 +33,8 @@ export async function getAdminStatsAction() {
         sessionCount: sql`count(distinct ${session.id})`,
       })
       .from(user)
-      .crossJoin(organization)
-      .crossJoin(session);
+      .leftJoin(organization, sql`1=1`)
+      .leftJoin(session, sql`1=1`);
 
     return {
       data: {
