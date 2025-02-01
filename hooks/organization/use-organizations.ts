@@ -15,30 +15,36 @@ interface UseOrganizationsOptions {
   initialData?: Organization[];
 }
 
-export function useOrganizations({
-  initialData,
-}: UseOrganizationsOptions = {}) {
+export function useOrganizations() {
   const queryClient = useQueryClient();
 
   useEffect(() => {
     void queryClient.prefetchQuery({
       queryKey: queryKeys.organizations.list(),
-      queryFn: getOrganizationsAction,
+      queryFn: async () => {
+        const response = await getOrganizationsAction();
+        if (response.error) {
+          throw new Error(response.error.message);
+        }
+        return response.data ?? [];
+      },
     });
   }, [queryClient]);
 
   return useQuery<Organization[]>({
     queryKey: queryKeys.organizations.list(),
-    queryFn: getOrganizationsAction,
+    queryFn: async () => {
+      const response = await getOrganizationsAction();
+      if (response.error) {
+        throw new Error(response.error.message);
+      }
+      return response.data ?? [];
+    },
     staleTime: 1000 * 60,
     gcTime: 1000 * 60 * 5,
-    initialData,
     meta: {
-      onError: (error: unknown) => {
-        const message = isQueryError(error)
-          ? error.message
-          : "Failed to load organizations";
-        toast.error(message);
+      onError: (error: Error) => {
+        toast.error(error.message);
       },
     },
   });
@@ -52,13 +58,21 @@ export function useOrganizationsApi({
   useEffect(() => {
     void queryClient.prefetchQuery({
       queryKey: queryKeys.organizations.listApi(),
-      queryFn: getOrganizationsAction,
+      queryFn: async () => {
+        const response = await getOrganizationsAction();
+        if (response.error) throw new Error(response.error.message);
+        return response.data ?? [];
+      },
     });
   }, [queryClient]);
 
   return useApiQuery(
     queryKeys.organizations.listApi(),
-    getOrganizationsAction,
+    async () => {
+      const response = await getOrganizationsAction();
+      if (response.error) throw new Error(response.error.message);
+      return response.data ?? [];
+    },
     omittedOrganizationSelectSchema.array(),
     {
       staleTime: 1000 * 60,

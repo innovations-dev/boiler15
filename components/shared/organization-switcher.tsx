@@ -1,9 +1,7 @@
 "use client";
 
 import { Suspense, useState } from "react";
-import { useRouter } from "next/navigation";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { format } from "date-fns";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Building, ChevronDown, PlusCircle } from "lucide-react";
 import { toast } from "sonner";
 
@@ -17,7 +15,6 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-  CommandSeparator,
 } from "@/components/ui/command";
 import {
   Popover,
@@ -32,7 +29,6 @@ function OrganizationSwitcherContent() {
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const queryClient = useQueryClient();
-  const router = useRouter();
 
   const { data: session } = authClient.useSession();
   const { data: organizations, isLoading: isLoadingOrgs } = useOrganizations();
@@ -135,7 +131,7 @@ function OrganizationSwitcherContent() {
   );
 }
 
-export function OrganizationSwitcher() {
+export function OrganizationSwitcherWithSuspense() {
   return (
     <Suspense>
       <OrganizationSwitcherContent />

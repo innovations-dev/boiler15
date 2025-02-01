@@ -1,7 +1,7 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
-import { OrganizationSwitcher } from "@/components/shared/organization-switcher";
+import { OrganizationSwitcherWithSuspense } from "@/components/shared/organization-switcher";
 import { auth } from "@/lib/auth";
 import { userSelectSchema } from "@/lib/db/schema";
 
@@ -22,7 +22,7 @@ export async function DashboardHeader() {
           Logged in as {session?.user?.name ?? session?.user?.email}
         </p>
       </div>
-      <OrganizationSwitcher />
+      <OrganizationSwitcherWithSuspense />
     </div>
   );
 }

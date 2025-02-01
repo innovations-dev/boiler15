@@ -1,6 +1,4 @@
-import { Suspense } from "react";
-
-import { OrganizationSwitcher } from "@/components/shared/organization-switcher";
+import { OrganizationSwitcherWithSuspense } from "@/components/shared/organization-switcher";
 import { OrganizationsListWrapper } from "../../_components/organizations/organizations-list-wrapper";
 
 export default function OrganizationsPage() {
@@ -13,9 +11,7 @@ export default function OrganizationsPage() {
             Manage organizations and their members
           </p>
         </div>
-        <Suspense>
-          <OrganizationSwitcher />
-        </Suspense>
+        <OrganizationSwitcherWithSuspense />
       </div>
       <OrganizationsListWrapper />
     </div>
