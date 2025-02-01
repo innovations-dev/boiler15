@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { authClient } from "@/lib/auth/auth-client";
 import type { TeamMember } from "@/lib/db/schema";
+import { queryKeys } from "@/lib/query/keys";
 
 export function TeamMemberActions({ member }: { member: TeamMember }) {
   const queryClient = useQueryClient();
@@ -25,7 +26,9 @@ export function TeamMemberActions({ member }: { member: TeamMember }) {
         memberIdOrEmail: member.user.email,
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["team-members"] });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.organizations.members("current"),
+      });
       toast.success("Member removed successfully");
     },
   });
