@@ -6,10 +6,12 @@ import { Loader2, Plus } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { FloatingLabelInput } from "@/components/floating-input";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -21,7 +23,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -32,8 +33,10 @@ import {
 import { useInviteMember } from "@/hooks/organization/use-invite-member";
 
 const inviteMemberSchema = z.object({
-  email: z.string().email(),
-  role: z.enum(["admin", "member"]),
+  email: z.string().email("Please enter a valid email address"),
+  role: z.enum(["admin", "member"], {
+    required_error: "Please select a role",
+  }),
 });
 
 type InviteMemberFormData = z.infer<typeof inviteMemberSchema>;
@@ -61,8 +64,11 @@ export function InviteMemberButton() {
 
   return (
     <>
-      <Button onClick={() => setOpen(true)}>
-        <Plus className="mr-2 h-4 w-4" />
+      <Button
+        onClick={() => setOpen(true)}
+        aria-label="Open invite member dialog"
+      >
+        <Plus className="mr-2 h-4 w-4" aria-hidden="true" />
         Invite Member
       </Button>
 
@@ -70,20 +76,31 @@ export function InviteMemberButton() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Invite Team Member</DialogTitle>
+            <DialogDescription className="text-sm">
+              Send an invitation email to add a new member to your team.
+            </DialogDescription>
           </DialogHeader>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <form
+              onSubmit={form.handleSubmit(onSubmit)}
+              className="space-y-4"
+              aria-label="Invite member form"
+            >
               <FormField
                 control={form.control}
                 name="email"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <Input {...field} type="email" disabled={isPending} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
+                  <FloatingLabelInput
+                    {...field}
+                    label="Email"
+                    type="email"
+                    autoComplete="email"
+                    autoFocus
+                    placeholder="member@example.com"
+                    aria-label="Member's email address"
+                    aria-describedby="email-description"
+                    disabled={isPending}
+                  />
                 )}
               />
               <FormField
@@ -98,7 +115,10 @@ export function InviteMemberButton() {
                       disabled={isPending}
                     >
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger
+                          aria-label="Select member role"
+                          aria-describedby="role-description"
+                        >
                           <SelectValue placeholder="Select a role" />
                         </SelectTrigger>
                       </FormControl>
@@ -107,13 +127,29 @@ export function InviteMemberButton() {
                         <SelectItem value="admin">Admin</SelectItem>
                       </SelectContent>
                     </Select>
-                    <FormMessage />
+                    <FormMessage id="role-description" aria-live="polite" />
                   </FormItem>
                 )}
               />
-              <Button type="submit" disabled={isPending}>
-                {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Send Invitation
+              <Button
+                type="submit"
+                disabled={isPending}
+                aria-label={
+                  isPending ? "Sending invitation..." : "Send invitation"
+                }
+                className="w-full"
+              >
+                {isPending ? (
+                  <>
+                    <Loader2
+                      className="mr-2 h-4 w-4 animate-spin"
+                      aria-hidden="true"
+                    />
+                    <span>Sending Invitation...</span>
+                  </>
+                ) : (
+                  "Send Invitation"
+                )}
               </Button>
             </form>
           </Form>

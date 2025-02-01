@@ -10,11 +10,13 @@ import {
   organization,
 } from "better-auth/plugins";
 
+import { getInvitationEmail } from "@/emails/invitation";
 import { getMagicLinkEmail } from "@/emails/magic-link";
 import { env } from "@/env";
 import * as schema from "@/lib/db/schema";
 import { db } from "./db";
 import {
+  EmailError,
   EmailRateLimitError,
   sendEmailWithRetry,
 } from "./email/services/send-email";
@@ -45,13 +47,59 @@ export const auth = betterAuth({
       impersonationSessionDuration: 60 * 60, // 1 hour
     }),
     organization({
-      sendInvitationEmail: async (data) => {
-        const inviteLink = new URL(
-          `${baseURL.toString()}/accept-invite/${data?.id}`
-        ).toString();
-        // TODO: handle sendInvitationEmail w/ logging
-        // TODO: add active organization to session - see boiler databaseHooks
-        console.log("Invitation sent:", inviteLink);
+      async sendInvitationEmail(data) {
+        if (!data?.id || !data?.organization?.name || !data?.inviter?.userId) {
+          throw new BetterAuthAPIError("BAD_REQUEST", {
+            message: "Invalid invitation data",
+          });
+        }
+
+        try {
+          const inviteLink = new URL(
+            `${baseURL.toString()}/accept-invite/${data.id}`
+          ).toString();
+
+          const result = await sendEmailWithRetry({
+            to: data.email,
+            subject: `Invitation to join ${data.organization.name}`,
+            html: await getInvitationEmail(
+              inviteLink,
+              data.organization.name,
+              data.inviter.userId
+            ),
+          });
+
+          if (!result.success) {
+            throw result.error;
+          }
+
+          // Log successful invitation email sent (without sensitive data)
+          console.log("Organization invitation email sent successfully:", {
+            to: data.email.split("@")[0] + "@***",
+            organization: data.organization.name,
+            invitedBy: data.inviter.userId,
+            timestamp: new Date().toISOString(),
+          });
+        } catch (error) {
+          // Handle rate limiting specifically
+          if (error instanceof EmailRateLimitError) {
+            throw new BetterAuthAPIError("TOO_MANY_REQUESTS", {
+              message: "Too many invitation attempts. Please try again later.",
+            });
+          }
+
+          // Log the error with appropriate context
+          console.error("Failed to send organization invitation email:", {
+            error: error instanceof Error ? error.message : "Unknown error",
+            organization: data.organization.name,
+            timestamp: new Date().toISOString(),
+          });
+
+          // Throw appropriate auth error
+          throw new BetterAuthAPIError("INTERNAL_SERVER_ERROR", {
+            message: "Failed to send invitation email. Please try again later.",
+          });
+        }
       },
     }),
     magicLink({
