@@ -38,7 +38,7 @@ export function DocsSidebar() {
   const pathname = usePathname();
 
   return (
-    <ScrollArea className="h-full">
+    <ScrollArea className="h-full pl-8 pt-12">
       <div className="space-y-4 py-6">
         {docsConfig.sidebarNav.map((section) => (
           <div key={section.title} className="px-3 py-2">

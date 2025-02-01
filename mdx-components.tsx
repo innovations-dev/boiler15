@@ -57,10 +57,7 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     ),
     // Basic elements
     p: ({ className, ...props }: React.ComponentPropsWithoutRef<"p">) => (
-      <p
-        className={cn("leading-7 [&:not(:first-child)]:mt-6", className)}
-        {...props}
-      />
+      <p className={cn("mb-6 leading-7", className)} {...props} />
     ),
     div: ({ className, ...props }: React.ComponentPropsWithoutRef<"div">) => (
       <div className={cn(className)} {...props} />
@@ -86,24 +83,21 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     // Lists
     ul: ({ className, ...props }: React.ComponentPropsWithoutRef<"ul">) => (
       <ul
-        className={cn(
-          "my-6 ml-6 list-disc space-y-2 [&>li]:leading-7",
-          className
-        )}
+        className={cn("mb-6 ml-6 list-disc [&>li]:mt-2", className)}
         {...props}
       />
     ),
     ol: ({ className, ...props }: React.ComponentPropsWithoutRef<"ol">) => (
       <ol
-        className={cn(
-          "my-6 ml-6 list-decimal space-y-2 [&>li]:leading-7",
-          className
-        )}
+        className={cn("mb-6 ml-6 list-decimal [&>li]:mt-2", className)}
         {...props}
       />
     ),
     li: ({ className, ...props }: React.ComponentPropsWithoutRef<"li">) => (
-      <li className={cn("marker:text-foreground", className)} {...props} />
+      <li
+        className={cn("leading-7 marker:text-foreground", className)}
+        {...props}
+      />
     ),
     // Blockquotes
     blockquote: ({
@@ -112,7 +106,7 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     }: React.ComponentPropsWithoutRef<"blockquote">) => (
       <blockquote
         className={cn(
-          "mt-6 border-l-2 pl-6 italic [&>*]:text-muted-foreground",
+          "mb-6 border-l-2 pl-6 italic [&>*]:text-muted-foreground",
           className
         )}
         {...props}
@@ -217,7 +211,7 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
       const codeHTML = highlight(content);
 
       return (
-        <div className="relative my-4">
+        <div className="mb-6">
           <div className="overflow-hidden rounded-lg border bg-zinc-950">
             <pre className="overflow-x-auto p-4">
               <code
