@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 import {
   Table,
@@ -14,25 +15,35 @@ import { authClient } from "@/lib/auth/auth-client";
 import { USER_ROLE_LABELS, USER_ROLES } from "@/lib/constants/roles";
 import { UserSelectSchema } from "@/lib/db/schema";
 import { queryKeys } from "@/lib/query/keys";
+import { isQueryError } from "@/lib/query/types";
 import { PermissionActions } from "./permission-actions";
 import { PermissionsListSkeleton } from "./permissions-list-skeleton";
 
 export function PermissionsList() {
-  const { data: users, isLoading } = useQuery({
+  const {
+    data: users,
+    isLoading,
+    isError,
+  } = useQuery({
     queryKey: queryKeys.users.all,
     queryFn: async () => {
       const response = await authClient.admin.listUsers({
         query: { limit: 100 },
       });
-      console.log("Raw API Response:", response); // Debug log 1
-      const parsedData = {
+      return {
         data: {
           users:
             response.data?.users.map((u) => UserSelectSchema.parse(u)) ?? [],
         },
       };
-      console.log("Parsed Data:", parsedData); // Debug log 2
-      return parsedData;
+    },
+    meta: {
+      onError: (error: unknown) => {
+        const message = isQueryError(error)
+          ? error.message
+          : "Failed to load users";
+        toast.error(message);
+      },
     },
   });
 
@@ -40,8 +51,22 @@ export function PermissionsList() {
     return <PermissionsListSkeleton />;
   }
 
+  if (isError) {
+    return (
+      <div className="flex min-h-[400px] flex-col items-center justify-center rounded-md border border-dashed p-8 text-center animate-in fade-in-50">
+        <div className="mx-auto flex max-w-[420px] flex-col items-center justify-center text-center">
+          <h2 className="mt-6 text-xl font-semibold text-destructive">
+            Error loading users
+          </h2>
+          <p className="mb-8 mt-2 text-center text-sm font-normal leading-6 text-muted-foreground">
+            Please try again later
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   const parsedUsers = users?.data?.users ?? [];
-  console.log("Parsed Users:", parsedUsers); // Debug log 3
 
   // Group users by role
   const usersByRole = parsedUsers.reduce(
@@ -57,9 +82,6 @@ export function PermissionsList() {
     },
     {} as Record<keyof typeof USER_ROLES, any[]>
   );
-
-  console.log("Users By Role:", usersByRole); // Debug log 4
-  console.log("USER_ROLES:", USER_ROLES); // Debug log 5
 
   return (
     <Table>
