@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Building, ChevronDown, PlusCircle } from "lucide-react";
 import { toast } from "sonner";
 
@@ -24,33 +25,30 @@ import {
 } from "@/components/ui/popover";
 import { useOrganizations } from "@/hooks/organization/use-organizations";
 import { authClient } from "@/lib/auth/auth-client";
-import type { Organization } from "@/lib/db/schema";
-
-interface OrganizationSwitcherProps {
-  hideCreate?: boolean;
-}
 
 export function OrganizationSwitcher({
   hideCreate = false,
-}: OrganizationSwitcherProps) {
+}: {
+  hideCreate?: boolean;
+}) {
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const queryClient = useQueryClient();
+  const router = useRouter();
 
-  // Get current session and organizations
   const { data: session } = authClient.useSession();
   const { data: organizations, isLoading: isLoadingOrgs } = useOrganizations();
 
-  // Set active organization mutation
   const { mutate: setActiveOrganization, isPending: isSwitching } = useMutation(
     {
       mutationFn: async (organizationId: string) => {
         await authClient.organization.setActive({ organizationId });
         return authClient.getSession();
       },
-      onSuccess: async () => {
+      onSuccess: () => {
         setPopoverOpen(false);
-        // Refresh the page to ensure all data is in sync
-        window.location.reload();
+        queryClient.invalidateQueries({ queryKey: ["session"] });
+        router.refresh();
       },
       onError: (error) => {
         console.error("[OrganizationSwitcher] Switch failed:", error);
@@ -59,7 +57,7 @@ export function OrganizationSwitcher({
     }
   );
 
-  const currentOrganization = organizations?.data?.find(
+  const currentOrganization = organizations?.find(
     (org) => org.id === session?.session?.activeOrganizationId
   );
 
@@ -79,27 +77,26 @@ export function OrganizationSwitcher({
             disabled={isSwitching}
             className="w-[200px] justify-between"
           >
-            <div className="flex items-center truncate">
+            {isSwitching ? (
+              <Spinner className="mr-2 h-4 w-4" />
+            ) : (
               <Building className="mr-2 h-4 w-4 shrink-0" />
-              <span className="truncate">
-                {isSwitching
-                  ? "Switching..."
-                  : currentOrganization?.name || "Select organization"}
-              </span>
-            </div>
+            )}
+            <span className="truncate">
+              {isSwitching
+                ? "Switching..."
+                : currentOrganization?.name || "Select organization"}
+            </span>
             <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-[200px] p-0">
           <Command>
-            <CommandInput
-              placeholder="Search organization..."
-              className="h-9"
-            />
+            <CommandInput placeholder="Search organization..." />
             <CommandList>
               <CommandEmpty>No organization found.</CommandEmpty>
               <CommandGroup heading="Organizations">
-                {organizations?.data?.map((org: Organization) => (
+                {organizations?.map((org) => (
                   <CommandItem
                     key={org.id}
                     onSelect={() => setActiveOrganization(org.id)}
