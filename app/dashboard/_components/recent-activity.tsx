@@ -1,16 +1,12 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 
-import { authClient } from "@/lib/auth/auth-client";
-import { Skeleton } from "../../../components/ui/skeleton";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useSessions } from "@/hooks/auth/use-sessions";
 
 export function RecentActivity() {
-  const { data: sessions, isLoading } = useQuery({
-    queryKey: ["sessions"],
-    queryFn: () => authClient.listSessions(),
-  });
+  const { data: sessions, isLoading } = useSessions();
 
   if (isLoading) {
     return (

@@ -1,6 +1,5 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 
 import {
@@ -11,13 +10,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { authClient } from "@/lib/auth/auth-client";
+import { useSessions } from "@/hooks/auth/use-sessions";
 
 export function ProfileSessions() {
-  const { data: sessions, isLoading } = useQuery({
-    queryKey: ["sessions"],
-    queryFn: () => authClient.listSessions(),
-  });
+  const { data: sessions, isLoading } = useSessions();
 
   return (
     <Card>
