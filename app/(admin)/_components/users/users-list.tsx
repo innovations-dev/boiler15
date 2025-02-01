@@ -1,7 +1,5 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
-
 import {
   Table,
   TableBody,
@@ -10,21 +8,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { authClient } from "@/lib/auth/auth-client";
+import { useUsers } from "@/hooks/auth/use-users";
 import { UserSelectSchema } from "@/lib/db/schema";
 import { UserActions } from "./user-actions";
 import { UsersListSkeleton } from "./users-list-skeleton";
 
 export function UsersList() {
-  const { data: users, isLoading } = useQuery({
-    queryKey: ["users"],
-    queryFn: () =>
-      authClient.admin.listUsers({
-        query: {
-          limit: 10,
-        },
-      }),
-  });
+  const { data: users, isLoading } = useUsers(10);
 
   const parsedUsers = users?.data?.users.map((u) => UserSelectSchema.parse(u));
 
