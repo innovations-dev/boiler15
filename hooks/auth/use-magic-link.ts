@@ -1,16 +1,51 @@
-import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 
+import { useBaseMutation } from "@/hooks/query/use-base-mutation";
 import { authClient } from "@/lib/auth/auth-client";
+import { handleHttpError } from "@/lib/query/error";
 import type { MagicLinkInput } from "@/lib/schemas/auth";
 
-interface MagicLinkError {
-  message: string;
-  status?: number;
-}
-
+/**
+ * Custom hook for handling passwordless authentication via magic links.
+ *
+ * This hook provides a mutation function to initiate the magic link authentication flow.
+ * When successful, it sends a magic link to the user's email and displays a success toast.
+ *
+ * @example
+ * ```tsx
+ * function LoginForm() {
+ *   const { mutate: sendMagicLink, isPending } = useMagicLink();
+ *
+ *   const handleSubmit = (email: string) => {
+ *     sendMagicLink({ email });
+ *   };
+ *
+ *   return (
+ *     <form onSubmit={handleSubmit}>
+ *       // ... form implementation
+ *     </form>
+ *   );
+ * }
+ * ```
+ *
+ * @returns {Object} A mutation object containing:
+ *  - mutate: Function to trigger the magic link email
+ *  - isPending: Boolean indicating if the request is in progress
+ *  - error: Any error that occurred during the request
+ *  - reset: Function to reset the mutation state
+ *
+ * @throws {Error} Throws an error if the magic link request fails
+ *
+ * @see {@link MagicLinkInput} for the expected input type
+ *
+ * @usecase
+ * - Passwordless authentication flow
+ * - Quick login for returning users
+ * - Secure authentication without password management
+ * - User invitation flows
+ */
 export function useMagicLink() {
-  return useMutation({
+  return useBaseMutation({
     mutationFn: async (data: MagicLinkInput) => {
       try {
         return await authClient.signIn.magicLink({
@@ -18,48 +53,15 @@ export function useMagicLink() {
           callbackURL: "/dashboard",
         });
       } catch (error) {
-        // Type guard for our error structure
-        const isAuthError = (err: unknown): err is MagicLinkError =>
-          typeof err === "object" &&
-          err !== null &&
-          "message" in err &&
-          typeof (err as any).message === "string";
-
-        if (isAuthError(error)) {
-          // Handle rate limiting
-          if (error.status === 429) {
-            throw new Error(
-              "Too many attempts. Please try again in a few minutes."
-            );
-          }
-
-          // Handle other known errors
-          throw new Error(error.message);
-        }
-
-        // Handle unexpected errors
-        console.error("Unexpected error during magic link sign in:", error);
-        throw new Error(
-          "An unexpected error occurred. Please try again later."
-        );
+        throw handleHttpError(error);
       }
     },
     onSuccess: () => {
       toast.success(
         "Check your email for the magic link! If you don't see it, check your spam folder.",
-        {
-          duration: 6000, // Show for 6 seconds
-        }
+        { duration: 6000 }
       );
     },
-    onError: (error: Error) => {
-      // Log client-side errors for monitoring
-      console.error("Magic link error:", error);
-
-      // Show user-friendly error message
-      toast.error(error.message || "Failed to send magic link", {
-        duration: 4000,
-      });
-    },
+    errorMessage: "Failed to send magic link",
   });
 }

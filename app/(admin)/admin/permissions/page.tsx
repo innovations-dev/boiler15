@@ -1,8 +1,10 @@
 import { Suspense } from "react";
 
-import { CreatePermissionButton } from "@/app/(admin)/_components/permissions/create-permission-button";
+import { AssignRoleButton } from "@/app/(admin)/_components/permissions/assign-role-button";
 import { PermissionsList } from "@/app/(admin)/_components/permissions/permissions-list";
 import { PermissionsListSkeleton } from "@/app/(admin)/_components/permissions/permissions-list-skeleton";
+
+export const dynamic = "force-dynamic";
 
 export default function PermissionsPage() {
   return (
@@ -14,7 +16,7 @@ export default function PermissionsPage() {
             Manage roles and access control
           </p>
         </div>
-        <CreatePermissionButton />
+        <AssignRoleButton />
       </div>
       <Suspense fallback={<PermissionsListSkeleton />}>
         <PermissionsList />

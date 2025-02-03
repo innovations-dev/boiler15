@@ -14,7 +14,7 @@ import { UserRole } from "@/lib/constants/roles";
 
 export function UserRoleList({ role }: { role: UserRole }) {
   const { data, isLoading } = useUsersByRole({ role });
-  const users = data?.data?.users;
+  const users = data?.data;
 
   console.log("Component Role:", role);
   console.log("Component Data:", data);

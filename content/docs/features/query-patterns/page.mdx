@@ -11,7 +11,14 @@ Learn about common query patterns and data fetching strategies used in our Next.
 
 ## Overview
 
-We use [Tanstack Query](https://tanstack.com/query) (React Query) along with our Drizzle ORM setup for efficient data fetching and state management. This guide covers common patterns and best practices.
+We use [Tanstack Query](https://tanstack.com/query) (React Query) along with our Drizzle ORM setup for efficient data fetching and state management. Our implementation focuses on:
+
+- 🔒 **Type Safety**: End-to-end type safety with Zod validation
+- 🎯 **Error Handling**: Consistent error handling with toast notifications
+- 🔄 **Cache Management**: Intelligent cache invalidation strategies
+- 📝 **Logging**: Enhanced error logging with context
+- 🚀 **Performance**: Optimistic updates and prefetching
+- 🛡️ **Validation**: Runtime type checking with Zod schemas
 
 ## Query Client Configuration
 
@@ -27,6 +34,84 @@ const queryClient = new QueryClient({
     },
   },
 });
+```
+
+## Base Query Hooks
+
+### Type-Safe API Queries
+
+We use a base query hook that ensures type safety and consistent error handling:
+
+```tsx
+export function useApiQuery<T extends z.ZodType>(
+  key: readonly unknown[],
+  queryFn: () => Promise<z.infer<T>>,
+  schema: T,
+  options?: Omit<UseQueryOptions<z.infer<T>>, "queryKey" | "queryFn">
+) {
+  return useQuery<z.infer<T>>({
+    queryKey: key,
+    queryFn: async () => {
+      try {
+        const data = await queryFn();
+        return schema.parse(data);
+      } catch (error) {
+        logError(error, `useApiQuery:${key.join(":")}`);
+        errorLogger.log(error, ErrorSource.QUERY, {
+          context: `useApiQuery:${key.join(":")}`,
+        });
+        throw error;
+      }
+    },
+    meta: {
+      onError: (error: unknown) => {
+        const message = isQueryError(error)
+          ? error.message
+          : "An unexpected error occurred";
+        toast.error(message);
+      },
+    },
+    ...options,
+  });
+}
+```
+
+### Base Mutation Hook
+
+Our base mutation hook provides consistent error handling and logging:
+
+```tsx
+export function useBaseMutation<TData, TError = unknown, TVariables = void>({
+  mutationFn,
+  onSuccess,
+  onMutate,
+  onError,
+  errorMessage = "An error occurred",
+  context = "mutation",
+  options = {},
+}: MutationConfig<TData, TError, TVariables>) {
+  return useMutation({
+    mutationFn: async (variables: TVariables) => {
+      try {
+        return await mutationFn(variables);
+      } catch (error) {
+        logError(error, `${context}:mutation`);
+        errorLogger.log(error, ErrorSource.MUTATION, {
+          code: "MUTATION_ERROR",
+          context,
+        });
+        throw handleApiError(error);
+      }
+    },
+    onSuccess,
+    onError: (error) => {
+      const message = error instanceof ApiError ? error.message : errorMessage;
+      toast.error(message);
+      onError?.(error);
+    },
+    ...options,
+  });
+}
 ```
 
 ## Server Components
@@ -58,10 +143,9 @@ export default async function OrganizationsPage() {
 
 ### Custom Query Hooks
 
-We centralize query logic in custom hooks:
+We centralize query logic in custom hooks with proper typing and error handling:
 
 ```tsx
-// hooks/organization/use-organizations.ts
 export function useOrganizations() {
   const queryClient = useQueryClient();
 
@@ -71,145 +155,179 @@ export function useOrganizations() {
       queryKey: queryKeys.organizations.list(),
       queryFn: async () => {
         const response = await getOrganizationsAction();
-        if (response.error) {
-          throw new Error(response.error.message);
-        }
-        return response.data ?? [];
+        return defaultResponse(response);
       },
     });
   }, [queryClient]);
 
-  return useQuery<Organization[]>({
-    queryKey: queryKeys.organizations.list(),
-    queryFn: async () => {
+  return useApiQuery(
+    queryKeys.organizations.list(),
+    async () => {
       const response = await getOrganizationsAction();
-      if (response.error) {
-        throw new Error(response.error.message);
-      }
-      return response.data ?? [];
+      return defaultResponse(response);
     },
-    staleTime: 1000 * 60,
-    gcTime: 1000 * 60 * 5,
-    retry: 3,
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-    meta: {
-      onError: (error: Error) => {
-        toast.error(`Failed to load organizations: ${error.message}`);
-      },
-    },
-  });
+    createApiResponseSchema(organizationSelectSchema.array()),
+    {
+      ...cacheConfig.queries.organization,
+    }
+  );
 }
 ```
 
-### Type-Safe API Queries
+### Mutation Hooks
 
-For API queries, we use a wrapper hook that ensures type safety:
-
-```tsx
-// lib/hooks/use-api-query.ts
-export function useApiQuery<T extends z.ZodType>(
-  key: readonly unknown[],
-  queryFn: () => Promise<z.infer<T>>,
-  schema: T,
-  options?: Omit<
-    UseQueryOptions<IApiResponse<z.infer<T>>>,
-    "queryKey" | "queryFn"
-  >
-) {
-  return useQuery<IApiResponse<z.infer<T>>>({
-    queryKey: key,
-    queryFn: async () => {
-      const data = await queryFn();
-      return createApiResponseSchema(schema).parse(data);
-    },
-    meta: {
-      onError: (error: unknown) => {
-        const message = isQueryError(error)
-          ? error.message
-          : "An unexpected error occurred";
-        toast.error(message);
-      },
-    },
-    ...options,
-  });
-}
-```
-
-### Mutations
-
-Handle data mutations with proper error handling and cache updates:
+Handle data mutations with proper error handling, cache updates, and optimistic updates:
 
 ```tsx
-export function useCreateOrganization() {
+export function useUpdateProfile() {
   const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: async (data: { name: string; slug: string }) => {
-      const result = await authClient.organization.create(data);
-      await authClient.organization.setActive({
-        organizationId: result.data?.id,
+  return useBaseMutation({
+    mutationFn: async (data: UpdateProfileInput) => {
+      try {
+        return await authClient.updateUser(data);
+      } catch (error) {
+        throw handleApiError(error);
+      }
+    },
+    onMutate: async (newData) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({
+        queryKey: queryKeys.sessions.current(),
       });
-      return result;
+
+      // Snapshot previous value
+      const previousData = queryClient.getQueryData<SessionQueryData>(
+        queryKeys.sessions.current()
+      );
+
+      // Optimistically update
+      queryClient.setQueryData<SessionQueryData | undefined>(
+        queryKeys.sessions.current(),
+        (old) => {
+          if (!old) return undefined;
+          return {
+            ...old,
+            data: {
+              ...old.data,
+              name: newData.name,
+            },
+          };
+        }
+      );
+
+      return { previousData };
     },
-    onSuccess: async () => {
-      await Promise.all([
-        queryClient.invalidateQueries({
-          queryKey: queryKeys.organizations.all,
-        }),
-        queryClient.invalidateQueries({
-          queryKey: queryKeys.sessions.all,
-        }),
-      ]);
-      toast.success("Organization created successfully");
+    onError: (_err, _newData, context) => {
+      // Rollback on error
+      if (context?.previousData) {
+        queryClient.setQueryData(
+          queryKeys.sessions.current(),
+          context.previousData
+        );
+      }
     },
-    onError: (error) => {
-      const message = isQueryError(error)
-        ? error.message
-        : "Failed to create organization";
-      toast.error(message);
+    onSuccess: () => {
+      // Invalidate and refetch
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.sessions.current(),
+      });
     },
+    errorMessage: "Failed to update profile",
   });
-}
-```
-
-### Error Boundaries
-
-Wrap query components with error boundaries for graceful error handling:
-
-```tsx
-export function OrganizationsWrapper() {
-  return (
-    <QueryErrorResetBoundary>
-      {({ reset }) => (
-        <ErrorBoundary
-          onReset={reset}
-          fallbackRender={({ resetErrorBoundary }) => (
-            <div>
-              Error loading organizations.
-              <button onClick={resetErrorBoundary}>Try again</button>
-            </div>
-          )}
-        >
-          <OrganizationsList />
-        </ErrorBoundary>
-      )}
-    </QueryErrorResetBoundary>
-  );
 }
 ```
 
 ## Best Practices
 
-1. **Use Server Components First**: Prefer server components for data fetching when possible.
-2. **Centralize Query Logic**: Keep query logic in custom hooks for reusability.
-3. **Type Safety**: Use Zod schemas for runtime type validation.
-4. **Error Handling**: Implement proper error boundaries and toast notifications.
-5. **Cache Management**: Set appropriate staleTime and gcTime values.
-6. **Optimistic Updates**: Use optimistic updates for better UX when appropriate.
-7. **Prefetching**: Implement data prefetching for improved performance.
+1. **Server Components First**
+
+   - Use server components for initial data fetching
+   - Only use client queries for dynamic data needs
+   - Leverage React Server Components (RSC) capabilities
+
+2. **Type Safety**
+
+   - Use Zod schemas for runtime validation
+   - Maintain consistent types across the application
+   - Leverage TypeScript for compile-time safety
+
+3. **Error Handling**
+
+   - Implement consistent error handling patterns
+   - Use toast notifications for user feedback
+   - Log errors with proper context
+
+4. **Cache Management**
+
+   - Set appropriate staleTime and gcTime values
+   - Implement intelligent cache invalidation
+   - Use optimistic updates for better UX
+
+5. **Performance**
+
+   - Implement data prefetching
+   - Use suspense boundaries
+   - Optimize re-renders with proper key usage
+
+6. **Query Organization**
+
+   - Centralize query keys in a dedicated config
+   - Use consistent naming patterns
+   - Group related queries logically
+
+7. **Mutations**
+
+   - Implement proper error handling
+   - Use optimistic updates when appropriate
+   - Handle cache invalidation consistently
+
+8. **Testing**
+   - Mock query responses in tests
+   - Test error scenarios
+   - Verify cache behavior
+
+## Query Key Management
+
+We maintain a centralized query key configuration:
+
+```tsx
+export const queryKeys = {
+  sessions: {
+    all: ["sessions"] as const,
+    current: () => [...queryKeys.sessions.all, "current"] as const,
+  },
+  organizations: {
+    all: ["organizations"] as const,
+    list: () => [...queryKeys.organizations.all, "list"] as const,
+    detail: (id: string) => [...queryKeys.organizations.all, id] as const,
+  },
+  // ... more query keys
+};
+```
+
+## Cache Configuration
+
+We maintain consistent cache configurations:
+
+```tsx
+export const cacheConfig = {
+  queries: {
+    default: {
+      staleTime: 1000 * 60, // 1 minute
+      gcTime: 1000 * 60 * 5, // 5 minutes
+    },
+    user: {
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      gcTime: 1000 * 60 * 15, // 15 minutes
+    },
+    // ... more configurations
+  },
+};
+```
 
 ## Next Steps
 
-- [Database Schema](/docs/features/database/schema) - Learn about our database schema
-- [Authentication](/docs/features/authentication) - Understand auth integration
-- [Error Handling](/docs/features/error-handling) - Error handling patterns
+- [Error Handling](/docs/features/error-handling) - Learn about error handling patterns
+- [Database](/docs/features/database) - Understand database integration
+- [Authentication](/docs/features/authentication) - Auth patterns and implementation

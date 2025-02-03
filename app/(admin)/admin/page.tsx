@@ -6,6 +6,9 @@ import { Activity, Building2, Users } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAdminStats } from "@/hooks/admin/use-admin-stats";
+import type { AdminStats } from "@/lib/types/admin";
+
+export const dynamic = "force-dynamic";
 
 function StatCard({
   title,
@@ -37,25 +40,26 @@ function StatCard({
 
 // Separate the stats display logic for better code splitting
 function AdminStats() {
-  const { data: stats, isLoading } = useAdminStats();
+  const { data: response, isLoading } = useAdminStats();
+  const stats = response?.data as AdminStats | undefined;
 
   return (
     <div className="grid gap-4 md:grid-cols-3">
       <StatCard
         title="Total Users"
-        value={stats?.data?.totalUsers ?? 0}
+        value={stats?.totalUsers ?? 0}
         icon={Users}
         isLoading={isLoading}
       />
       <StatCard
         title="Organizations"
-        value={stats?.data?.totalOrganizations ?? 0}
+        value={stats?.totalOrganizations ?? 0}
         icon={Building2}
         isLoading={isLoading}
       />
       <StatCard
         title="Active Sessions"
-        value={stats?.data?.activeSessions ?? 0}
+        value={stats?.activeSessions ?? 0}
         icon={Activity}
         isLoading={isLoading}
       />

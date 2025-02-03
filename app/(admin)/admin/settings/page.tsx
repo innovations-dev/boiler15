@@ -3,6 +3,8 @@ import { Suspense } from "react";
 import { SettingsList } from "@/app/(admin)/_components/settings/settings-list";
 import { SettingsListSkeleton } from "@/app/(admin)/_components/settings/settings-list-skeleton";
 
+export const dynamic = "force-dynamic";
+
 export default function SettingsPage() {
   return (
     <div className="space-y-6">

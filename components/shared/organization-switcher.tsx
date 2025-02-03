@@ -1,9 +1,7 @@
 "use client";
 
 import { Suspense, useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Building, ChevronDown, PlusCircle } from "lucide-react";
-import { toast } from "sonner";
 
 import { CreateOrganizationDialog } from "@/components/shared/create-organization-dialog";
 import { Spinner } from "@/components/spinner";
@@ -21,44 +19,28 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { useOrganizations } from "@/hooks/organization/use-organizations";
+import { useOrganizationsApi } from "@/hooks/organization/use-organizations";
+import { useSwitchOrganization } from "@/hooks/organization/use-switch-organization";
 import { authClient } from "@/lib/auth/auth-client";
-import { queryKeys } from "@/lib/query/keys";
+import type { Organization } from "@/lib/db/schema";
 
 function OrganizationSwitcherContent() {
   const [popoverOpen, setPopoverOpen] = useState(false);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const queryClient = useQueryClient();
 
   const { data: session } = authClient.useSession();
-  const { data: organizations, isLoading: isLoadingOrgs } = useOrganizations();
+  const { data: organizations, isLoading: isLoadingOrgs } =
+    useOrganizationsApi();
+  const { mutate: switchOrganization, isPending } = useSwitchOrganization();
 
-  const { mutate: setActiveOrganization, isPending: isSwitching } = useMutation(
-    {
-      mutationFn: async (organizationId: string) => {
-        await authClient.organization.setActive({ organizationId });
-        return authClient.getSession();
-      },
-      onSuccess: async () => {
-        setPopoverOpen(false);
-        await Promise.all([
-          queryClient.invalidateQueries({ queryKey: queryKeys.sessions.all }),
-          queryClient.invalidateQueries({
-            queryKey: queryKeys.organizations.all,
-          }),
-        ]);
-        window.location.reload();
-      },
-      onError: (error) => {
-        console.error("[OrganizationSwitcher] Switch failed:", error);
-        toast.error("Failed to switch organization");
-      },
-    }
+  const currentOrganization = organizations?.data?.find(
+    (org: Organization) => org.id === session?.session?.activeOrganizationId
   );
 
-  const currentOrganization = organizations?.find(
-    (org) => org.id === session?.session?.activeOrganizationId
-  );
+  const handleSwitchOrganization = (orgId: string) => {
+    setPopoverOpen(false);
+    switchOrganization(orgId);
+  };
 
   if (isLoadingOrgs) {
     return <Spinner />;
@@ -73,16 +55,16 @@ function OrganizationSwitcherContent() {
             role="combobox"
             aria-expanded={popoverOpen}
             aria-label="Select organization"
-            disabled={isSwitching}
+            disabled={isPending}
             className="w-[200px] justify-between"
           >
-            {isSwitching ? (
+            {isPending ? (
               <Spinner className="mr-2 h-4 w-4" />
             ) : (
               <Building className="mr-2 h-4 w-4 shrink-0" />
             )}
             <span className="truncate">
-              {isSwitching
+              {isPending
                 ? "Switching..."
                 : currentOrganization?.name || "Select organization"}
             </span>
@@ -95,10 +77,10 @@ function OrganizationSwitcherContent() {
             <CommandList>
               <CommandEmpty>No organization found.</CommandEmpty>
               <CommandGroup heading="Organizations">
-                {organizations?.map((org) => (
+                {organizations?.data?.map((org) => (
                   <CommandItem
                     key={org.id}
-                    onSelect={() => setActiveOrganization(org.id)}
+                    onSelect={() => handleSwitchOrganization(org.id)}
                     className="cursor-pointer"
                   >
                     <Building className="mr-2 h-4 w-4" />
@@ -133,7 +115,7 @@ function OrganizationSwitcherContent() {
 
 export function OrganizationSwitcherWithSuspense() {
   return (
-    <Suspense>
+    <Suspense fallback={<Spinner className="h-8 w-8" />}>
       <OrganizationSwitcherContent />
     </Suspense>
   );

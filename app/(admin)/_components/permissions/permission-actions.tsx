@@ -10,7 +10,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   DropdownMenu,
@@ -18,7 +17,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { USER_ROLES, type UserRole } from "@/lib/constants/roles";
+import { type UserRole } from "@/lib/constants/roles";
 
 interface PermissionActionsProps {
   role: UserRole;
@@ -38,7 +37,12 @@ export function PermissionActions({ role, userCount }: PermissionActionsProps) {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={() => setShowUsers(true)}>
+          <DropdownMenuItem
+            onClick={() => {
+              setShowUsers(true);
+              setIsOpen(false);
+            }}
+          >
             <Users className="mr-2 h-4 w-4" />
             View Users ({userCount})
           </DropdownMenuItem>

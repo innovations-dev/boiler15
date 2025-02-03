@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect } from "react";
-import Link from "next/link";
 
-import { Button } from "@/components/ui/button";
+import { RouteError } from "@/lib/errors/route-error";
+import { errorLogger, ErrorSource } from "@/lib/logger/enhanced-logger";
 
-export default function Error({
+export default function RootError({
   error,
   reset,
 }: {
@@ -13,24 +13,17 @@ export default function Error({
   reset: () => void;
 }) {
   useEffect(() => {
-    // Log the error to an error reporting service
-    console.error(error);
+    errorLogger.log(error, ErrorSource.ROUTE, {
+      path: window.location.pathname,
+    });
   }, [error]);
-
   return (
-    <div className="flex min-h-[calc(100vh-4rem)] flex-col items-center justify-center">
-      <div className="space-y-4 text-center">
-        <h1 className="text-4xl font-bold">Something went wrong!</h1>
-        <p className="text-muted-foreground">
-          An error occurred. Please try again later.
-        </p>
-        <div className="flex justify-center gap-4">
-          <Button onClick={() => reset()}>Try again</Button>
-          <Link href="/">
-            <Button variant="outline">Return Home</Button>
-          </Link>
-        </div>
-      </div>
-    </div>
+    <RouteError
+      error={error}
+      resetAction={reset}
+      variant="full"
+      title="Application Error"
+      description="An unexpected error occurred. Our team has been notified."
+    />
   );
 }

@@ -1,5 +1,3 @@
-import { headers } from "next/headers";
-
 import { guardAdminRoute } from "@/lib/auth/admin-guard";
 
 export interface ApiErrorResponse {

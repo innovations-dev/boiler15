@@ -14,7 +14,7 @@ import { UserActions } from "./user-actions";
 import { UsersListSkeleton } from "./users-list-skeleton";
 
 export function UsersList() {
-  const { data: users, isLoading } = useUsers(10);
+  const { data: users, isLoading } = useUsers();
 
   const parsedUsers = users?.data?.users.map((u) => userSelectSchema.parse(u));
 

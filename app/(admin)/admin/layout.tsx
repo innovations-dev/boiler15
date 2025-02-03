@@ -3,6 +3,8 @@ import { Suspense } from "react";
 import { AdminHeader } from "@/app/(admin)/_components/admin-header";
 import { AdminNav } from "@/app/(admin)/_components/admin-nav";
 
+export const dynamic = "force-dynamic";
+
 export default function AdminLayout({
   children,
 }: {

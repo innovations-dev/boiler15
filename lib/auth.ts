@@ -1,3 +1,14 @@
+/**
+ * @fileoverview Authentication configuration using Better-Auth with various plugins and adapters.
+ * This file sets up the main authentication system for the application with features like:
+ * - Email verification
+ * - Magic link authentication
+ * - Multi-session support
+ * - Organization management
+ * - Admin capabilities
+ * - Account linking
+ */
+
 import { betterAuth, User } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { APIError as BetterAuthAPIError } from "better-auth/api";
@@ -10,18 +21,52 @@ import {
   organization,
 } from "better-auth/plugins";
 
-import { getInvitationEmail } from "@/emails/invitation";
-import { getMagicLinkEmail } from "@/emails/magic-link";
-import { getVerificationEmail } from "@/emails/verification-email";
 import { env } from "@/env";
 import * as schema from "@/lib/db/schema";
 import { db } from "./db";
-import {
-  EmailRateLimitError,
-  sendEmailWithRetry,
-} from "./email/services/send-email";
+import { EmailRateLimitError } from "./email";
+import { sendEmail } from "./email/services/email-service";
 import { baseURL } from "./utils";
 
+/**
+ * Main authentication instance configured with Better-Auth.
+ *
+ * @example
+ * // Using auth in an API route
+ * import { auth } from '@/lib/auth';
+ *
+ * export async function GET(request: Request) {
+ *   const session = await auth.validateSession(request);
+ *   if (!session) return new Response('Unauthorized', { status: 401 });
+ *   return new Response('Authenticated!');
+ * }
+ *
+ * @example
+ * // Using auth in a Server Component
+ * import { auth } from '@/lib/auth';
+ *
+ * export default async function ProtectedPage() {
+ *   const session = await auth.validateSession();
+ *   if (!session) redirect('/login');
+ *   return <div>Welcome {session.user.email}!</div>;
+ * }
+ *
+ * @remarks
+ * Configuration includes:
+ * - Drizzle adapter for database operations
+ * - Email verification system
+ * - Magic link authentication
+ * - Multi-session support
+ * - Organization management with invitations
+ * - Admin capabilities including user banning and impersonation
+ * - Account deletion with safety checks
+ * - Account linking with trusted providers
+ *
+ * @throws {BetterAuthAPIError}
+ * - "TOO_MANY_REQUESTS" when email rate limits are exceeded
+ * - "INTERNAL_SERVER_ERROR" when email sending fails
+ * - "BAD_REQUEST" for invalid operations (e.g., deleting admin accounts)
+ */
 export const auth = betterAuth({
   baseURL: baseURL.toString(),
   secret: env.BETTER_AUTH_SECRET,
@@ -37,18 +82,13 @@ export const auth = betterAuth({
       throw new Error(error.message);
     },
   },
-  emailVerificaiton: {
-    sendVerificationEmail: async ({
-      user,
-      url,
-    }: {
-      user: User;
-      url: string;
-    }) => {
-      await sendEmailWithRetry({
+  emailVerification: {
+    sendVerificationEmail: async ({ user, url }) => {
+      await sendEmail({
         to: user.email,
+        template: "VERIFICATION",
+        data: { url },
         subject: "Verify your email",
-        html: await getVerificationEmail(url),
       });
     },
     verificationEmailLifetime: 60 * 60 * 24, // 24 hours
@@ -71,18 +111,15 @@ export const auth = betterAuth({
         }
 
         try {
-          const inviteLink = new URL(
-            `${baseURL.toString()}/accept-invite/${data.id}`
-          ).toString();
-
-          const result = await sendEmailWithRetry({
+          const result = await sendEmail({
             to: data.email,
-            subject: `Invitation to join ${data.organization.name}`,
-            html: await getInvitationEmail(
-              inviteLink,
-              data.organization.name,
-              data.inviter.userId
-            ),
+            template: "INVITATION",
+            subject: `Invitation to join organization ${data.organization.name}`,
+            data: {
+              url: `${baseURL.toString()}/accept-invite/${data.id}`,
+              organizationName: data.organization.name,
+              invitedByUsername: data.inviter.userId,
+            },
           });
 
           if (!result.success) {
@@ -121,36 +158,22 @@ export const auth = betterAuth({
     magicLink({
       async sendMagicLink({ email, url }) {
         try {
-          const result = await sendEmailWithRetry({
+          const result = await sendEmail({
             to: email,
             subject: "Login to your account",
-            html: await getMagicLinkEmail(url),
+            template: "MAGIC_LINK",
+            data: { url },
           });
 
           if (!result.success) {
             throw result.error;
           }
-
-          // Log successful magic link email sent (without sensitive data)
-          console.log("Magic link email sent successfully:", {
-            to: email.split("@")[0] + "@***",
-            timestamp: new Date().toISOString(),
-          });
         } catch (error) {
-          // Handle rate limiting specifically
           if (error instanceof EmailRateLimitError) {
             throw new BetterAuthAPIError("TOO_MANY_REQUESTS", {
               message: "Too many login attempts. Please try again later.",
             });
           }
-
-          // Log the error with appropriate context
-          console.error("Failed to send magic link email:", {
-            error: error instanceof Error ? error.message : "Unknown error",
-            timestamp: new Date().toISOString(),
-          });
-
-          // Throw appropriate auth error
           throw new BetterAuthAPIError("INTERNAL_SERVER_ERROR", {
             message: "Failed to send login email. Please try again later.",
           });

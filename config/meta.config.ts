@@ -1,27 +1,3 @@
-/**
- * @file Metadata configuration for Next.js 15+ applications
- * @description Provides type-safe metadata generation following Next.js metadata API conventions
- *
- * Usage:
- * 1. Static pages:
- * ```tsx
- * export const metadata = generateMetadata({
- *   title: 'Page Title',
- *   description: 'Page description'
- * })
- * ```
- *
- * 2. Dynamic pages:
- * ```tsx
- * export async function generateMetadata(
- *   { params, searchParams }: MetaProps,
- *   parent: ResolvingMetadata
- * ) {
- *   return generateMetadata({ params, searchParams }, parent)
- * }
- * ```
- */
-
 import { Metadata, ResolvingMetadata } from "next";
 import { Robots } from "next/dist/lib/metadata/types/metadata-types";
 

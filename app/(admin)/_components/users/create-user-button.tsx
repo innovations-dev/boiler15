@@ -2,11 +2,9 @@
 
 import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Loader2, Plus } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -25,20 +23,14 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { authClient } from "@/lib/auth/auth-client";
-
-const createUserSchema = z.object({
-  name: z.string(),
-  email: z.string().email(),
-  password: z.string(),
-  role: z.string(),
-});
-
-type CreateUserInput = z.infer<typeof createUserSchema>;
+import {
+  createUserSchema,
+  useCreateUser,
+  type CreateUserInput,
+} from "@/hooks/admin/use-create-user";
 
 export function CreateUserButton() {
   const [open, setOpen] = useState(false);
-  const queryClient = useQueryClient();
 
   const form = useForm<CreateUserInput>({
     resolver: zodResolver(createUserSchema),
@@ -50,18 +42,17 @@ export function CreateUserButton() {
     },
   });
 
-  const { mutate: createUser, isPending } = useMutation({
-    mutationFn: (data: CreateUserInput) => authClient.admin.createUser(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["users"] });
-      toast.success("User created successfully");
-      setOpen(false);
-      form.reset();
-    },
-    onError: (error) => {
-      toast.error(error.message);
-    },
-  });
+  const { mutate: createUser, isPending } = useCreateUser();
+
+  const onSubmit = (data: CreateUserInput) => {
+    createUser(data, {
+      onSuccess: () => {
+        setOpen(false);
+        form.reset();
+        toast.success("User created successfully");
+      },
+    });
+  };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -76,10 +67,7 @@ export function CreateUserButton() {
           <DialogTitle>Create New User</DialogTitle>
         </DialogHeader>
         <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit((data) => createUser(data))}
-            className="space-y-4"
-          >
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
               control={form.control}
               name="name"

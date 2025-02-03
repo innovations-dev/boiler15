@@ -2,7 +2,7 @@
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuthMode } from "@/hooks/auth/use-auth-mode";
-import type { AuthMode } from "@/lib/types";
+import type { AuthMode } from "@/lib/auth/types";
 import { MagicLinkForm } from "./magic-link-form";
 
 interface AuthFormProps {

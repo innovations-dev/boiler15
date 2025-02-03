@@ -1,10 +1,8 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
-import { toast } from "sonner";
 import * as z from "zod";
 
 import { Button } from "@/components/ui/button";
@@ -25,6 +23,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { useUpdateProfile } from "@/hooks/auth/use-update-profile";
 import { authClient } from "@/lib/auth/auth-client";
 
 const profileFormSchema = z.object({
@@ -35,23 +34,14 @@ type ProfileFormValues = z.infer<typeof profileFormSchema>;
 
 export function ProfileForm() {
   const { data: session } = authClient.useSession();
-  console.log(session);
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
-    defaultValues: {
+    values: {
       name: session?.user?.name || "",
     },
   });
 
-  const { mutate: updateProfile, isPending } = useMutation({
-    mutationFn: (data: ProfileFormValues) =>
-      authClient.updateUser({
-        name: data.name,
-      }),
-    onSuccess: () => {
-      toast.success("Profile updated successfully");
-    },
-  });
+  const { mutate: updateProfile, isPending } = useUpdateProfile();
 
   return (
     <Card>

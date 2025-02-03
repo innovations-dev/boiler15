@@ -1,7 +1,6 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
-import { toast } from "sonner";
+import { UserWithRole } from "better-auth/plugins";
 
 import {
   Table,
@@ -11,41 +10,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { authClient } from "@/lib/auth/auth-client";
+import { useAdminPermissions } from "@/hooks/admin/use-admin-permissions";
 import { USER_ROLE_LABELS, USER_ROLES } from "@/lib/constants/roles";
-import { userSelectSchema } from "@/lib/db/schema";
-import { queryKeys } from "@/lib/query/keys";
-import { isQueryError } from "@/lib/query/types";
 import { PermissionActions } from "./permission-actions";
 import { PermissionsListSkeleton } from "./permissions-list-skeleton";
 
 export function PermissionsList() {
-  const {
-    data: users,
-    isLoading,
-    isError,
-  } = useQuery({
-    queryKey: queryKeys.users.all,
-    queryFn: async () => {
-      const response = await authClient.admin.listUsers({
-        query: { limit: 100 },
-      });
-      return {
-        data: {
-          users:
-            response.data?.users.map((u) => userSelectSchema.parse(u)) ?? [],
-        },
-      };
-    },
-    meta: {
-      onError: (error: unknown) => {
-        const message = isQueryError(error)
-          ? error.message
-          : "Failed to load users";
-        toast.error(message);
-      },
-    },
-  });
+  const { data, isLoading, isError } = useAdminPermissions(100);
+  const parsedUsers = data?.users ?? [];
 
   if (isLoading) {
     return <PermissionsListSkeleton />;
@@ -66,21 +38,22 @@ export function PermissionsList() {
     );
   }
 
-  const parsedUsers = users?.data?.users ?? [];
-
   // Group users by role
   const usersByRole = parsedUsers.reduce(
-    (acc, user) => {
+    (
+      acc: Record<keyof typeof USER_ROLES, UserWithRole[]>,
+      user: UserWithRole
+    ) => {
       const role = (
-        user.role || "USER"
-      ).toUpperCase() as keyof typeof USER_ROLES; // Ensure uppercase
+        user.role || USER_ROLES.USER
+      ).toUpperCase() as keyof typeof USER_ROLES;
       if (!acc[role]) {
         acc[role] = [];
       }
       acc[role].push(user);
       return acc;
     },
-    {} as Record<keyof typeof USER_ROLES, any[]>
+    {} as Record<keyof typeof USER_ROLES, UserWithRole[]>
   );
 
   return (

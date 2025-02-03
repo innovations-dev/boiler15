@@ -1,18 +1,63 @@
-import { ApiError } from "./error";
+/**
+ * Custom error class for API-related errors
+ * @see ApiError
+ */
+import { ApiError } from "../api/error";
 
+/**
+ * Fetches data from a given URL with type safety
+ *
+ * @template T - The expected return type of the API response
+ * @param {string} url - The URL to fetch data from
+ * @returns {Promise<T>} A promise that resolves to the typed response data
+ * @throws {ApiError} When the response is not OK (status >= 400)
+ *
+ * @example
+ * ```typescript
+ * interface User {
+ *   id: string;
+ *   name: string;
+ * }
+ *
+ * // Fetch a single user
+ * const user = await fetchData<User>('/api/users/123');
+ * ```
+ */
 export async function fetchData<T>(url: string): Promise<T> {
   const response = await fetch(url);
 
   if (!response.ok) {
-    throw new ApiError(response.status, `API Error: ${response.statusText}`);
+    throw new ApiError(
+      response.status.toString(),
+      `API Error: ${response.statusText}`
+    );
   }
 
   return response.json();
 }
 
+/**
+ * Fetches data from a given URL with authentication
+ *
+ * @template T - The expected return type of the API response
+ * @param {string} url - The URL to fetch data from
+ * @param {string} token - The authentication token to use
+ * @returns {Promise<T>} A promise that resolves to the typed response data
+ * @throws {ApiError} When the response is not OK (status >= 400)
+ *
+ * @example
+ * ```typescript
+ * interface ProtectedData {
+ *   secretKey: string;
+ * }
+ *
+ * // Fetch protected data with auth token
+ * const data = await fetchDataWithAuth<ProtectedData>('/api/protected', 'your-auth-token');
+ * ```
+ */
 export async function fetchDataWithAuth<T>(
   url: string,
-  token: string,
+  token: string
 ): Promise<T> {
   const response = await fetch(url, {
     headers: { Authorization: `Bearer ${token}` },

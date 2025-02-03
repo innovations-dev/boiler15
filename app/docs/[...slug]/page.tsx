@@ -9,9 +9,7 @@ export const dynamic = "force-static";
 export const revalidate = false;
 
 interface PageProps {
-  params: {
-    slug: string[];
-  };
+  params: Promise<{ slug: string[] }>;
 }
 
 export default async function DocPage({ params }: PageProps) {

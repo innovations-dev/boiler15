@@ -18,7 +18,7 @@ export default function DocsLayout({ children }: DocsLayoutProps) {
     <div className="relative mt-24 flex min-h-screen flex-col">
       <div className="container flex-1">
         <div className="grid grid-cols-[220px_1fr] gap-8 lg:grid-cols-[240px_1fr]">
-          <aside className="fixed top-14 hidden h-[calc(100dvh-theme(spacing.footer)-3.5rem)] md:block">
+          <aside className="fixed top-14 hidden h-[calc(100dvh-var(--footer-height)-3.5rem)] md:block">
             <DocsSidebar />
           </aside>
           <article className="relative col-start-2 w-full max-w-3xl py-10">

@@ -5,6 +5,7 @@ import { AlertCircle } from "lucide-react";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { errorLogger, ErrorSource } from "@/lib/logger/enhanced-logger";
 
 export default function OrganizationsError({
   error,
@@ -14,7 +15,9 @@ export default function OrganizationsError({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error(error);
+    errorLogger.log(error, ErrorSource.ROUTE, {
+      path: window.location.pathname,
+    });
   }, [error]);
 
   return (

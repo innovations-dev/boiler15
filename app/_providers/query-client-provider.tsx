@@ -1,31 +1,41 @@
 "use client";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { useState } from "react";
+import { toast } from "sonner";
+
+import { errorLogger, ErrorSource } from "@/lib/logger/enhanced-logger";
+import { cacheConfig } from "@/lib/query/cache-config";
 
 export function QueryProvider({ children }: { children: React.ReactNode }) {
-  const [queryClient] = useState(
-    () =>
-      new QueryClient({
-        defaultOptions: {
-          queries: {
-            // With SSR, we usually want to set some default staleTime
-            // above 0 to avoid refetching immediately on the client
-            staleTime: 60 * 1000, // 1 minute
-            // Retry only once by default
-            retry: 1,
-            // Default refetchOnWindowFocus to false for better UX
-            refetchOnWindowFocus: false,
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        ...cacheConfig.queries.default,
+        meta: {
+          onError: (error: unknown) => {
+            errorLogger.log(error, ErrorSource.QUERY, {
+              context: "QueryClient:query",
+            });
           },
         },
-      }),
-  );
+      },
+      mutations: {
+        retry: 1,
+        onError: (error) => {
+          errorLogger.log(error, ErrorSource.MUTATION, {
+            context: "QueryClient:mutation",
+          });
+          const message =
+            error instanceof Error
+              ? error.message
+              : "An unexpected error occurred";
+          toast.error(message);
+        },
+      },
+    },
+  });
 
   return (
-    <QueryClientProvider client={queryClient}>
-      {children}
-      <ReactQueryDevtools initialIsOpen={false} />
-    </QueryClientProvider>
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
 }

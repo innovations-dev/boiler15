@@ -1,6 +1,9 @@
 "use client";
 
+import { useEffect } from "react";
+
 import { Button } from "@/components/ui/button";
+import { errorLogger, ErrorSource } from "@/lib/logger/enhanced-logger";
 
 export default function GlobalError({
   error,
@@ -9,6 +12,11 @@ export default function GlobalError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  useEffect(() => {
+    errorLogger.log(error, ErrorSource.ROUTE, {
+      path: window.location.pathname,
+    });
+  }, [error]);
   return (
     <div className="flex min-h-screen flex-col items-center justify-center">
       <div className="space-y-4 text-center">

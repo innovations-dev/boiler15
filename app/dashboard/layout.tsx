@@ -8,6 +8,8 @@ import { auth } from "@/lib/auth";
 import { sessionSelectSchema } from "@/lib/db/schema";
 import { UnauthorizedError } from "@/lib/query/error";
 
+export const dynamic = "force-dynamic";
+
 export default async function DashboardLayout({
   children,
 }: {

@@ -1,12 +1,14 @@
 "use client";
 
 import { format } from "date-fns";
+import { AlertCircle } from "lucide-react";
 
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSessions } from "@/hooks/auth/use-sessions";
 
 export function RecentActivity() {
-  const { data: sessions, isLoading } = useSessions();
+  const { data: sessions, isLoading, error } = useSessions();
 
   if (isLoading) {
     return (
@@ -15,6 +17,24 @@ export function RecentActivity() {
         <Skeleton className="h-12 w-full" />
         <Skeleton className="h-12 w-full" />
       </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <Alert variant="destructive">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>Error</AlertTitle>
+        <AlertDescription>
+          Failed to load recent activity. Please try again later.
+        </AlertDescription>
+      </Alert>
+    );
+  }
+
+  if (!sessions?.data?.length) {
+    return (
+      <p className="text-sm text-muted-foreground">No recent activity found.</p>
     );
   }
 

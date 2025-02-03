@@ -7,7 +7,7 @@ export const metadata = {
 
 # Error Handling
 
-Our error handling approach focuses on providing clear feedback to users while maintaining type safety and proper error logging.
+Our error handling approach focuses on providing clear feedback to users while maintaining type safety and proper error logging. The system is designed to handle errors at multiple levels: API, client-side, form validation, and UI boundaries.
 
 ## Overview
 
@@ -15,42 +15,50 @@ Our error handling approach focuses on providing clear feedback to users while m
 - 🌐 **API Error Handling**: Consistent error responses with status codes
 - 🔄 **Query Error Management**: React Query error handling with toast notifications
 - ✅ **Form Validation**: Zod schema validation with react-hook-form
-- 🎯 **Error Boundaries**: Next.js error boundaries for graceful UI recovery
+- 🎯 **Error Boundaries**: Next.js error boundaries with flexible UI variants
 - 🚦 **Loading States**: Suspense boundaries with skeleton loaders
+- 📝 **Error Logging**: Enhanced error logging with context and metadata
+- 🔁 **Retry Mechanisms**: Automatic retry for transient failures
 
 ## Error Types
 
-We maintain a set of type-safe error classes in `lib/query/error.ts`:
+We maintain a comprehensive set of type-safe error classes in `lib/query/error.ts`:
 
 ```typescript
-export class ApiError extends Error {
+export class HttpError extends Error {
   constructor(
     public statusCode: number,
-    message: string
+    message: string,
+    public code: string = API_ERROR_CODES.INTERNAL_ERROR
   ) {
     super(message);
-    this.name = "ApiError";
+    this.name = "HttpError";
   }
 }
 
-export class UnauthorizedError extends ApiError {
+export class UnauthorizedError extends HttpError {
   constructor(message: string) {
-    super(401, message);
+    super(401, message, API_ERROR_CODES.UNAUTHORIZED);
     this.name = "UnauthorizedError";
   }
 }
 
-// Additional typed errors: ForbiddenError, NotFoundError, BadRequestError
+// Additional typed errors: ForbiddenError, NotFoundError, BadRequestError, RateLimitError
 ```
 
 ## API Error Handling
 
-We use a consistent pattern for handling API errors:
+We use a consistent pattern for handling API errors with automatic logging:
 
 ```typescript
-// lib/api/error.ts
-export const handleApiError = (error: unknown): Response => {
-  console.error("API Error:", error);
+export const handleApiError = async (
+  error: unknown,
+  path = "unknown"
+): Promise<Response> => {
+  await errorLogger.log(error, ErrorSource.API, {
+    path,
+    requestId: crypto.randomUUID(),
+  });
 
   if (error instanceof ApiError) {
     return Response.json(
@@ -62,7 +70,7 @@ export const handleApiError = (error: unknown): Response => {
   if (error instanceof z.ZodError) {
     return Response.json(
       {
-        code: "VALIDATION_ERROR",
+        code: API_ERROR_CODES.VALIDATION_ERROR,
         message: "Invalid request data",
         errors: error.errors,
       },
@@ -71,7 +79,10 @@ export const handleApiError = (error: unknown): Response => {
   }
 
   return Response.json(
-    { code: "INTERNAL_ERROR", message: "Internal server error" },
+    {
+      code: API_ERROR_CODES.INTERNAL_ERROR,
+      message: "Internal server error",
+    },
     { status: 500 }
   );
 };
@@ -79,60 +90,76 @@ export const handleApiError = (error: unknown): Response => {
 
 ## Query Error Handling
 
-Our custom hooks handle query errors with proper error handling and toast notifications:
+Our custom hooks use a base mutation configuration for consistent error handling:
 
 ```typescript
-// Example from hooks/organization/use-organizations.ts
-export function useOrganizations() {
-  return useQuery<Organization[]>({
-    queryKey: queryKeys.organizations.list(),
+export function useApiQuery<T extends z.ZodType>(
+  key: readonly unknown[],
+  queryFn: () => Promise<z.infer<T>>,
+  schema: T,
+  options?: Omit<UseQueryOptions<z.infer<T>>, "queryKey" | "queryFn">
+) {
+  return useQuery<z.infer<T>>({
+    queryKey: key,
     queryFn: async () => {
-      const response = await getOrganizationsAction();
-      if (response.error) {
-        throw new Error(response.error.message);
+      try {
+        const data = await queryFn();
+        return schema.parse(data);
+      } catch (error) {
+        logError(error, `useApiQuery:${key.join(":")}`);
+        errorLogger.log(error, ErrorSource.QUERY, {
+          context: `useApiQuery:${key.join(":")}`,
+        });
+        throw error;
       }
-      return response.data ?? [];
     },
     meta: {
-      onError: (error: Error) => {
-        toast.error(`Failed to load organizations: ${error.message}`);
+      onError: (error: unknown) => {
+        const message = isQueryError(error)
+          ? error.message
+          : "An unexpected error occurred";
+        toast.error(message);
       },
     },
+    ...options,
   });
 }
 ```
 
 ## Form Validation
 
-We use Zod with react-hook-form for type-safe form validation:
+We use Zod with react-hook-form for comprehensive form validation:
 
 ```typescript
-// Example form validation
-const createOrganizationSchema = z.object({
+const profileFormSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
-  slug: z.string().min(2, "Slug must be at least 2 characters"),
+  email: z.string().email("Please enter a valid email address"),
 });
 
-export function CreateOrganizationForm() {
-  const form = useForm<z.infer<typeof createOrganizationSchema>>({
-    resolver: zodResolver(createOrganizationSchema),
+export function ProfileForm() {
+  const form = useForm<z.infer<typeof profileFormSchema>>({
+    resolver: zodResolver(profileFormSchema),
   });
+
+  const { mutate: updateProfile, isPending } = useUpdateProfile();
 
   return (
     <Form {...form}>
-      <FormField
-        control={form.control}
-        name="name"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Name</FormLabel>
-            <FormControl>
-              <Input {...field} />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+      <form onSubmit={form.handleSubmit((data) => updateProfile(data))}>
+        <FormField
+          control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Name</FormLabel>
+              <FormControl>
+                <Input {...field} disabled={isPending} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </form>
     </Form>
   );
 }
@@ -140,55 +167,41 @@ export function CreateOrganizationForm() {
 
 ## Error Boundaries
 
-We implement error boundaries at different levels:
-
-### Global Error Boundary
+We implement flexible error boundaries with different visual variants:
 
 ```typescript
-// app/global-error.tsx
-export default function GlobalError({
+export function RouteError({
   error,
-  reset,
-}: {
-  error: Error & { digest?: string };
-  reset: () => void;
-}) {
-  return (
-    <div className="flex min-h-screen flex-col items-center justify-center">
-      <div className="space-y-4 text-center">
-        <h1 className="text-4xl font-bold">Something went wrong!</h1>
-        <p className="text-muted-foreground">
-          {error.message || "An error occurred. Please try again later."}
-        </p>
-        <Button onClick={() => reset()}>Try again</Button>
-      </div>
-    </div>
-  );
-}
-```
-
-### Route Error Boundaries
-
-```typescript
-// app/(admin)/admin/error.tsx
-export default function OrganizationsError({
-  error,
-  reset,
-}: {
-  error: Error & { digest?: string };
-  reset: () => void;
-}) {
+  resetAction,
+  title = "Something went wrong!",
+  description = "An error occurred. Please try again.",
+  variant = "default",
+}: RouteErrorProps) {
   useEffect(() => {
-    console.error(error);
+    errorLogger.log(error, ErrorSource.ROUTE, {
+      path: window.location.pathname,
+    });
   }, [error]);
+
+  if (variant === "full") {
+    return (
+      <div className="flex min-h-[calc(100vh-4rem)] flex-col items-center justify-center">
+        <div className="space-y-4 text-center">
+          <h1 className="text-4xl font-bold">{title}</h1>
+          <p className="text-muted-foreground">{error.message || description}</p>
+          <Button onClick={() => resetAction()}>Try again</Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <Alert variant="destructive">
       <AlertCircle className="h-4 w-4" />
-      <AlertTitle>Error loading organizations</AlertTitle>
+      <AlertTitle>{title}</AlertTitle>
       <AlertDescription className="flex items-center gap-x-2">
-        An error occurred. Please try again.
-        <Button variant="outline" size="sm" onClick={() => reset()}>
+        {error.message || description}
+        <Button variant="outline" size="sm" onClick={() => resetAction()}>
           Try again
         </Button>
       </AlertDescription>
@@ -197,19 +210,33 @@ export default function OrganizationsError({
 }
 ```
 
-## Loading States
+## Error Logging
 
-We handle loading states with Suspense and skeleton components:
+Our enhanced error logging system provides detailed error tracking:
 
 ```typescript
-export default function OrganizationsPage() {
-  return (
-    <div className="space-y-6">
-      <Suspense fallback={<OrganizationsListSkeleton />}>
-        <OrganizationsList />
-      </Suspense>
-    </div>
-  );
+export function logError(
+  error: unknown,
+  context?: string,
+  metadata?: Partial<ErrorLogData>
+) {
+  const errorData: ErrorLogData = {
+    message: error instanceof Error ? error.message : String(error),
+    stack: error instanceof Error ? error.stack : undefined,
+    context,
+    timestamp: new Date().toISOString(),
+    ...metadata,
+  };
+
+  if (error instanceof ApiError) {
+    errorData.code = error.code;
+    errorData.status = error.status;
+  }
+
+  errorLogger.log(error, ErrorSource.UNKNOWN, {
+    ...errorData,
+    requestId: crypto.randomUUID(),
+  });
 }
 ```
 
@@ -217,32 +244,44 @@ export default function OrganizationsPage() {
 
 1. **Type Safety First**
 
-   - Use typed error classes for different error scenarios
+   - Use typed error classes for different scenarios
    - Implement type guards for error checking
    - Maintain consistent error response types
+   - Use Zod schemas for runtime type validation
 
 2. **Graceful Error Recovery**
 
    - Implement retry mechanisms for transient failures
    - Provide clear user feedback with recovery options
    - Use error boundaries for UI isolation
+   - Handle loading states with skeleton loaders
 
 3. **Error Logging**
 
-   - Log errors with appropriate context
+   - Log errors with appropriate context and metadata
    - Include error codes and stack traces
+   - Track error sources and request IDs
    - Maintain different log levels (info, warn, error)
 
 4. **User Experience**
 
    - Show meaningful error messages
    - Provide recovery actions when possible
-   - Handle loading states with skeleton loaders
+   - Use toast notifications for transient errors
+   - Implement flexible error UI variants
 
 5. **API Error Handling**
+
    - Use consistent error response format
    - Include appropriate HTTP status codes
    - Validate request data with Zod schemas
+   - Handle authentication and authorization errors
+
+6. **Query Error Management**
+   - Use React Query error boundaries
+   - Implement optimistic updates with rollback
+   - Handle cache invalidation on errors
+   - Provide retry mechanisms for failed queries
 
 ## Next Steps
 

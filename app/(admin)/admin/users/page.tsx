@@ -4,6 +4,8 @@ import { CreateUserButton } from "@/app/(admin)/_components/users/create-user-bu
 import { UsersList } from "@/app/(admin)/_components/users/users-list";
 import { UsersListSkeleton } from "@/app/(admin)/_components/users/users-list-skeleton";
 
+export const dynamic = "force-dynamic";
+
 export default function UsersPage() {
   return (
     <div className="space-y-6">

@@ -1,19 +1,12 @@
 "use client";
 
 import React, { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { UserWithRole } from "better-auth/plugins";
 import { Ban, Key, MoreHorizontal, Shield, Trash } from "lucide-react";
 import { toast } from "sonner";
 
+import { ConfirmationDialog } from "@/components/shared/confirmation-dialog";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,16 +15,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { authClient } from "@/lib/auth/auth-client";
-import { userSelectSchema } from "@/lib/db/schema";
+import { useBanUser } from "@/hooks/admin/use-ban-user";
+import { useSetRole } from "@/hooks/admin/use-set-role";
 import { cn } from "@/lib/utils";
-
-interface ConfirmationDialogProps {
-  title: string;
-  description: string;
-  action: () => Promise<void> | void;
-  variant?: "default" | "destructive";
-}
 
 interface ActionItem {
   key: string;
@@ -64,86 +50,26 @@ function ActionMenuItem({ item }: { item: ActionItem }) {
   );
 }
 
-export function UserActions({ user }: { user: any }) {
-  const queryClient = useQueryClient();
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [activeDialog, setActiveDialog] =
-    useState<ConfirmationDialogProps | null>(null);
+export function UserActions({ user }: { user: UserWithRole }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [activeAction, setActiveAction] = useState<{
+    title: string;
+    description: string;
+    action: () => void;
+    variant?: "default" | "destructive";
+    confirmText?: string;
+    loadingText?: string;
+  } | null>(null);
 
-  const { mutate: banUser, isPending: isBanning } = useMutation({
-    mutationFn: () => authClient.admin.banUser(user.id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["users"] });
-      toast.success("User banned successfully");
-      setDialogOpen(false);
-    },
-    onError: (error) => {
-      toast.error(error.message || "Failed to ban user");
-    },
-  });
+  const { mutate: banUser, isPending: isBanning } = useBanUser();
 
-  const { mutate: setRole, isPending: isSettingRole } = useMutation({
-    mutationFn: (role: string) =>
-      authClient.admin.setRole({
-        userId: user.id,
-        role,
-      }),
-    onSuccess: ({ data }) => {
-      userSelectSchema.parse(data);
-      queryClient.invalidateQueries({ queryKey: ["users"] });
-      toast.success("Role updated successfully");
-      setDialogOpen(false);
-    },
-    onError: (error) => {
-      toast.error(error.message || "Failed to update role");
-    },
-  });
+  const { mutate: setRole, isPending: isSettingRole } = useSetRole();
 
-  const handleOpenDialog = (dialog: ConfirmationDialogProps) => {
-    console.log("Opening dialog:", dialog);
-    setActiveDialog(dialog);
-    setDialogOpen(true);
-  };
-
-  const handleCloseDialog = () => {
-    console.log("Closing dialog");
-    setActiveDialog(null);
-    setDialogOpen(false);
-  };
-
-  const handleConfirm = async () => {
-    if (!activeDialog) return;
-
-    try {
-      await activeDialog.action();
-    } catch (error) {
-      console.error("Action failed:", error);
-      toast.error("Operation failed");
-    }
-  };
-
-  const confirmations = {
-    roleChange: (role: string) => ({
-      title: `Make user ${role}?`,
-      description: `Are you sure you want to change ${user.email}'s role to ${role}? This will grant them ${role} privileges.`,
-      action: () => setRole(role),
-      variant: "default" as const,
-    }),
-    ban: {
-      title: "Ban user?",
-      description: `Are you sure you want to ban ${user.email}? They will no longer be able to access the system.`,
-      action: () => banUser(),
-      variant: "destructive" as const,
-    },
-    delete: {
-      title: "Delete user?",
-      description: `Are you sure you want to delete ${user.email}? This action cannot be undone.`,
-      action: () => {
-        toast.error("Delete user feature coming soon");
-        handleCloseDialog();
-      },
-      variant: "destructive" as const,
-    },
+  const handleAction = (action: typeof activeAction) => {
+    setActiveAction(action);
+    setShowConfirmDialog(true);
+    setIsOpen(false);
   };
 
   const actions: ActionItem[][] = [
@@ -152,13 +78,27 @@ export function UserActions({ user }: { user: any }) {
         key: "make-admin",
         label: "Make Admin",
         icon: <Key className="h-4 w-4 text-primary" />,
-        onClick: () => handleOpenDialog(confirmations.roleChange("admin")),
+        onClick: () =>
+          handleAction({
+            title: "Make user admin?",
+            description: `Are you sure you want to change ${user.email}&apos;s role to admin? This will grant them admin privileges.`,
+            action: () => setRole({ userId: user.id, role: "admin" }),
+            confirmText: "Make Admin",
+            loadingText: "Updating...",
+          }),
       },
       {
         key: "make-member",
         label: "Make Member",
         icon: <Shield className="h-4 w-4 text-primary" />,
-        onClick: () => handleOpenDialog(confirmations.roleChange("member")),
+        onClick: () =>
+          handleAction({
+            title: "Make user member?",
+            description: `Are you sure you want to change ${user.email}'s role to member? This will grant them member privileges.`,
+            action: () => setRole({ userId: user.id, role: "member" }),
+            confirmText: "Make Member",
+            loadingText: "Updating...",
+          }),
       },
     ],
     [
@@ -166,14 +106,33 @@ export function UserActions({ user }: { user: any }) {
         key: "ban",
         label: "Ban User",
         icon: <Ban className="h-4 w-4" />,
-        onClick: () => handleOpenDialog(confirmations.ban),
+        onClick: () =>
+          handleAction({
+            title: "Ban user?",
+            description: `Are you sure you want to ban ${user.email}? They will no longer be able to access the system.`,
+            action: () => banUser(user.id),
+            variant: "destructive",
+            confirmText: "Ban User",
+            loadingText: "Banning...",
+          }),
         variant: "warning",
       },
       {
         key: "delete",
         label: "Delete User",
         icon: <Trash className="h-4 w-4" />,
-        onClick: () => handleOpenDialog(confirmations.delete),
+        onClick: () =>
+          handleAction({
+            title: "Delete user?",
+            description: `Are you sure you want to delete ${user.email}? This action cannot be undone.`,
+            action: () => {
+              toast.error("Delete user feature coming soon");
+              setShowConfirmDialog(false);
+            },
+            variant: "destructive",
+            confirmText: "Delete",
+            loadingText: "Deleting...",
+          }),
         variant: "destructive",
       },
     ],
@@ -181,7 +140,7 @@ export function UserActions({ user }: { user: any }) {
 
   return (
     <>
-      <DropdownMenu>
+      <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
         <DropdownMenuTrigger asChild>
           <Button
             variant="ghost"
@@ -216,38 +175,19 @@ export function UserActions({ user }: { user: any }) {
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{activeDialog?.title}</DialogTitle>
-            <DialogDescription>{activeDialog?.description}</DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={handleCloseDialog}
-              className="min-w-[100px]"
-            >
-              Cancel
-            </Button>
-            <Button
-              variant={activeDialog?.variant ?? "default"}
-              onClick={handleConfirm}
-              disabled={isBanning || isSettingRole}
-              className="min-w-[100px]"
-            >
-              {isBanning || isSettingRole ? (
-                <span className="flex items-center gap-2">
-                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                  Loading...
-                </span>
-              ) : (
-                "Confirm"
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {activeAction && (
+        <ConfirmationDialog
+          open={showConfirmDialog}
+          onOpenChangeAction={setShowConfirmDialog}
+          title={activeAction.title}
+          description={activeAction.description}
+          onConfirmAction={activeAction.action}
+          isLoading={isBanning || isSettingRole}
+          variant={activeAction.variant}
+          confirmText={activeAction.confirmText}
+          loadingText={activeAction.loadingText}
+        />
+      )}
     </>
   );
 }

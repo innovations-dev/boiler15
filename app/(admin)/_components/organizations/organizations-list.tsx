@@ -8,13 +8,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useOrganizations } from "@/hooks/organization/use-organizations";
+import { useOrganizationsApi } from "@/hooks/organization/use-organizations";
 import { FormattedDate } from "./formatted-date";
 import { OrganizationActions } from "./organization-actions";
 import { OrganizationsListSkeleton } from "./organizations-list-skeleton";
 
 export function OrganizationsList() {
-  const { data: organizations, isLoading } = useOrganizations();
+  const { data: organizations, isLoading } = useOrganizationsApi();
 
   if (isLoading) {
     return <OrganizationsListSkeleton />;
@@ -32,14 +32,14 @@ export function OrganizationsList() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {!organizations?.length ? (
+          {!organizations?.data?.length ? (
             <TableRow>
               <TableCell colSpan={4} className="text-center">
                 No organizations found
               </TableCell>
             </TableRow>
           ) : (
-            organizations.map((organization) => (
+            organizations?.data?.map((organization) => (
               <TableRow key={organization.id}>
                 <TableCell>{organization.name}</TableCell>
                 <TableCell>{organization.slug}</TableCell>

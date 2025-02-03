@@ -1,6 +1,8 @@
 import { OrganizationSwitcherWithSuspense } from "@/components/shared/organization-switcher";
 import { OrganizationsListWrapper } from "../../_components/organizations/organizations-list-wrapper";
 
+export const dynamic = "force-dynamic";
+
 export default function OrganizationsPage() {
   return (
     <div className="space-y-6">

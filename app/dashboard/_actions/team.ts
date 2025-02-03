@@ -3,7 +3,6 @@
 import { headers } from "next/headers";
 import { desc, eq } from "drizzle-orm";
 
-import { createAction } from "@/lib/actions/create-action";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import {
@@ -14,7 +13,7 @@ import {
   type TeamMember,
 } from "@/lib/db/schema";
 import { UnauthorizedError } from "@/lib/query/error";
-import { createApiResponse, type ApiResponse } from "@/lib/schemas/api";
+import { createApiResponse, type ApiResponse } from "@/lib/schemas/api-types";
 
 export async function getTeamMembersAction(): Promise<
   ApiResponse<TeamMember[]>

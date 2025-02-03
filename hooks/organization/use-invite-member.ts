@@ -1,61 +1,73 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
+import { useBaseMutation } from "@/hooks/query/use-base-mutation";
 import { authClient } from "@/lib/auth/auth-client";
+import { cacheConfig } from "@/lib/query/cache-config";
+import { handleHttpError } from "@/lib/query/error";
 import { queryKeys } from "@/lib/query/keys";
-import { isQueryError } from "@/lib/query/types";
 
+/**
+ * Input type for inviting a new member to the organization
+ * @interface InviteMemberInput
+ */
 interface InviteMemberInput {
   email: string;
   role: string;
 }
 
-interface InviteMemberError {
-  message: string;
-  status?: number;
-}
-
+/**
+ * Hook for inviting new members to the organization.
+ *
+ * @description
+ * This hook provides functionality to invite new members to the organization,
+ * handling the API call, success notifications, and cache invalidation.
+ *
+ * @example
+ * ```tsx
+ * function InviteMemberForm() {
+ *   const { mutate: inviteMember, isPending } = useInviteMember();
+ *
+ *   const onSubmit = (data: InviteMemberInput) => {
+ *     inviteMember(data);
+ *   };
+ *
+ *   return (
+ *     // Form implementation
+ *   );
+ * }
+ * ```
+ *
+ * @returns {UseMutationResult} A mutation object containing:
+ * - mutate: Function to trigger the invitation
+ * - isPending: Boolean indicating if the invitation is in progress
+ * - error: Any error that occurred during the mutation
+ *
+ * @throws {HttpError} When the API request fails
+ *
+ * @usecase
+ * - Adding team members to an organization
+ * - Sending invitation emails to new collaborators
+ * - Managing organization access control
+ *
+ * @see {@link authClient.organization.inviteMember} for the underlying API call
+ * @see {@link queryKeys.team.members} for cache invalidation details
+ */
 export function useInviteMember() {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useBaseMutation({
     mutationFn: async (data: InviteMemberInput) => {
       try {
         return await authClient.organization.inviteMember(data);
       } catch (error) {
-        // Type guard for our error structure
-        const isAuthError = (err: unknown): err is InviteMemberError =>
-          typeof err === "object" &&
-          err !== null &&
-          "message" in err &&
-          typeof (err as any).message === "string";
-
-        if (isAuthError(error)) {
-          // Handle rate limiting
-          if (error.status === 429) {
-            throw new Error(
-              "Too many invitation attempts. Please try again in a few minutes."
-            );
-          }
-
-          // Handle other known errors
-          throw new Error(error.message);
-        }
-
-        // Handle unexpected errors
-        console.error("Unexpected error during member invitation:", error);
-        throw new Error(
-          "An unexpected error occurred. Please try again later."
-        );
+        throw handleHttpError(error);
       }
     },
     onSuccess: () => {
-      // Invalidate relevant queries
       queryClient.invalidateQueries({
-        queryKey: queryKeys.organizations.members,
+        queryKey: queryKeys.team.members("current"),
       });
-
-      // Show success message
       toast.success(
         "Invitation sent successfully! The member will receive an email shortly.",
         {
@@ -63,14 +75,7 @@ export function useInviteMember() {
         }
       );
     },
-    onError: (error: Error) => {
-      // Log client-side errors for monitoring
-      console.error("Member invitation error:", error);
-
-      // Show user-friendly error message
-      toast.error(error.message || "Failed to send invitation", {
-        duration: 4000,
-      });
-    },
+    errorMessage: "An unexpected error occurred. Please try again later.",
+    ...cacheConfig.queries.organization,
   });
 }

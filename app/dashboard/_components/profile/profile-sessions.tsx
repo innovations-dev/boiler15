@@ -15,6 +15,9 @@ import { useSessions } from "@/hooks/auth/use-sessions";
 export function ProfileSessions() {
   const { data: sessions, isLoading } = useSessions();
 
+  const currentSession = sessions?.data?.[0];
+  const sessionsList = sessions?.data ?? [];
+
   return (
     <Card>
       <CardHeader>
@@ -31,7 +34,7 @@ export function ProfileSessions() {
           </div>
         ) : (
           <div className="space-y-6">
-            {sessions?.data?.map((session) => (
+            {sessionsList.map((session) => (
               <div
                 key={session.id}
                 className="flex items-center justify-between"
@@ -42,7 +45,7 @@ export function ProfileSessions() {
                     Last active: {format(new Date(session.createdAt), "PPP")}
                   </p>
                 </div>
-                {session.id === sessions?.data[0].id && (
+                {session.id === currentSession?.id && (
                   <span className="text-xs text-muted-foreground">
                     Current Session
                   </span>

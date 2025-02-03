@@ -14,7 +14,6 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { useCreateOrganization } from "@/hooks/organization/use-create-organization";
-import { OrganizationInsert } from "@/lib/db/schema";
 import { slugify } from "@/lib/utils";
 
 interface CreateOrganizationDialogProps {

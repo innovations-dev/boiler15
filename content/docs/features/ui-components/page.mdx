@@ -17,190 +17,213 @@ Our UI system is built on [Shadcn UI](https://ui.shadcn.com) with [Tailwind CSS]
 
 ## Header Component
 
-The header component is a key part of our application's navigation system. It's responsive, supports dark mode, and includes authentication state.
+Our header component is built with composition in mind, offering multiple variants and flexible positioning options.
 
-### Basic Header
+### Basic Header Usage
 
 ```tsx
-import { Header } from "@/components/header";
+import { Header } from "@/components/layout/header";
 
-export default function Page() {
+export function SiteHeader() {
   return (
-    <Header>
-      <Header.Logo />
-      <Header.Nav />
-      <Header.Auth />
+    <Header variant="floating" position="fixed" size="default">
+      <Header.LeftElement>
+        <Link href="/" className="font-semibold">
+          Logo
+        </Link>
+      </Header.LeftElement>
+      <Header.Main>
+        <MainNav items={navigationItems} />
+      </Header.Main>
+      <Header.RightElement>
+        <UserNav />
+      </Header.RightElement>
     </Header>
   );
 }
 ```
 
-### With Custom Navigation
+### Header Variants
+
+The header component supports multiple variants through a `cva` configuration:
 
 ```tsx
-import { Header } from "@/components/header";
-
-const navigation = [
-  { name: "Dashboard", href: "/dashboard" },
-  { name: "Team", href: "/team" },
-  { name: "Projects", href: "/projects" },
-];
-export default function CustomHeader() {
-  return (
-    <Header>
-      <Header.Logo />
-      <Header.Nav items={navigation} />
-      <Header.Actions>
-        <Header.ThemeToggle />
-        <Header.Auth />
-      </Header.Actions>
-    </Header>
-  );
-}
+const variants = {
+  default: "border-border bg-background/95",
+  transparent: "border-transparent bg-transparent",
+  contrast: "border-muted bg-muted/50",
+  floating: "bg-background/60 border shadow-sm rounded-full backdrop-blur-lg",
+};
 ```
 
-### Mobile Responsive Menu
+## Footer Component
+
+Our footer component provides a structured layout with brand, navigation sections, and bottom content areas.
+
+### Basic Footer Usage
 
 ```tsx
-import Link from "next/link";
-import { Menu } from "lucide-react";
+import { Footer } from "@/components/layout/footer";
 
-import { Header } from "@/components/header";
-import { Button } from "@/components/ui/button";
-import { Sheet } from "@/components/ui/sheet";
-
-export function MobileHeader() {
+export function SiteFooter() {
   return (
-    <Header>
-      <Header.Logo />
-      <Header.MobileNav>
-        <Sheet>
-          <Sheet.Trigger asChild>
-            <Button variant="ghost" size="icon">
-              <Menu className="h-5 w-5" />
-            </Button>
-          </Sheet.Trigger>
-          <Sheet.Content side="left">
-            <Sheet.Header>
-              <Sheet.Title>Navigation</Sheet.Title>
-            </Sheet.Header>
-            <nav className="grid gap-4 py-4">
-              {navigation.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className="text-sm font-medium"
-                >
-                  {item.name}
-                </Link>
-              ))}
-            </nav>
-          </Sheet.Content>
-        </Sheet>
-      </Header.MobileNav>
-    </Header>
-  );
-}
-```
-
-## Form Components
-
-Our form components are built with accessibility and validation in mind.
-
-### Basic Form
-
-```tsx
-import { Button } from "@/components/ui/button";
-import { Form } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-
-export function SignInForm() {
-  return (
-    <Form {...form}>
-      <Form.Field
-        control={form.control}
-        name="email"
-        render={({ field }) => (
-          <Form.Item>
-            <Form.Label>Email</Form.Label>
-            <Form.Control>
-              <Input placeholder="email@example.com" {...field} />
-            </Form.Control>
-            <Form.Message />
-          </Form.Item>
-        )}
-      />
-      <Button type="submit">Sign In</Button>
-    </Form>
-  );
-}
-```
-
-### With Validation
-
-```tsx
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import as z from "zod";
-const formSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(8),
-});
-export function ValidatedForm() {
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-  });
-
-  return (
-    <Form {...form}>
-      <Form.Field
-        control={form.control}
-        name="email"
-        render={({ field }) => (
-          <Form.Item>
-            <Form.Label>Email</Form.Label>
-            <Form.Control>
-              <Input {...field} />
-            </Form.Control>
-            <Form.Message />
-          </Form.Item>
-        )}
-      />
-    </Form>
+    <Footer variant="floating" size="default">
+      <Footer.Nav>
+        <Footer.Brand>
+          <Footer.Link href="/">Logo</Footer.Link>
+          <p className="text-muted-foreground text-sm">
+            Your brand description
+          </p>
+        </Footer.Brand>
+        <Footer.NavSection title="Product">
+          {links.map((link) => (
+            <li key={link.href}>
+              <Footer.Link href={link.href}>{link.name}</Footer.Link>
+            </li>
+          ))}
+        </Footer.NavSection>
+      </Footer.Nav>
+      <Footer.Bottom>
+        <p className="text-muted-foreground text-sm">
+          © {new Date().getFullYear()} Your Company
+        </p>
+      </Footer.Bottom>
+    </Footer>
   );
 }
 ```
 
 ## Dialog Components
 
-Modal dialogs for user interactions.
+### Confirmation Dialog
 
-### Basic Dialog
+We provide a reusable confirmation dialog component for user interactions that require explicit confirmation.
 
 ```tsx
-import { Button } from "@/components/ui/button";
-import { Dialog } from "@/components/ui/dialog";
+import { ConfirmationDialog } from "@/components/shared/confirmation-dialog";
 
-export function ConfirmDialog() {
+export function DeleteAccount() {
+  const [open, setOpen] = React.useState(false);
+
   return (
-    <Dialog>
-      <Dialog.Trigger asChild>
-        <Button variant="outline">Delete Account</Button>
-      </Dialog.Trigger>
-      <Dialog.Content>
-        <Dialog.Header>
-          <Dialog.Title>Are you sure?</Dialog.Title>
-          <Dialog.Description>This action cannot be undone.</Dialog.Description>
-        </Dialog.Header>
-        <Dialog.Footer>
-          <Button variant="ghost">Cancel</Button>
-          <Button variant="destructive">Delete</Button>
-        </Dialog.Footer>
-      </Dialog.Content>
-    </Dialog>
+    <ConfirmationDialog
+      open={open}
+      onOpenChangeAction={setOpen}
+      title="Delete Account"
+      description="Are you sure? This action cannot be undone."
+      onConfirmAction={handleDelete}
+      variant="destructive"
+      confirmText="Delete"
+      isLoading={isDeleting}
+    />
   );
 }
 ```
+
+## Form Components
+
+### Floating Label Input
+
+Our floating label input provides an enhanced user experience with animated labels.
+
+```tsx
+import { FloatingLabelInput } from "@/components/floating-input";
+
+export function EmailInput() {
+  return (
+    <FloatingLabelInput
+      label="Email Address"
+      type="email"
+      name="email"
+      required
+    />
+  );
+}
+```
+
+### Form Patterns with React Hook Form
+
+We use React Hook Form with Zod for form validation. Here's our recommended pattern:
+
+```tsx
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+
+import { FloatingLabelInput } from "@/components/floating-input";
+import { Button } from "@/components/ui/button";
+import { Form } from "@/components/ui/form";
+
+const formSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+});
+
+type FormValues = z.infer<typeof formSchema>;
+
+export function SignInForm() {
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
+
+  const onSubmit = (values: FormValues) => {
+    // Handle form submission
+  };
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <Form.Field
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FloatingLabelInput label="Email" type="email" {...field} />
+          )}
+        />
+        <Form.Field
+          control={form.control}
+          name="password"
+          render={({ field }) => (
+            <FloatingLabelInput label="Password" type="password" {...field} />
+          )}
+        />
+        <Button type="submit" disabled={form.formState.isSubmitting}>
+          {form.formState.isSubmitting ? "Signing in..." : "Sign in"}
+        </Button>
+      </form>
+    </Form>
+  );
+}
+```
+
+### Form Best Practices
+
+1. **Validation**
+
+   - Use Zod schemas for type-safe validation
+   - Define schemas outside components for reusability
+   - Provide meaningful error messages
+
+2. **Error Handling**
+
+   - Display field-level errors using `Form.Message`
+   - Show form-level errors at the top of the form
+   - Handle submission errors gracefully
+
+3. **Accessibility**
+
+   - Use proper ARIA labels and descriptions
+   - Ensure keyboard navigation works correctly
+   - Provide clear error states and messages
+
+4. **Performance**
+   - Use controlled components sparingly
+   - Leverage React Hook Form's performance optimizations
+   - Implement proper form submission handling
 
 ## Best Practices
 

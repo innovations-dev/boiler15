@@ -7,6 +7,15 @@ import {
 } from "drizzle-zod";
 import { z } from "zod";
 
+/**
+ * @fileoverview Database schema definitions using Drizzle ORM with SQLite
+ * @module lib/db/schema
+ *
+ * This module defines the database schema for the application using Drizzle ORM.
+ * It includes tables for users, sessions, accounts, verifications, organizations,
+ * members, and invitations. Each table has corresponding Zod schemas for type validation.
+ */
+
 export const user = sqliteTable(
   "user",
   {
@@ -52,16 +61,18 @@ export const session = sqliteTable("session", {
 });
 
 export const sessionSelectSchemaCoerced = createSelectSchema(session, {
-  expiresAt: z.string(),
-  createdAt: z.string(),
-  updatedAt: z.string(),
+  expiresAt: z.coerce.string(),
+  createdAt: z.coerce.string(),
+  updatedAt: z.coerce.string(),
+  token: z.string().transform((val) => val.replace(/['"]/g, "")),
 });
 
 export const sessionSelectSchema = createSelectSchema(session);
 export const sessionInsertSchema = createInsertSchema(session);
 export const sessionUpdateSchema = createUpdateSchema(session);
 
-export type Session = z.infer<typeof sessionSelectSchemaCoerced>;
+export type SessionCoerced = z.infer<typeof sessionSelectSchemaCoerced>;
+export type Session = z.infer<typeof sessionSelectSchema>;
 export type SessionInsert = typeof session.$inferInsert;
 
 export const account = sqliteTable("account", {
@@ -92,22 +103,6 @@ export const accountUpdateSchema = createUpdateSchema(account);
 
 export type Account = z.infer<typeof accountSelectSchema>;
 export type AccountInsert = typeof account.$inferInsert;
-
-export const verification = sqliteTable("verification", {
-  id: text("id").primaryKey(),
-  identifier: text("identifier").notNull(),
-  value: text("value").notNull(),
-  expiresAt: integer("expires_at", { mode: "timestamp" }).notNull(),
-  createdAt: integer("created_at", { mode: "timestamp" }),
-  updatedAt: integer("updated_at", { mode: "timestamp" }),
-});
-
-export const verificationSelectSchema = createSelectSchema(verification);
-export const verificationInsertSchema = createInsertSchema(verification);
-export const verificationUpdateSchema = createUpdateSchema(verification);
-
-export type Verification = z.infer<typeof verificationSelectSchema>;
-export type VerificationInsert = typeof verification.$inferInsert;
 
 export const organization = sqliteTable("organization", {
   id: text("id").primaryKey(),
@@ -198,3 +193,35 @@ export const invitationUpdateSchema = createUpdateSchema(invitation);
 
 export type Invitation = z.infer<typeof invitationSelectSchema>;
 export type InvitationInsert = typeof invitation.$inferInsert;
+
+/**
+ * Usage Examples:
+ *
+ * @example
+ * // Create a new organization with a member
+ * ```typescript
+ * await db.transaction(async (tx) => {
+ *   const org = await tx.insert(organization).values({
+ *     name: "Acme Inc",
+ *     slug: "acme"
+ *   }).returning();
+ *
+ *   await tx.insert(member).values({
+ *     organizationId: org.id,
+ *     userId: currentUser.id,
+ *     role: "admin"
+ *   });
+ * });
+ * ```
+ *
+ * @example
+ * // Query user with their organizations
+ * ```typescript
+ * const userWithOrgs = await db
+ *   .select()
+ *   .from(user)
+ *   .leftJoin(member, eq(user.id, member.userId))
+ *   .leftJoin(organization, eq(member.organizationId, organization.id))
+ *   .where(eq(user.id, userId));
+ * ```
+ */
