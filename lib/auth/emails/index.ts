@@ -10,10 +10,8 @@
 import { APIError as BetterAuthAPIError } from "better-auth/api";
 import { UserWithRole } from "better-auth/plugins";
 
-import { getVerificationEmail } from "@/emails/verification-email";
 import { EmailRateLimitError } from "@/lib/email";
 import { sendEmail } from "@/lib/email/services/email-service";
-import { sendEmailWithRetry } from "@/lib/email/services/send-email";
 
 /**
  * Sends a verification email to a user
@@ -40,10 +38,13 @@ export async function sendVerificationEmail({
   url: string;
 }) {
   try {
-    const result = await sendEmailWithRetry({
+    const result = await sendEmail({
       to: user.email,
       subject: "Verify your email address",
-      html: await getVerificationEmail(url),
+      template: "VERIFICATION",
+      data: {
+        url,
+      },
     });
 
     if (!result.success) {

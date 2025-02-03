@@ -2,11 +2,11 @@ import { useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { getAdminStatsAction } from "@/app/(admin)/_actions/stats";
-import { useApiQuery } from "@/lib/hooks/use-api-query";
 import { cacheConfig } from "@/lib/query/cache-config";
 import { queryKeys } from "@/lib/query/keys";
 import { createApiResponseSchema } from "@/lib/schemas/api-types";
 import { AdminStatsResponse, adminStatsSchema } from "@/lib/types/admin";
+import { useApiQuery } from "../query/use-api-query";
 
 /**
  * Transforms the API response by providing default values for missing data

@@ -70,7 +70,7 @@ export async function createAction<Input, Output>({
     // Return successful response
     return createApiResponse(result);
   } catch (error) {
-    const handledError = handleError(error);
+    const handledError = await handleError(error);
     return {
       data: null,
       error: {

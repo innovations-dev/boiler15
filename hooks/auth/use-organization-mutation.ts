@@ -10,7 +10,7 @@ export function useDeleteOrganization() {
 
   return useMutation({
     mutationFn: (organizationId: string) =>
-      authClient.organization.delete(organizationId),
+      authClient.organization.delete({ organizationId }),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.organizations.all,

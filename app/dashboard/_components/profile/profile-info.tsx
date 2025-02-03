@@ -19,8 +19,8 @@ export function ProfileInfo() {
   const { mutate: requestPasswordReset, isPending } = useRequestPasswordReset();
 
   const handlePasswordReset = async () => {
-    if (!users?.data?.users[0]) return;
-    await requestPasswordReset(users.data.users[0].id);
+    if (!users?.data[0]) return;
+    await requestPasswordReset();
   };
 
   return (

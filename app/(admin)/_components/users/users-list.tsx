@@ -16,7 +16,7 @@ import { UsersListSkeleton } from "./users-list-skeleton";
 export function UsersList() {
   const { data: users, isLoading } = useUsers();
 
-  const parsedUsers = users?.data?.users.map((u) => userSelectSchema.parse(u));
+  const parsedUsers = users?.data?.map((u) => userSelectSchema.parse(u));
 
   if (isLoading) {
     return <UsersListSkeleton />;
