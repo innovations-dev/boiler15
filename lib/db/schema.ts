@@ -104,6 +104,21 @@ export const accountUpdateSchema = createUpdateSchema(account);
 export type Account = z.infer<typeof accountSelectSchema>;
 export type AccountInsert = typeof account.$inferInsert;
 
+export const verification = sqliteTable("verification", {
+  id: text("id").primaryKey(),
+  identifier: text("identifier").notNull(),
+  value: text("value").notNull(),
+  expiresAt: integer("expires_at", { mode: "timestamp" }).notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" }),
+  updatedAt: integer("updated_at", { mode: "timestamp" }),
+});
+export const VerificationSelectSchema = createSelectSchema(verification);
+export const VerificationInsertSchema = createInsertSchema(verification);
+export const VerificationUpdateSchema = createUpdateSchema(verification);
+
+export type Verification = z.infer<typeof VerificationSelectSchema>;
+export type VerificationInsert = typeof verification.$inferInsert;
+
 export const organization = sqliteTable("organization", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),

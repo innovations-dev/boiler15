@@ -85,7 +85,12 @@ class ErrorLogger {
 
     return {
       id: nanoid(),
-      message: error instanceof Error ? error.message : String(error),
+      message:
+        error instanceof Error
+          ? typeof error.message === "string"
+            ? error.message
+            : JSON.stringify(error.message)
+          : String(error),
       stack: error instanceof Error ? error.stack : undefined,
       metadata: validatedMetadata,
     };
@@ -203,9 +208,14 @@ class ErrorLogger {
   }
 
   private async persistError(entry: ErrorLogEntry): Promise<void> {
-    if (env.NODE_ENV === "development") {
+    if (process.env.NODE_ENV === "development") {
       console.error(`[${entry.metadata.severity}] ${entry.metadata.source}:`, {
-        message: entry.message,
+        message:
+          entry instanceof Error
+            ? typeof entry.message === "string"
+              ? entry.message
+              : JSON.stringify(entry.message)
+            : String(entry),
         metadata: entry.metadata,
         stack: entry.stack,
       });

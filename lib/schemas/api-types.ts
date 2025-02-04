@@ -62,7 +62,7 @@ export interface ApiResponse<T> {
 }
 
 /**
- * Creates a standardized API response object
+ * Creates a standardized API response object used by useBaseMutation
  * @template T - The type of data to be included in the response
  * @param {T} data - The response payload
  * @param {Partial<ApiError>} [error] - Optional error information
@@ -88,7 +88,10 @@ export function createApiResponse<T>(
     error: error
       ? {
           code: error.code ?? API_ERROR_CODES.UNKNOWN_ERROR,
-          message: error.message,
+          message:
+            typeof error.message === "string"
+              ? error.message
+              : JSON.stringify(error.message),
           status: error.status ?? 500,
           details: error.details,
         }
