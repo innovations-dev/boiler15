@@ -48,13 +48,14 @@ export const baseURL = (() => {
   try {
     console.log(env.NEXT_PUBLIC_APP_URL);
     console.log(process.env.VERCEL_URL);
-    return new URL(
-      process.env.NODE_ENV === "development"
-        ? env.NEXT_PUBLIC_APP_URL
-        : process.env.VERCEL_URL
-          ? `https://${process.env.VERCEL_URL}`
-          : env.NEXT_PUBLIC_APP_URL
-    );
+    return new URL(env.NEXT_PUBLIC_APP_URL);
+    // return new URL(
+    //   process.env.NODE_ENV === "development"
+    //     ? env.NEXT_PUBLIC_APP_URL
+    //     : process.env.VERCEL_URL
+    //       ? `https://${process.env.VERCEL_URL}`
+    //       : env.NEXT_PUBLIC_APP_URL
+    // );
   } catch (error) {
     console.error("Invalid URL configuration:", error);
     return new URL("http://localhost:3000");
