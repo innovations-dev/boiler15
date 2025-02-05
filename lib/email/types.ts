@@ -12,6 +12,7 @@ export interface EmailOptions {
   subject: string;
   template: EmailTemplate;
   data: Record<string, unknown>;
+  expiryTime?: string;
 }
 
 export interface EmailResult {

@@ -72,3 +72,42 @@ export async function sendVerificationEmail({
     });
   }
 }
+
+export async function sendResetPasswordEmail({
+  user,
+  url,
+}: {
+  user: UserWithRole;
+  url: string;
+}) {
+  try {
+    const result = await sendEmail({
+      to: user.email,
+      subject: "Reset your password",
+      template: "RESET_PASSWORD",
+      data: {
+        url,
+      },
+    });
+
+    if (!result.success) {
+      throw result.error;
+    }
+
+    console.log("Reset password email sent successfully:", {
+      to: user.email.split("@")[0] + "@***",
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    if (error instanceof EmailRateLimitError) {
+      throw new BetterAuthAPIError("TOO_MANY_REQUESTS", {
+        message: "Too many reset password attempts. Please try again later.",
+      });
+    }
+
+    console.error("Failed to send reset password email:", {
+      error: error instanceof Error ? error.message : "Unknown error",
+      timestamp: new Date().toISOString(),
+    });
+  }
+}
