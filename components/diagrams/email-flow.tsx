@@ -1,5 +1,3 @@
-import { Container } from "@/components/container";
-
 export function EmailFlow() {
   return (
     <div className="flex max-w-5xl flex-col gap-4">
