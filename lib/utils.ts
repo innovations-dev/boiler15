@@ -20,6 +20,7 @@ import { env } from "@/env";
  * cn('text-sm md:text-base', className)
  * ```
  */
+
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
@@ -82,6 +83,7 @@ export const baseURL = (() => {
  * slugify('  Web Development -- Best Practices  ') // => 'web-development-best-practices'
  * ```
  */
+
 export function slugify(text: string): string {
   return text
     .toString()

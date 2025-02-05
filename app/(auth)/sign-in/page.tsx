@@ -3,6 +3,7 @@ import { Metadata } from "next";
 import Link from "next/link";
 
 import { AuthForm } from "@/app/(auth)/_components/auth-form";
+import { SocialAuthButtons } from "@/app/(auth)/_components/social-auth-buttons";
 import { Spinner } from "@/components/spinner";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -54,8 +55,9 @@ export default function SignInPage() {
               </p>
             </div>
             <AuthForm className="grid gap-6" />
+            <SocialAuthButtons />
             <p className="px-8 text-center text-sm text-muted-foreground">
-              By clicking the button above, you agree to our{" "}
+              By clicking continue, you agree to our{" "}
               <Link
                 href="/policies/terms"
                 className={cn(
