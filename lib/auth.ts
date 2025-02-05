@@ -93,8 +93,14 @@ export const auth = betterAuth({
     },
     verificationEmailLifetime: 60 * 60 * 24, // 24 hours
   },
+  socialProviders: {
+    github: {
+      enabled: true,
+      clientId: env.GITHUB_CLIENT_ID,
+      clientSecret: env.GITHUB_CLIENT_SECRET,
+    },
+  },
   plugins: [
-    nextCookies(),
     openAPI(),
     multiSession(),
     admin({
@@ -157,6 +163,7 @@ export const auth = betterAuth({
     }),
     magicLink({
       async sendMagicLink({ email, url }) {
+        console.log("🚀 ~ sendMagicLink ~ { email, url }:", { email, url });
         try {
           const result = await sendEmail({
             to: email,
@@ -180,6 +187,7 @@ export const auth = betterAuth({
         }
       },
     }),
+    nextCookies(),
   ],
   user: {
     deleteUser: {

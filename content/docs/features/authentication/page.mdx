@@ -6,19 +6,107 @@ export const metadata = {
   order: 1,
 };
 
-Our authentication system is built on [Better-Auth](https://better-auth.dev), providing a robust, secure, and flexible authentication solution with built-in support for multiple authentication methods and organization management.
+import { EmailFlow } from "@/components/diagrams/email-flow";
+import { MagicLinkFlow } from "@/components/diagrams/magic-link-flow";
+import { SocialFlow } from "@/components/diagrams/social-flow";
 
-## Features
+# Authentication & Authorization
 
-- 🔐 Multiple authentication methods
-- 👥 Organization and team management
-- 📧 Magic link authentication
-- 🔄 Multi-session support
-- 👤 User impersonation (admin)
-- 🔒 Account linking
-- 📱 Device management
+Our authentication system is built on [Better-Auth](https://better-auth.com/docs/introduction), providing a robust, secure, and flexible authentication solution with built-in support for multiple authentication methods and organization management.
 
-## Configuration
+## Core Features
+
+- 🔐 Multiple Authentication Methods
+  - Magic Link Authentication (Default)
+  - OAuth Providers (e.g., GitHub)
+  - Account Linking Support
+- 👥 Organization Management
+  - Multi-tenant Support
+  - Team Hierarchies
+  - Role-based Access Control
+- 🔄 Session Management
+  - Multi-session Support
+  - Device Tracking
+  - Session Invalidation
+- 🛡️ Security Features
+  - Email Verification
+  - Rate Limiting
+  - Account Deletion with Grace Period
+- 👤 Administrative Features
+  - User Impersonation
+  - Account Management
+  - Ban Management
+
+## Authentication Flow
+
+### 1. Magic Link Authentication (Default)
+
+1. User enters email in the magic link form
+2. System validates email and rate limits
+3. Magic link is generated and sent via email
+4. User clicks link to authenticate
+5. System validates link and creates session
+6. User is redirected to dashboard
+
+```tsx
+// Client-side Magic Link Form
+"use client";
+
+export function MagicLinkForm() {
+  const { mutate: sendMagicLink, isPending } = useMagicLink();
+
+  return (
+    <Form onSubmit={(data) => sendMagicLink(data)}>
+      <FloatingLabelInput
+        label="Email"
+        type="email"
+        aria-label="Email address"
+      />
+      <Button type="submit">Send Magic Link</Button>
+    </Form>
+  );
+}
+```
+
+<MagicLinkFlow />
+
+### 2. Email Verification
+
+All new accounts require email verification:
+
+```ts
+// @/lib/auth.ts
+emailVerification: {
+  sendVerificationEmail: async ({ user, url }) => {
+    await sendEmail({
+      to: user.email,
+      template: "VERIFICATION",
+      data: { url },
+      subject: "Verify your email",
+    });
+  },
+  verificationEmailLifetime: 60 * 60 * 24, // 24 hours
+},
+```
+
+<EmailFlow />
+
+### 3. Social Authentication
+
+Coming Soon.
+
+<SocialFlow />
+
+## Security & Rate Limiting
+
+The system includes built-in rate limiting and security features:
+
+- Email rate limiting for magic links and invitations
+- Session security with trusted origins
+- Error handling with appropriate HTTP status codes
+- Secure cookie management
+
+### Base Configuration
 
 The authentication system is configured in `lib/auth.ts`:
 
@@ -29,82 +117,47 @@ import {
   admin,
   magicLink,
   multiSession,
+  nextCookies,
+  openAPI,
   organization,
 } from "better-auth/plugins";
-
-import { env } from "@/env";
-import { db } from "@/lib/db";
-import { schema } from "@/lib/db/schema";
-
-typescript;
 
 export const auth = betterAuth({
   baseURL: baseURL.toString(),
   secret: env.BETTER_AUTH_SECRET,
+  // Database configuration
   database: drizzleAdapter(db, {
     provider: "sqlite",
     schema,
   }),
+  // Security settings
+  trustedOrigins: [baseURL.toString()],
+  fetchOptions: {
+    credentials: "include",
+    onError: (error: BetterAuthAPIError) => {
+      console.error("BetterAuth error:", error);
+      throw new Error(error.message);
+    },
+  },
+  // Plugin configuration
   plugins: [
     nextCookies(),
     openAPI(),
     multiSession(),
-    admin(),
+    admin({
+      defaultBanReason: "Violated terms of service",
+      defaultBanExpiresIn: 60 * 60 * 24 * 30, // 30 days
+      impersonationSessionDuration: 60 * 60, // 1 hour
+    }),
     organization(),
     magicLink(),
   ],
 });
 ```
 
-## Authentication Methods
+### Middleware Protection
 
-### 1. Magic Link Authentication
-
-Users can sign in using passwordless magic links sent to their email:
-
-```ts
-magicLink({
-async sendMagicLink({ email, url }) {
-  sendEmailWithRetry({
-      to: email,
-      subject: "Login to your account",
-      html: await getMagicLinkEmail(url),
-    });
-  },
-}),
-```
-
-### 2. OAuth Providers
-
-Support for social login providers like GitHub:
-
-```ts
-account: {
-  accountLinking: {
-    enabled: true,
-    trustedProviders: ["github"],
-  },
-},
-```
-
-## Organization Management
-
-Multi-tenant organizations are supported out of the box:
-
-```ts
-organization({
-  sendInvitationEmail: async (data) => {
-    const inviteLink = new URL(
-    ${baseURL.toString()}/accept-invite/${data?.id}
-    ).toString();
-    // Handle invitation emails
-  },
-}),
-```
-
-## Protected Routes
-
-Routes are protected using the middleware:
+Routes can be protected using the middleware:
 
 ```ts
 // middleware.ts
@@ -129,21 +182,104 @@ export const config = {
 };
 ```
 
-## User Management
+## Usage Patterns
+
+### 1. Protected API Routes
+
+```ts
+// app/api/protected/route.ts
+import { auth } from "@/lib/auth";
+
+export async function GET(request: Request) {
+  const session = await auth.validateSession(request);
+  if (!session) {
+    return new Response("Unauthorized", { status: 401 });
+  }
+  return new Response("Authenticated!");
+}
+```
+
+### 2. Protected Server Components
+
+```tsx
+// app/dashboard/page.tsx
+import { auth } from "@/lib/auth";
+
+export default async function DashboardPage() {
+  const session = await auth.validateSession();
+  if (!session) {
+    redirect("/sign-in");
+  }
+  return <DashboardContent user={session.user} />;
+}
+```
+
+### 3. Protected Client Components
+
+```tsx
+"use client";
+
+import { useAuth } from "@/lib/auth";
+
+export function ProtectedClientComponent() {
+  const { session, isLoading } = useAuth();
+
+  if (isLoading) return <LoadingSpinner />;
+  if (!session) return <SignInPrompt />;
+
+  return <ProtectedContent user={session.user} />;
+}
+```
+
+## Organization Management
+
+### Invitation System
+
+Organizations can invite members with automatic email notifications:
+
+```ts
+// @/lib/auth.ts
+organization({
+  async sendInvitationEmail(data) {
+    await sendEmail({
+      to: data.email,
+      template: "INVITATION",
+      subject: `Invitation to join ${data.organization.name}`,
+      data: {
+        url: `${baseURL}/accept-invite/${data.id}`,
+        organizationName: data.organization.name,
+        invitedByUsername: data.inviter.userId,
+      },
+    });
+  },
+}),
+```
+
+### Role-Based Access
+
+Organizations support hierarchical roles and permissions:
+
+- Owner: Full organization control
+- Admin: Member management
+- Member: Basic access
+- Guest: Limited access
+
+## Account Management
 
 ### Account Deletion
 
-Users can delete their accounts with a grace period:
+Secure account deletion with safety checks:
 
 ```ts
+// @/lib/auth.ts
 user: {
   deleteUser: {
     enabled: true,
     deleteAccount: true,
-    deleteAccountAfter: 60 * 60 * 24 * 7, // 7 days
+    deleteAccountAfter: 60 * 60 * 24 * 7, // 7 days grace period
     beforeDelete: async (user: User) => {
       if (user.email.includes("admin")) {
-          throw new BetterAuthAPIError("BAD_REQUEST", {
+        throw new BetterAuthAPIError("BAD_REQUEST", {
           message: "Admin accounts can't be deleted",
         });
       }
@@ -152,58 +288,50 @@ user: {
 },
 ```
 
-## Session Management
+### Account Linking
 
-### Multi-Session Support
-
-Users can maintain multiple active sessions:
+Support for linking multiple authentication methods:
 
 ```ts
-plugins: [
-  multiSession(),
-  // ...other plugins
-],
+// @/lib/auth.ts
+account: {
+  accountLinking: {
+    enabled: true,
+    trustedProviders: ["github"],
+  },
+},
 ```
 
-### Admin Features
+## Best Practices
 
-Administrators have additional capabilities:
+1. **Error Handling**
 
-```ts
-admin({
-  defaultBanReason: "Violated terms of service",
-  defaultBanExpiresIn: 60 * 60 * 24 * 30, // 30 days
-  impersonationSessionDuration: 60 * 60, // 1 hour
-}),
-```
+   - Always handle authentication errors gracefully
+   - Provide user-friendly error messages
+   - Implement proper logging for debugging
 
-## Usage Examples
+2. **Security**
 
-### Protecting Client Components
+   - Use HTTPS in production
+   - Implement proper CORS settings
+   - Follow rate limiting guidelines
+   - Store sensitive data securely
 
-```tsx
-"use client";
+3. **User Experience**
 
-import { useAuth } from "@/lib/auth";
+   - Show loading states during authentication
+   - Provide clear feedback for errors
+   - Implement proper redirects
+   - Maintain session persistence
 
-export function ProtectedComponent() {
-  const { session } = useAuth();
-  if (!session) {
-    return <div>Please sign in</div>;
-  }
-  return <div>Protected content</div>;
-}
-```
+4. **Performance**
 
-### Protecting Server Components
+   - Use server components where possible
+   - Implement proper caching strategies
+   - Optimize authentication checks
 
-```ts
-import { auth } from "@/lib/auth";
-
-export default async function ProtectedServerComponent() {
-  const session = await auth.getSession();
-  if (!session) {
-    redirect("/sign-in");
-  }
-}
-```
+5. **Accessibility**
+   - Include proper ARIA labels
+   - Ensure keyboard navigation
+   - Provide clear error messages
+   - Support screen readers
