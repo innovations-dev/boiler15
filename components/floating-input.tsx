@@ -13,7 +13,7 @@ const FloatingLabelInput = React.forwardRef<HTMLInputElement, InputProps>(
   ({ className, type, label, ...props }, ref) => {
     const id = React.useId();
     return (
-      <FormItem className="relative mt-4">
+      <FormItem className="relative pt-1">
         <FormControl>
           <Input
             type={type}

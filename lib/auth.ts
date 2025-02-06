@@ -74,7 +74,7 @@ import { baseURL } from "./utils";
  * - "BAD_REQUEST" for invalid operations (e.g., deleting admin accounts)
  */
 
-const enabledProviders = ["email-and-password", "github"];
+const enabledProviders = ["password", "github"];
 
 export const auth = betterAuth({
   baseURL: baseURL.toString(),
@@ -88,9 +88,17 @@ export const auth = betterAuth({
     credentials: "include",
     onError: serverOnError,
   },
-  ...(enabledProviders.includes("email-and-password")
-    ? { ...providers.emailAndPassword, ...providers.emailVerification }
-    : {}),
+  emailAndPassword: {
+    enabled: false,
+    ...(enabledProviders.includes("password")
+      ? { ...providers.emailAndPassword }
+      : {}),
+  },
+  emailVerification: {
+    ...(enabledProviders.includes("password")
+      ? { ...providers.emailVerification }
+      : {}),
+  },
   socialProviders: enabledProviders.includes("github")
     ? {
         github: githubConfig,

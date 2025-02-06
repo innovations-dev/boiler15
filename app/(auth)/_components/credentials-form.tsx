@@ -16,6 +16,7 @@ import {
   FormItem,
   FormMessage,
 } from "@/components/ui/form";
+import { useAuthMode } from "@/hooks/auth/use-auth-mode";
 import { authClient } from "@/lib/auth/auth-client";
 
 const credentialsSchema = z.object({
@@ -26,6 +27,7 @@ const credentialsSchema = z.object({
 type CredentialsFormValues = z.infer<typeof credentialsSchema>;
 
 export function CredentialsForm() {
+  const { setMode } = useAuthMode();
   const form = useForm<CredentialsFormValues>({
     resolver: zodResolver(credentialsSchema),
     defaultValues: {
@@ -99,33 +101,44 @@ export function CredentialsForm() {
           )}
         />
 
-        <div className="flex justify-end">
-          <Link
-            href="/forgot-password"
-            className="text-sm text-muted-foreground hover:text-primary"
+        <div className="flex flex-col gap-2">
+          <div className="flex justify-end">
+            <Link
+              href="/forgot-password"
+              className="text-sm text-muted-foreground hover:text-primary"
+            >
+              Forgot password?
+            </Link>
+          </div>
+          <Button
+            type="submit"
+            className="w-full"
+            disabled={isPending}
+            aria-label={isPending ? "Signing in..." : "Sign in"}
           >
-            Forgot password?
-          </Link>
+            {isPending ? (
+              <>
+                <Loader2
+                  className="mr-2 h-4 w-4 animate-spin"
+                  aria-hidden="true"
+                />
+                <span>Signing in...</span>
+              </>
+            ) : (
+              "Sign in"
+            )}
+          </Button>
+          <p className="text-center text-sm text-muted-foreground">
+            Don't have an account?{" "}
+            <Button
+              variant="link"
+              className="p-0 text-sm"
+              onClick={() => setMode("register")}
+            >
+              Create one
+            </Button>
+          </p>
         </div>
-
-        <Button
-          type="submit"
-          className="w-full"
-          disabled={isPending}
-          aria-label={isPending ? "Signing in..." : "Sign in"}
-        >
-          {isPending ? (
-            <>
-              <Loader2
-                className="mr-2 h-4 w-4 animate-spin"
-                aria-hidden="true"
-              />
-              <span>Signing in...</span>
-            </>
-          ) : (
-            "Sign in"
-          )}
-        </Button>
       </form>
     </Form>
   );

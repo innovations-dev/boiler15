@@ -18,7 +18,7 @@ export function AuthForm({ mode = "magic-link", className }: AuthFormProps) {
   return (
     <div className={className}>
       <Tabs defaultValue={authMode} className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger
             value="magic-link"
             onClick={() => setAuthMode("magic-link")}
@@ -31,9 +31,6 @@ export function AuthForm({ mode = "magic-link", className }: AuthFormProps) {
           >
             Password
           </TabsTrigger>
-          <TabsTrigger value="register" onClick={() => setAuthMode("register")}>
-            Register
-          </TabsTrigger>
         </TabsList>
         <TabsContent value="magic-link">
           <MagicLinkForm />
@@ -41,9 +38,11 @@ export function AuthForm({ mode = "magic-link", className }: AuthFormProps) {
         <TabsContent value="password">
           <CredentialsForm />
         </TabsContent>
-        <TabsContent value="register">
-          <RegisterForm />
-        </TabsContent>
+        {authMode === "register" && (
+          <TabsContent value="register">
+            <RegisterForm />
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   );
