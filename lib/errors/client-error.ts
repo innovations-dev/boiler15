@@ -29,6 +29,20 @@ export const clientOnError = async (error: { error: ErrorWithStatus }) => {
 
     await errorLogger.log(betterAuthError, ErrorSource.AUTH, metadata);
 
+    // Handle verification-specific errors
+    if (
+      betterAuthError.message.includes("State Mismatch") ||
+      betterAuthError.code === "INVALID_VERIFICATION" ||
+      betterAuthError.code === "VERIFICATION_EXPIRED"
+    ) {
+      toast.error(
+        "Verification link has expired or is invalid. Please request a new one."
+      );
+      // // Optionally redirect to request new verification
+      // window.location.href = "/auth/verify/request";
+      return;
+    }
+
     // Handle specific BetterAuth error codes
     switch (betterAuthError.code) {
       case "SESSION_EXPIRED":

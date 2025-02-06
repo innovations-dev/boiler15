@@ -1,4 +1,3 @@
-import { BetterAuthOptions } from "better-auth";
 import { APIError as BetterAuthAPIError } from "better-auth/api";
 
 import { EnhancedBetterAuthAPIError } from "../auth/auth-client";
@@ -18,28 +17,41 @@ export const serverOnError = async (error: BetterAuthAPIError) => {
         status: betterAuthError.statusCode,
         message: betterAuthError.message,
         code: betterAuthError.code,
-        path: window.location.pathname,
+        path: typeof window !== "undefined" ? window.location.pathname : "",
       },
     };
 
     await errorLogger.log(betterAuthError, ErrorSource.AUTH, metadata);
 
-    // Handle specific BetterAuth error codes
+    // Add specific handling for state mismatch
+    if (betterAuthError.message.includes("State Mismatch")) {
+      console.error("Authentication state mismatch:", {
+        error: "Verification token expired or invalid",
+        code: "STATE_MISMATCH",
+        timestamp: new Date().toISOString(),
+      });
+      throw new BetterAuthAPIError("BAD_REQUEST", {
+        message:
+          "Verification link has expired or is invalid. Please request a new one.",
+        statusCode: 400,
+      });
+    }
+
+    // Handle other specific BetterAuth error codes
     switch (betterAuthError.code) {
       case "SESSION_EXPIRED":
-        console.error("Your session has expired. Please sign in again.");
+        console.error("Session expired");
         return;
       case "INVALID_CREDENTIALS":
-        console.error("Invalid email or password.");
+        console.error("Invalid credentials");
         return;
       case "EMAIL_NOT_VERIFIED":
-        console.error("Please verify your email address.");
+        console.error("Email not verified");
         return;
       case "ACCOUNT_LOCKED":
         console.error("Your account has been locked. Please contact support.");
         return;
       default:
-        // Handle other BetterAuth errors
         console.error(betterAuthError.message);
         return;
     }

@@ -1,4 +1,4 @@
-import { APIError as BetterAuthAPIError } from "better-auth";
+import { APIError as BetterAuthAPIError } from "better-auth/api";
 import { magicLink, OrganizationOptions } from "better-auth/plugins";
 
 import { EmailRateLimitError } from "@/lib/email";
