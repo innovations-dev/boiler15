@@ -57,6 +57,13 @@
       "when": 1738632607054,
       "tag": "0007_fast_eddie_brock",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1738885558754,
+      "tag": "0008_tough_daimon_hellstrom",
+      "breakpoints": true
     }
   ]
 }

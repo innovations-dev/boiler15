@@ -209,6 +209,43 @@ export const invitationUpdateSchema = createUpdateSchema(invitation);
 export type Invitation = z.infer<typeof invitationSelectSchema>;
 export type InvitationInsert = typeof invitation.$inferInsert;
 
+export const auditLog = sqliteTable(
+  "audit_log",
+  {
+    id: text("id").primaryKey(),
+    action: text("action").notNull(),
+    entityType: text("entity_type").notNull(),
+    entityId: text("entity_id").notNull(),
+    actorId: text("actor_id")
+      .notNull()
+      .references(() => user.id),
+    metadata: text("metadata"),
+    ipAddress: text("ip_address"),
+    userAgent: text("user_agent"),
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .notNull()
+      .$defaultFn(() => sql`CURRENT_TIMESTAMP`),
+  },
+  (table) => ({
+    actionIdx: index("audit_log_action_idx").on(table.action),
+    entityTypeIdx: index("audit_log_entity_type_idx").on(table.entityType),
+    entityIdIdx: index("audit_log_entity_id_idx").on(table.entityId),
+    actorIdIdx: index("audit_log_actor_id_idx").on(table.actorId),
+    createdAtIdx: index("audit_log_created_at_idx").on(table.createdAt),
+  })
+);
+
+export const auditLogSelectSchema = createSelectSchema(auditLog);
+export const auditLogInsertSchema = createInsertSchema(auditLog, {
+  metadata: z.string().optional(),
+  ipAddress: z.string().optional(),
+  userAgent: z.string().optional(),
+  createdAt: z.date().optional(),
+});
+
+export type AuditLog = z.infer<typeof auditLogSelectSchema>;
+export type AuditLogInsert = z.infer<typeof auditLogInsertSchema>;
+
 /**
  * Usage Examples:
  *
