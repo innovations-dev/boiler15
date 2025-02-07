@@ -40,7 +40,7 @@ export const queryKeys = {
      * @param id - Organization ID
      */
     members: (id: string) =>
-      [...queryKeys.organizations.all, id, "members"] as const,
+      [...queryKeys.organizations.all, "members", id] as const,
   },
 
   /** User-related query keys */
@@ -65,6 +65,8 @@ export const queryKeys = {
     all: ["sessions"] as const,
     /** Key for current session queries */
     current: () => [...queryKeys.sessions.all, "current"] as const,
+    /** Key for session list queries */
+    list: () => [...queryKeys.sessions.all, "list"] as const,
   },
 
   /** Team-related query keys */
@@ -89,6 +91,14 @@ export const queryKeys = {
      */
     permissions: (limit: number) =>
       [...queryKeys.admin.all, "permissions", limit] as const,
+  },
+
+  /** Audit-related query keys */
+  audit: {
+    /** Base key for all audit queries */
+    all: ["audit"] as const,
+    /** Key for audit logs queries */
+    logs: () => [...queryKeys.audit.all, "logs"] as const,
   },
 } as const;
 
