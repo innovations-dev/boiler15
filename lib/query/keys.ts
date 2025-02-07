@@ -91,6 +91,8 @@ export const queryKeys = {
      */
     permissions: (limit: number) =>
       [...queryKeys.admin.all, "permissions", limit] as const,
+    /** Key for system health metrics */
+    health: () => [...queryKeys.admin.all, "health"] as const,
   },
 
   /** Audit-related query keys */

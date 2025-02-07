@@ -14,6 +14,7 @@ export default function SettingsPage() {
           Manage your application settings
         </p>
       </div>
+
       <Suspense fallback={<SettingsListSkeleton />}>
         <SettingsList />
       </Suspense>

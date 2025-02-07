@@ -2,7 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Activity, Building2, Settings, Shield, Users } from "lucide-react";
+import {
+  Activity,
+  Building2,
+  Gauge,
+  Settings,
+  Shield,
+  Users,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -27,6 +34,11 @@ const adminRoutes = [
     title: "Permissions",
     href: "/admin/permissions",
     icon: Shield,
+  },
+  {
+    title: "System",
+    href: "/admin/system",
+    icon: Gauge,
   },
   {
     title: "Settings",
