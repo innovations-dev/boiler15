@@ -99,8 +99,22 @@ export const queryKeys = {
   audit: {
     /** Base key for all audit queries */
     all: ["audit"] as const,
-    /** Key for audit logs queries */
-    logs: () => [...queryKeys.audit.all, "logs"] as const,
+    /** Key for audit logs queries with pagination
+     * @param page - Current page number
+     * @param limit - Number of items per page
+     */
+    logs: (page?: number, limit?: number) =>
+      page && limit
+        ? ([...queryKeys.audit.all, "logs", { page, limit }] as const)
+        : ([...queryKeys.audit.all, "logs"] as const),
+  },
+
+  /** Dashboard-related query keys */
+  dashboard: {
+    /** Base key for all dashboard queries */
+    all: ["dashboard"] as const,
+    /** Key for dashboard metrics */
+    metrics: () => [...queryKeys.dashboard.all, "metrics"] as const,
   },
 } as const;
 

@@ -222,7 +222,7 @@ export const auditLog = sqliteTable(
     metadata: text("metadata"),
     ipAddress: text("ip_address"),
     userAgent: text("user_agent"),
-    createdAt: integer("created_at", { mode: "timestamp" })
+    createdAt: integer("created_at", { mode: "timestamp_ms" })
       .notNull()
       .$defaultFn(() => sql`CURRENT_TIMESTAMP`),
   },
@@ -235,7 +235,10 @@ export const auditLog = sqliteTable(
   })
 );
 
-export const auditLogSelectSchema = createSelectSchema(auditLog);
+export const auditLogSelectSchema = createSelectSchema(auditLog, {
+  createdAt: z.coerce.date(),
+});
+
 export const auditLogInsertSchema = createInsertSchema(auditLog, {
   metadata: z.string().optional(),
   ipAddress: z.string().optional(),
