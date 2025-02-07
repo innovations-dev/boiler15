@@ -4,11 +4,11 @@
 
 import { useQueryClient } from "@tanstack/react-query";
 
+import { setUserRoleAction } from "@/app/(admin)/_actions/user";
+import type { SetRoleInput } from "@/app/(admin)/_actions/user.types";
 import { useBaseMutation } from "@/hooks/query/use-base-mutation";
-import { authClient } from "@/lib/auth/auth-client";
-import { userSelectSchema } from "@/lib/db/schema";
 import { cacheConfig } from "@/lib/query/cache-config";
-import { invalidateAdminQueries } from "@/lib/query/mutations";
+import { queryKeys } from "@/lib/query/keys";
 
 /**
  * Input type for the setRole mutation
@@ -16,63 +16,60 @@ import { invalidateAdminQueries } from "@/lib/query/mutations";
  * @property {string} userId - The unique identifier of the user
  * @property {string} role - The new role to assign to the user
  */
-interface SetRoleInput {
-  userId: string;
-  role: string;
-}
 
 /**
- * A hook for managing user role updates in an admin context.
+ * Custom hook for setting user roles in an admin context.
  *
- * @returns {UseMutationResult} A mutation object for updating user roles
+ * @remarks
+ * This hook provides functionality to update user roles and automatically invalidates
+ * relevant queries to ensure UI consistency after the role change.
+ * Includes audit logging for all role changes.
+ *
+ * @returns {Object} Mutation object with the following properties:
+ * - mutate: Function to trigger the role change
+ * - isLoading: Boolean indicating if the role change is in progress
+ * - error: Any error that occurred during the role change
  *
  * @example
  * ```tsx
- * function AdminUserRow({ user }) {
- *   const setRole = useSetRole();
+ * function AdminUserList() {
+ *   const { mutate: setRole, isLoading } = useSetRole();
  *
- *   const handleRoleChange = (newRole: string) => {
- *     setRole.mutate({
- *       userId: user.id,
- *       role: newRole
+ *   const handleRoleChange = (userId: string, role: string) => {
+ *     setRole({ userId, role }, {
+ *       onSuccess: () => {
+ *         toast.success('Role updated successfully');
+ *       }
  *     });
  *   };
  *
  *   return (
- *     <Select
- *       value={user.role}
- *       onChange={(e) => handleRoleChange(e.target.value)}
- *       disabled={setRole.isPending}
+ *     <Button
+ *       onClick={() => handleRoleChange('user-123', 'admin')}
+ *       disabled={isLoading}
  *     >
- *       <option value="user">User</option>
- *       <option value="admin">Admin</option>
- *     </Select>
+ *       Make Admin
+ *     </Button>
  *   );
  * }
  * ```
  *
- * @remarks
- * - This hook uses TanStack Query for mutation management
- * - Automatically invalidates admin-related queries on success
- * - Validates the response data using Zod schema
- * - Includes built-in error handling with a default error message
- *
- * @throws Will throw an error if the response data doesn't match the userSelectSchema
+ * @see {@link useBaseMutation} For the underlying mutation implementation
+ * @see {@link setUserRoleAction} For the server action implementation
  */
 export function useSetRole() {
   const queryClient = useQueryClient();
 
   return useBaseMutation({
-    mutationFn: ({ userId, role }: SetRoleInput) =>
-      authClient.admin.setRole({
-        userId,
-        role,
-      }),
-    onSuccess: ({ data }) => {
-      userSelectSchema.parse(data);
-      invalidateAdminQueries(queryClient);
+    mutationFn: async (input: SetRoleInput) => {
+      return setUserRoleAction(input);
     },
-    errorMessage: "Failed to update role",
+    onSuccess: () => {
+      // Invalidate users list and user details
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.users.list(),
+      });
+    },
     ...cacheConfig.queries.user,
   });
 }

@@ -1,7 +1,8 @@
 import { useQueryClient } from "@tanstack/react-query";
 
+import { banUserAction } from "@/app/(admin)/_actions/user";
+import type { BanUserInput } from "@/app/(admin)/_actions/user.types";
 import { useBaseMutation } from "@/hooks/query/use-base-mutation";
-import { authClient } from "@/lib/auth/auth-client";
 import { cacheConfig } from "@/lib/query/cache-config";
 import { queryKeys } from "@/lib/query/keys";
 
@@ -11,6 +12,7 @@ import { queryKeys } from "@/lib/query/keys";
  * @remarks
  * This hook provides functionality to ban users and automatically invalidates
  * relevant queries to ensure UI consistency after the ban action.
+ * Includes audit logging for all ban actions.
  *
  * @returns {Object} Mutation object with the following properties:
  * - mutate: Function to trigger the ban action
@@ -23,7 +25,7 @@ import { queryKeys } from "@/lib/query/keys";
  *   const { mutate: banUser, isLoading } = useBanUser();
  *
  *   const handleBanUser = (userId: string) => {
- *     banUser(userId, {
+ *     banUser({ userId, reason: "Violation of terms" }, {
  *       onSuccess: () => {
  *         toast.success('User banned successfully');
  *       }
@@ -42,19 +44,19 @@ import { queryKeys } from "@/lib/query/keys";
  * ```
  *
  * @see {@link useBaseMutation} For the underlying mutation implementation
- * @see {@link authClient.admin.banUser} For the API call implementation
+ * @see {@link banUserAction} For the server action implementation
  */
 export function useBanUser() {
   const queryClient = useQueryClient();
 
   return useBaseMutation({
-    mutationFn: (userId: string) => authClient.admin.banUser({ userId }),
+    mutationFn: async (input: BanUserInput) => {
+      return banUserAction(input);
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({
+      // Invalidate users list and user details
+      void queryClient.invalidateQueries({
         queryKey: queryKeys.users.list(),
-      });
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.admin.permissions(100), // Default limit
       });
     },
     errorMessage: "Failed to ban user",

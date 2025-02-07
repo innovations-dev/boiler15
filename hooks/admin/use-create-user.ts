@@ -1,24 +1,14 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { z } from "zod";
 
+import { createUserAction } from "@/app/(admin)/_actions/user";
+import { createUserSchema } from "@/app/(admin)/_actions/user.types";
+import type { CreateUserInput } from "@/app/(admin)/_actions/user.types";
 import { useBaseMutation } from "@/hooks/query/use-base-mutation";
-import { authClient } from "@/lib/auth/auth-client";
 import { cacheConfig } from "@/lib/query/cache-config";
 import { queryKeys } from "@/lib/query/keys";
 
-/**
- * Zod schema for validating user creation input
- * @remarks
- * Ensures the input data meets the required format before creating a user
- */
-export const createUserSchema = z.object({
-  name: z.string(),
-  email: z.string().email(),
-  password: z.string(),
-  role: z.string(),
-});
-
-export type CreateUserInput = z.infer<typeof createUserSchema>;
+export { createUserSchema };
+export type { CreateUserInput } from "@/app/(admin)/_actions/user.types";
 
 /**
  * Hook for creating new users in the admin context
@@ -54,6 +44,7 @@ export type CreateUserInput = z.infer<typeof createUserSchema>;
  * - This hook automatically invalidates the users list query on successful creation
  * - Uses the base mutation configuration from cacheConfig
  * - Requires admin privileges to execute
+ * - Includes audit logging for all actions
  *
  * @throws Will throw an error if:
  * - User creation fails on the server
@@ -64,9 +55,7 @@ export function useCreateUser() {
   const queryClient = useQueryClient();
 
   return useBaseMutation({
-    mutationFn: async (data: CreateUserInput) => {
-      return await authClient.admin.createUser(data);
-    },
+    mutationFn: createUserAction,
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.users.list(),
