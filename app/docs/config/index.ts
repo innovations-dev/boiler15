@@ -8,7 +8,7 @@ export interface NavItem {
 export interface NavSection {
   id: string;
   name: string;
-  href: string;
+  href?: string;
   children: NavItem[];
 }
 
@@ -17,7 +17,6 @@ export const docsConfig = {
     {
       id: "getting-started",
       name: "Getting Started",
-      href: "/docs/getting-started",
       children: [
         {
           id: "introduction",
@@ -34,7 +33,6 @@ export const docsConfig = {
     {
       id: "features",
       name: "Features",
-      href: "/docs/features",
       children: [
         {
           id: "authentication",

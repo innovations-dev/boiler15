@@ -1,5 +1,7 @@
 import { Metadata } from "next";
 
+import { Container } from "@/components/container";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { generateMetadata } from "@/config/meta.config";
 import { DocsBreadcrumbs } from "./_components/docs-breadcrumbs";
 import { DocsNavigation } from "./_components/docs-navigation";
@@ -16,23 +18,29 @@ interface DocsLayoutProps {
 
 export default function DocsLayout({ children }: DocsLayoutProps) {
   return (
-    <div className="mt-[var(--header-height)] flex min-h-screen flex-col">
-      <div className="container flex-1">
-        <div className="flex gap-12">
+    <div className="relative mt-[var(--header-height)] min-h-[calc(100vh-var(--header-height))]">
+      <Container>
+        <div className="mt-24 flex h-full w-full items-center justify-end">
+          <div className="sticky top-[var(--header-height)] z-20 h-6 border-b bg-background">
+            <DocsBreadcrumbs />
+          </div>
+        </div>
+        <div className="relative flex gap-6">
           {/* Sidebar */}
-          <aside className="fixed left-auto top-[calc(var(--header-height)+2rem)] hidden h-[calc(100vh-var(--header-height))] w-[220px] overflow-hidden border-r md:block">
-            <DocsNavigation />
+          <aside className="sticky top-[calc(var(--header-height)+3.5rem)] hidden h-[calc(100vh-var(--header-height)-3.5rem)] w-60 shrink-0 overflow-y-auto border-r md:block">
+            <ScrollArea className="h-full max-h-full">
+              <DocsNavigation />
+            </ScrollArea>
           </aside>
 
-          {/* Main Content Area */}
-          <main className="flex-1 py-6 pl-[calc(220px+3rem)] lg:py-10">
-            <div className="mb-6 flex justify-end">
-              <DocsBreadcrumbs />
+          {/* Main Content */}
+          <main className="flex-1 py-6 lg:py-10">
+            <div className="prose prose-invert mx-auto max-w-[880px]">
+              {children}
             </div>
-            <div className="mx-auto w-full min-w-0">{children}</div>
           </main>
         </div>
-      </div>
+      </Container>
     </div>
   );
 }
