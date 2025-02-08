@@ -104,7 +104,8 @@ export const auth = betterAuth({
         github: githubConfig,
       }
     : {},
-  databaseHooks: Object.keys(databaseHooks).length ? databaseHooks : undefined,
+  // databaseHooks: Object.keys(databaseHooks).length ? databaseHooks :
+  databaseHooks,
   plugins: [
     admin(adminConfig),
     organization(organizationConfig),
