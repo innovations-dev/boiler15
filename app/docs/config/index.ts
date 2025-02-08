@@ -55,6 +55,12 @@ export const docsConfig = {
         {
           title: "Query Patterns",
           href: "/docs/features/query-patterns",
+          items: [
+            {
+              title: "RBAC",
+              href: "/docs/features/query-patterns/rbac",
+            },
+          ],
         },
         {
           title: "UI Components",

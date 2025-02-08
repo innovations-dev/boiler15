@@ -19,16 +19,10 @@ type ActiveMemberResponse = {
   };
 };
 
-/**
- * Middleware to check organization access based on role
- * @param request - The incoming request
- * @param organizationId - The organization ID to check access for
- * @param requiredRole - The required role level (owner > admin > member)
- */
 export async function requireOrganizationAccess(
   request: Request,
   organizationId: string,
-  requiredRole?: "owner" | "admin" | "member"
+  requiredRole?: "owner"
 ) {
   try {
     const { data: authData } = await betterFetch<AuthSession>(
@@ -70,20 +64,8 @@ export async function requireOrganizationAccess(
       return new NextResponse("Unauthorized", { status: 403 });
     }
 
-    // If no specific role is required, basic membership is enough
-    if (!requiredRole) {
-      return null;
-    }
-
-    const memberRole = activeMember.data.role;
-
-    // Role hierarchy check
-    const hasRequiredAccess =
-      memberRole === "owner" || // Owner has all access
-      (memberRole === "admin" && requiredRole !== "owner") || // Admin has access to admin and member roles
-      (memberRole === "member" && requiredRole === "member"); // Member only has member access
-
-    if (!hasRequiredAccess) {
+    // Check owner role if required
+    if (requiredRole === "owner" && activeMember.data.role !== "owner") {
       return new NextResponse("Unauthorized", { status: 403 });
     }
 

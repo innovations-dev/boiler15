@@ -18,12 +18,15 @@ export default function DocsLayout({ children }: DocsLayoutProps) {
   return (
     <div className="mt-[var(--header-height)] flex min-h-screen flex-col">
       <div className="container flex-1">
-        <div className="grid grid-cols-[220px_1fr] gap-12">
-          <aside className="fixed top-14 z-30 hidden h-[calc(100vh-3.5rem)] w-full shrink-0 overflow-y-auto border-r py-6 pr-2 md:sticky md:block lg:py-10">
+        <div className="flex gap-12">
+          {/* Sidebar */}
+          <aside className="fixed left-auto top-[calc(var(--header-height)+2rem)] hidden h-[calc(100vh-var(--header-height))] w-[220px] overflow-hidden border-r md:block">
             <DocsNavigation />
           </aside>
-          <main className="relative py-6 lg:gap-10 lg:py-10">
-            <div className="flex justify-end">
+
+          {/* Main Content Area */}
+          <main className="flex-1 py-6 pl-[calc(220px+3rem)] lg:py-10">
+            <div className="mb-6 flex justify-end">
               <DocsBreadcrumbs />
             </div>
             <div className="mx-auto w-full min-w-0">{children}</div>
