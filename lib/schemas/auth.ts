@@ -1,3 +1,4 @@
+import type { UserWithRole } from "better-auth/plugins";
 import { z } from "zod";
 
 /**
@@ -68,3 +69,54 @@ export const registerSchema = z.object({
  * }
  */
 export type RegisterInput = z.infer<typeof registerSchema>;
+
+/**
+ * Schema for validating user with role from Better Auth
+ * @description Validates user objects that include role information from Better Auth
+ *
+ * @example
+ * // Validate a user with role
+ * const result = userWithRoleSchema.safeParse({
+ *   id: "123",
+ *   email: "user@example.com",
+ *   role: "admin"
+ * });
+ */
+export const userWithRoleSchema = z.custom<UserWithRole>();
+
+/**
+ * Schema for validating authentication session data
+ * @description Validates the session structure returned by Better Auth,
+ * including the user object with role information
+ *
+ * @example
+ * // Validate session data
+ * const result = authSessionSchema.safeParse({
+ *   session: {
+ *     user: {
+ *       id: "123",
+ *       email: "user@example.com",
+ *       role: "admin"
+ *     }
+ *   }
+ * });
+ *
+ * @example
+ * // Type an API response handler
+ * async function handleSession(data: AuthSession) {
+ *   const { session: { user } } = data;
+ *   // Process session data
+ * }
+ */
+export const authSessionSchema = z.object({
+  session: z.object({
+    user: userWithRoleSchema,
+  }),
+});
+
+/**
+ * TypeScript type for authentication session data
+ * @description Type definition inferred from the authSessionSchema
+ * Useful for typing API responses and session management
+ */
+export type AuthSession = z.infer<typeof authSessionSchema>;

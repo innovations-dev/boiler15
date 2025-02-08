@@ -1,39 +1,30 @@
 import { useRouter } from "next/navigation";
-import { betterFetch } from "@better-fetch/fetch";
-import { useQuery } from "@tanstack/react-query";
+import type { UserWithRole } from "better-auth/plugins";
 
-import { Session, User } from "@/lib/db/schema";
+import { useApiQuery } from "@/hooks/query/use-api-query";
+import { authClient } from "@/lib/auth/auth-client";
+import { cacheConfig } from "@/lib/query/cache-config";
 import { queryKeys } from "@/lib/query/keys";
+import { authSessionSchema, type AuthSession } from "@/lib/schemas/auth";
 
-export type AuthSession = {
-  session: Session & {
-    user: User;
-  };
-};
-
-/**
- * Hook for managing authentication session state
- * @returns Session data and utility functions for session management
- */
 export function useSession() {
   const router = useRouter();
 
-  const { data: session, isLoading } = useQuery({
-    queryKey: queryKeys.sessions.current(),
-    queryFn: async () => {
-      try {
-        const { data } = await betterFetch<AuthSession>(
-          "/api/auth/get-session"
-        );
-        return data?.session;
-      } catch (error) {
-        return null;
-      }
+  const { data, isLoading, error } = useApiQuery(
+    queryKeys.sessions.current(),
+    async () => {
+      const { data } = await authClient.getSession();
+      return { session: { user: data?.user as UserWithRole } };
     },
-  });
+    authSessionSchema,
+    cacheConfig.queries.user
+  );
 
-  const isAuthenticated = Boolean(session?.user);
-  const isAdmin = session?.user?.role === "admin";
+  const isAuthenticated = !!data?.session?.user;
+  const user = data?.session?.user;
+  const role = user?.role;
+
+  const isAdmin = role === "admin";
 
   const requireAuth = (callback: () => void) => {
     if (!isAuthenticated && !isLoading) {
@@ -52,8 +43,8 @@ export function useSession() {
   };
 
   return {
-    session,
-    user: session?.user,
+    session: data?.session,
+    user,
     isLoading,
     isAuthenticated,
     isAdmin,

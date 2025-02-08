@@ -240,6 +240,8 @@ export function useUpdateProfile() {
 
 ## Best Practices
 
+## Best Practices
+
 1. **Server Components First**
 
    - Use server components for initial data fetching
@@ -314,12 +316,12 @@ We maintain consistent cache configurations:
 export const cacheConfig = {
   queries: {
     default: {
-      staleTime: 1000 * 60, // 1 minute
-      gcTime: 1000 * 60 * 5, // 5 minutes
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      gcTime: 10 * 60 * 1000, // 10 minutes
     },
     user: {
-      staleTime: 1000 * 60 * 5, // 5 minutes
-      gcTime: 1000 * 60 * 15, // 15 minutes
+      staleTime: 60 * 1000, // 1 minute
+      gcTime: 5 * 60 * 1000, // 5 minutes
     },
     // ... more configurations
   },
