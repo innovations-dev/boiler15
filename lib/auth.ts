@@ -31,6 +31,7 @@ import {
 } from "./auth/config/plugins";
 import { githubConfig, providers } from "./auth/config/providers";
 import { db } from "./db";
+import { sendEmail } from "./email/services/email-service";
 import { serverOnError } from "./errors/server-error";
 import { baseURL } from "./utils";
 
@@ -89,15 +90,26 @@ export const auth = betterAuth({
     onError: serverOnError,
   },
   emailAndPassword: {
-    enabled: false,
     ...(enabledProviders.includes("password")
       ? { ...providers.emailAndPassword }
       : {}),
   },
   emailVerification: {
-    ...(enabledProviders.includes("password")
-      ? { ...providers.emailVerification }
-      : {}),
+    // ...(enabledProviders.includes("password")
+    //   ? { ...providers.emailVerification }
+    //   : {}),
+    autoSignInAfterVerification: true,
+    sendOnSignUp: true,
+    sendVerificationEmail: async ({ user, url }) => {
+      console.log("Sending verification email to", user.email);
+      await sendEmail({
+        to: user.email,
+        template: "VERIFICATION",
+        data: { url },
+        subject: "Verify your email",
+      });
+      console.log("Verification email sent to", user.email);
+    },
   },
   socialProviders: enabledProviders.includes("github")
     ? {
@@ -121,7 +133,7 @@ export const auth = betterAuth({
       beforeDelete: async (user: User) => {
         if (user.email.includes("admin")) {
           throw new BetterAuthAPIError("BAD_REQUEST", {
-            message: "Admin accounts can't be deleted",
+            cause: "Admin accounts can't be deleted",
           });
         }
       },

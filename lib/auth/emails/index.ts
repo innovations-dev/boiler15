@@ -58,7 +58,7 @@ export async function sendVerificationEmail({
   } catch (error) {
     if (error instanceof EmailRateLimitError) {
       throw new BetterAuthAPIError("TOO_MANY_REQUESTS", {
-        message: "Too many verification attempts. Please try again later.",
+        cause: "Too many verification attempts. Please try again later.",
       });
     }
 
@@ -68,7 +68,7 @@ export async function sendVerificationEmail({
     });
 
     throw new BetterAuthAPIError("INTERNAL_SERVER_ERROR", {
-      message: "Failed to send verification email. Please try again later.",
+      cause: "Failed to send verification email. Please try again later.",
     });
   }
 }
@@ -101,7 +101,7 @@ export async function sendResetPasswordEmail({
   } catch (error) {
     if (error instanceof EmailRateLimitError) {
       throw new BetterAuthAPIError("TOO_MANY_REQUESTS", {
-        message: "Too many reset password attempts. Please try again later.",
+        cause: "Too many reset password attempts. Please try again later.",
       });
     }
 

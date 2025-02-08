@@ -7,6 +7,7 @@ import { SocialAuthButtons } from "@/app/(auth)/_components/social-auth-buttons"
 import { Spinner } from "@/components/spinner";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { SignInHeading } from "../_components/heading";
 
 export const metadata: Metadata = {
   title: "Sign In",
@@ -46,14 +47,9 @@ export default function SignInPage() {
         </div>
         <div className="lg:p-8">
           <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
-            <div className="flex flex-col space-y-2 text-center">
-              <h1 className="text-2xl font-semibold tracking-tight">
-                Welcome back
-              </h1>
-              <p className="text-sm text-muted-foreground">
-                Sign in to your account using your email
-              </p>
-            </div>
+            <Suspense fallback={<Spinner />}>
+              <SignInHeading />
+            </Suspense>
             <AuthForm className="grid gap-6" />
             <SocialAuthButtons />
             <p className="px-8 text-center text-sm text-muted-foreground">

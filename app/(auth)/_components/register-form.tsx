@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import Image from "next/image";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, Target, Upload, X } from "lucide-react";
 import { useForm } from "react-hook-form";
@@ -17,8 +18,10 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import {
+  useServerAction,
+  type BetterAuthResponse,
+} from "@/hooks/actions/use-server-action";
 import { useAuthMode } from "@/hooks/auth/use-auth-mode";
 import { authClient } from "@/lib/auth/auth-client";
 import { cn } from "@/lib/utils";
@@ -156,26 +159,33 @@ export function RegisterForm() {
     [form]
   );
 
-  const onSubmit = async (data: RegisterFormValues) => {
-    try {
-      // Only include image if it exists
+  const { execute, isPending } = useServerAction<
+    { status: boolean },
+    RegisterFormValues
+  >({
+    action: async (data) => {
       const formData = {
         ...data,
-        image: data.image || undefined, // Convert null to undefined if no image
+        image: data.image || undefined,
         callbackURL: "/dashboard",
       };
 
-      await authClient.signUp.email(formData);
-      toast.success(
-        "Registration successful! Please check your email to verify your account."
-      );
-    } catch (error) {
-      console.error(error);
-      toast.error("Failed to register");
-    }
-  };
+      return authClient.signUp.email(formData) as Promise<
+        BetterAuthResponse<{ status: boolean }>
+      >;
+    },
+    schema: registerSchema,
+    context: "register",
+    successMessage:
+      "Registration successful! Please check your email to verify your account.",
+    errorMessage: "Failed to register",
+    resetForm: () => {
+      form.reset();
+      setImagePreview(null);
+    },
+  });
 
-  const isPending = form.formState.isSubmitting;
+  const onSubmit = (data: RegisterFormValues) => execute(data);
 
   return (
     <Form {...form}>
@@ -251,101 +261,64 @@ export function RegisterForm() {
         <FormField
           control={form.control}
           name="image"
-          render={({ field: { value, onChange, ...field } }) => (
-            <FormItem className="pt-2">
-              <div className="space-y-2">
-                <FormLabel htmlFor="image" className="flex items-center gap-2">
-                  Profile Image{" "}
-                  <span className="text-sm text-muted-foreground">
-                    (Optional)
-                  </span>
-                </FormLabel>
-                <div className="flex items-center gap-4">
-                  {imagePreview && (
-                    <div className="relative">
-                      <img
+          render={({ field }) => (
+            <FormItem>
+              <FormControl>
+                <div
+                  className={cn(
+                    "relative flex min-h-[150px] cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-muted-foreground/25 bg-muted/10 px-6 py-8 text-center transition-colors hover:bg-muted/20",
+                    isDragging && "border-primary/50 bg-muted/20",
+                    imagePreview && "border-primary/50"
+                  )}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setIsDragging(true);
+                  }}
+                  onDragLeave={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setIsDragging(false);
+                  }}
+                  onDrop={handleDrop}
+                >
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    className="absolute inset-0 cursor-pointer opacity-0"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        handleImageUpload(e);
+                      }
+                    }}
+                  />
+                  {imagePreview ? (
+                    <div className="relative h-20 w-20">
+                      <Image
                         src={imagePreview}
                         alt="Profile preview"
-                        className="h-16 w-16 rounded-full object-cover"
+                        className="rounded-full object-cover"
+                        fill
                       />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="absolute -right-2 -top-2 h-6 w-6 rounded-full bg-background shadow-sm hover:bg-muted"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleRemoveImage();
-                        }}
-                        aria-label="Remove image"
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <div className="flex justify-center">
+                        <Upload className="h-10 w-10 text-muted-foreground" />
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-sm font-medium text-muted-foreground">
+                          Drag & drop or click to upload
+                        </p>
+                        <p className="text-xs text-muted-foreground/75">
+                          Max file size: 5MB. Supported formats: JPEG, PNG, WebP
+                        </p>
+                      </div>
                     </div>
                   )}
-                  <FormControl>
-                    <Label
-                      htmlFor="image-upload"
-                      className={cn(
-                        "group relative flex min-h-[120px] w-full cursor-pointer flex-col items-center justify-center rounded-md border border-dashed border-muted-foreground/25 px-6 py-4 text-center transition-all duration-300 ease-in-out hover:border-primary",
-                        isDragging && "border-primary text-primary",
-                        imagePreview && "translate-x-4 opacity-50"
-                      )}
-                    >
-                      <input
-                        type="file"
-                        className="peer absolute inset-0 z-20 cursor-pointer opacity-0"
-                        accept={ACCEPTED_IMAGE_TYPES_STRING}
-                        disabled={isPending}
-                        {...field}
-                        onDragEnter={handleDragEnter}
-                        onDragLeave={handleDragLeave}
-                        onDragOver={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                        }}
-                        onDrop={handleDrop}
-                        onChange={(e) => {
-                          handleImageUpload(e);
-                          field.ref(e.target.value);
-                        }}
-                      />
-                      {isDragging ? (
-                        <div className="relative z-10 flex flex-col items-center justify-center gap-2 py-8 text-primary">
-                          <Target
-                            className="h-10 w-10 animate-pulse"
-                            aria-hidden="true"
-                          />
-                          <p className="text-sm">Drop it here</p>
-                        </div>
-                      ) : (
-                        <div className="relative z-10 flex flex-col items-center justify-center">
-                          <Upload
-                            className="h-6 w-6 text-muted-foreground group-hover:text-primary"
-                            aria-hidden="true"
-                          />
-                          <div className="mt-2 space-y-1">
-                            <p className="text-sm font-medium text-muted-foreground group-hover:text-primary">
-                              {imagePreview
-                                ? "Replace image"
-                                : "Upload an image"}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              Drag and drop or click to upload
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              Max file size: 5MB
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              Supported formats: JPG, PNG, WebP
-                            </p>
-                          </div>
-                        </div>
-                      )}
-                    </Label>
-                  </FormControl>
                 </div>
-              </div>
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}
@@ -370,16 +343,6 @@ export function RegisterForm() {
               "Create account"
             )}
           </Button>
-          <p className="text-center text-sm text-muted-foreground">
-            Already have an account?{" "}
-            <Button
-              variant="link"
-              className="p-0 text-sm"
-              onClick={() => setMode("credentials")}
-            >
-              Sign in
-            </Button>
-          </p>
         </div>
       </form>
     </Form>

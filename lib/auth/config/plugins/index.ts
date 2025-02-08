@@ -15,7 +15,7 @@ export const organizationConfig: OrganizationOptions = {
   async sendInvitationEmail(data) {
     if (!data?.id || !data?.organization?.name || !data?.inviter?.userId) {
       throw new BetterAuthAPIError("BAD_REQUEST", {
-        message: "Invalid invitation data",
+        cause: "Invalid invitation data",
       });
     }
 
@@ -46,7 +46,7 @@ export const organizationConfig: OrganizationOptions = {
       // Handle rate limiting specifically
       if (error instanceof EmailRateLimitError) {
         throw new BetterAuthAPIError("TOO_MANY_REQUESTS", {
-          message: "Too many invitation attempts. Please try again later.",
+          cause: "Too many invitation attempts. Please try again later.",
         });
       }
 
@@ -59,7 +59,7 @@ export const organizationConfig: OrganizationOptions = {
 
       // Throw appropriate auth error
       throw new BetterAuthAPIError("INTERNAL_SERVER_ERROR", {
-        message: "Failed to send invitation email. Please try again later.",
+        cause: "Failed to send invitation email. Please try again later.",
       });
     }
   },
@@ -81,7 +81,7 @@ export const magicLinkConfig = {
     } catch (error) {
       if (error instanceof EmailRateLimitError) {
         throw new BetterAuthAPIError("TOO_MANY_REQUESTS", {
-          message: "Too many login attempts. Please try again later.",
+          cause: "Too many login attempts. Please try again later.",
         });
       }
       console.error("Failed to send login email:", {
@@ -91,7 +91,7 @@ export const magicLinkConfig = {
         timestamp: new Date().toISOString(),
       });
       throw new BetterAuthAPIError("INTERNAL_SERVER_ERROR", {
-        message: "Failed to send login email. Please try again later.",
+        cause: "Failed to send login email. Please try again later.",
       });
     }
   },

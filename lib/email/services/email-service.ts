@@ -87,19 +87,21 @@ const templateComponents = {
  * });
  */
 export async function sendEmail(options: EmailOptions): Promise<EmailResult> {
+  console.log("Sending email to", options.to);
   try {
     const template = templateComponents[options.template];
     if (!template) {
       throw new Error(`Invalid email template: ${options.template}`);
     }
-
+    console.log("Template:", template);
     const templateConfig = emailConfig.templates[options.template];
     const element = createElement(
       template as React.ComponentType<TemplateProps[typeof options.template]>,
       options.data as TemplateProps[typeof options.template]
     );
+    console.log("Created element:");
     const html = await render(element);
-
+    console.log("Created HTML:");
     const result = await resend.emails.send({
       from: emailConfig.from,
       to: options.to,

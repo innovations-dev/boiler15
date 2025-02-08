@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
-import { toast } from "sonner";
 import * as z from "zod";
 
 import { FloatingLabelInput } from "@/components/floating-input";
@@ -16,6 +16,10 @@ import {
   FormItem,
   FormMessage,
 } from "@/components/ui/form";
+import {
+  BetterAuthResponse,
+  useServerAction,
+} from "@/hooks/actions/use-server-action";
 import { useAuthMode } from "@/hooks/auth/use-auth-mode";
 import { authClient } from "@/lib/auth/auth-client";
 
@@ -27,6 +31,7 @@ const credentialsSchema = z.object({
 type CredentialsFormValues = z.infer<typeof credentialsSchema>;
 
 export function CredentialsForm() {
+  const router = useRouter();
   const { setMode } = useAuthMode();
   const form = useForm<CredentialsFormValues>({
     resolver: zodResolver(credentialsSchema),
@@ -36,20 +41,26 @@ export function CredentialsForm() {
     },
   });
 
-  const onSubmit = async (data: CredentialsFormValues) => {
-    try {
-      await authClient.signIn.email({
+  const { execute, isPending } = useServerAction<
+    { status: boolean },
+    CredentialsFormValues
+  >({
+    action: async (data) =>
+      authClient.signIn.email({
         email: data.email,
         password: data.password,
-      });
-      toast.success("Signed in successfully");
-    } catch (error) {
-      console.error(error);
-      toast.error("Invalid email or password");
-    }
-  };
+      }) as Promise<BetterAuthResponse<{ status: boolean }>>,
+    schema: credentialsSchema,
+    context: "credentials",
+    successMessage: "Signed in successfully",
+    errorMessage: "Invalid email or password",
+    onSuccess: () => {
+      router.push("/dashboard");
+    },
+    resetForm: () => form.reset(),
+  });
 
-  const isPending = form.formState.isSubmitting;
+  const onSubmit = (data: CredentialsFormValues) => execute(data);
 
   return (
     <Form {...form}>
@@ -128,16 +139,6 @@ export function CredentialsForm() {
               "Sign in"
             )}
           </Button>
-          <p className="text-center text-sm text-muted-foreground">
-            Don't have an account?{" "}
-            <Button
-              variant="link"
-              className="p-0 text-sm"
-              onClick={() => setMode("register")}
-            >
-              Create one
-            </Button>
-          </p>
         </div>
       </form>
     </Form>

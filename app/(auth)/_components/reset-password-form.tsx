@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { AlertCircle } from "lucide-react";
-import { toast } from "sonner";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { FloatingLabelInput } from "@/components/floating-input";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -14,93 +14,120 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  useServerAction,
+  type BetterAuthResponse,
+} from "@/hooks/actions/use-server-action";
 import { authClient } from "@/lib/auth/auth-client";
 
+const resetPasswordSchema = z
+  .object({
+    password: z.string().min(8, "Password must be at least 8 characters"),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
+
+type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
+
 export function ResetPasswordForm() {
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState("");
   const router = useRouter();
+  const form = useForm<ResetPasswordInput>({
+    resolver: zodResolver(resetPasswordSchema),
+    defaultValues: {
+      password: "",
+      confirmPassword: "",
+    },
+  });
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setError("");
-
-    if (password !== confirmPassword) {
-      setError("Passwords do not match");
-      setIsSubmitting(false);
-      return;
-    }
-
-    try {
-      const res = await authClient.resetPassword({
-        newPassword: password,
-        token: new URLSearchParams(window.location.search).get("token")!,
-      });
-
-      if (res.error) {
-        setError(res.error.message || "Failed to reset password");
-        toast.error(res.error.message);
-      } else {
-        toast.success("Password reset successful");
-        router.push("/login");
+  const { execute, isPending } = useServerAction<
+    { status: boolean },
+    ResetPasswordInput
+  >({
+    action: async (data) => {
+      const token = new URLSearchParams(window.location.search).get("token");
+      if (!token) {
+        throw new Error("Reset token is missing");
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to reset password");
-    } finally {
-      setIsSubmitting(false);
-    }
-  }
+
+      return authClient.resetPassword({
+        newPassword: data.password,
+        token,
+      }) as Promise<BetterAuthResponse<{ status: boolean }>>;
+    },
+    schema: resetPasswordSchema,
+    context: "resetPassword",
+    successMessage: "Password reset successful",
+    errorMessage: "Failed to reset password",
+    onSuccess: () => {
+      router.push("/sign-in");
+    },
+    resetForm: () => form.reset(),
+  });
 
   return (
-    <Card className="w-[350px]">
+    <Card className="w-full max-w-md">
       <CardHeader>
         <CardTitle>Reset password</CardTitle>
         <CardDescription>
-          Enter new password and confirm it to reset your password
+          Enter your new password and confirm it to reset your password
         </CardDescription>
       </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit}>
-          <div className="grid w-full items-center gap-2">
-            <div className="flex flex-col space-y-1.5">
-              <Label htmlFor="password">New password</Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                autoComplete="new-password"
-                placeholder="Enter new password"
-              />
-            </div>
-            <div className="flex flex-col space-y-1.5">
-              <Label htmlFor="confirmPassword">Confirm password</Label>
-              <Input
-                id="confirmPassword"
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                autoComplete="new-password"
-                placeholder="Confirm new password"
-              />
-            </div>
-          </div>
-          {error && (
-            <Alert variant="destructive" className="mt-4">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-          <Button className="mt-4 w-full" type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "Resetting..." : "Reset password"}
-          </Button>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(execute)} className="space-y-4">
+          <CardContent className="space-y-4">
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <FloatingLabelInput
+                      label="New Password"
+                      type="password"
+                      autoComplete="new-password"
+                      autoFocus
+                      disabled={isPending}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="confirmPassword"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <FloatingLabelInput
+                      label="Confirm Password"
+                      type="password"
+                      autoComplete="new-password"
+                      disabled={isPending}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <Button type="submit" className="w-full" disabled={isPending}>
+              {isPending ? "Resetting..." : "Reset Password"}
+            </Button>
+          </CardContent>
         </form>
-      </CardContent>
+      </Form>
     </Card>
   );
 }

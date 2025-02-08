@@ -30,6 +30,7 @@ export const providers: BetterAuthOptions = {
   },
   emailVerification: {
     autoSignInAfterVerification: true,
+    sendOnSignUp: true,
     sendVerificationEmail: async ({ user, url }) => {
       await sendEmail({
         to: user.email,

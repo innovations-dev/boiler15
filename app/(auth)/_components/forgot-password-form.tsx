@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
-import { AlertCircle, ArrowLeft, CheckCircle2 } from "lucide-react";
-import { toast } from "sonner";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { ArrowLeft } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { FloatingLabelInput } from "@/components/floating-input";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -15,107 +15,99 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  useServerAction,
+  type BetterAuthResponse,
+} from "@/hooks/actions/use-server-action";
 import { authClient } from "@/lib/auth/auth-client";
+import { API_ERROR_CODES } from "@/lib/schemas/api-types";
+
+const forgotPasswordSchema = z.object({
+  email: z.string().email("Please enter a valid email address"),
+});
+
+type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
 
 export function ForgotPasswordForm() {
-  const [email, setEmail] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
-  const [error, setError] = useState("");
+  const form = useForm<ForgotPasswordInput>({
+    resolver: zodResolver(forgotPasswordSchema),
+    defaultValues: {
+      email: "",
+    },
+  });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setError("");
-
-    try {
-      await authClient.forgetPassword({
-        email,
+  const { execute, isPending } = useServerAction<
+    { status: boolean },
+    ForgotPasswordInput
+  >({
+    action: (data) =>
+      authClient.forgetPassword({
+        email: data.email,
         redirectTo: "/reset-password",
-      });
-      setIsSubmitted(true);
-    } catch (err) {
-      console.error(err);
-      toast.error("An error occurred. Please try again.");
-      setError("An error occurred. Please try again.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  if (isSubmitted) {
-    return (
-      <Card className="w-[350px]">
-        <CardHeader>
-          <CardTitle>Check your email</CardTitle>
-          <CardDescription>
-            We&apos;ve sent a password reset link to your email.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Alert>
-            <CheckCircle2 className="h-4 w-4" />
-            <AlertDescription>
-              If you don&apos;t see the email, check your spam folder.
-            </AlertDescription>
-          </Alert>
-        </CardContent>
-        <CardFooter>
-          <Button
-            variant="outline"
-            className="w-full"
-            onClick={() => setIsSubmitted(false)}
-          >
-            <ArrowLeft className="mr-2 h-4 w-4" /> Back to reset password
-          </Button>
-        </CardFooter>
-      </Card>
-    );
-  }
+      }) as Promise<BetterAuthResponse<{ status: boolean }>>,
+    schema: forgotPasswordSchema,
+    context: "forgotPassword",
+    successMessage: "Password reset instructions sent to your email",
+    errorMessage: "Failed to send reset instructions",
+    resetForm: () => form.reset(),
+  });
 
   return (
-    <Card className="w-[350px]">
-      <CardHeader>
-        <CardTitle>Forgot password</CardTitle>
+    <Card className="w-full max-w-md">
+      <CardHeader className="space-y-2">
+        <CardTitle>Forgot Password</CardTitle>
         <CardDescription>
-          Enter your email to reset your password
+          Enter your email address and we'll send you instructions to reset your
+          password.
         </CardDescription>
       </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit}>
-          <div className="grid w-full items-center gap-4">
-            <div className="flex flex-col space-y-1.5">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
-          </div>
-          {error && (
-            <Alert variant="destructive" className="mt-4">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-          <Button className="mt-4 w-full" type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "Sending..." : "Send reset link"}
-          </Button>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(execute)} className="space-y-4">
+          <CardContent>
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <FloatingLabelInput
+                      label="Email"
+                      type="email"
+                      autoComplete="email"
+                      autoFocus
+                      disabled={isPending}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </CardContent>
+          <CardFooter className="flex flex-col space-y-2">
+            <Button type="submit" className="w-full" disabled={isPending}>
+              {isPending ? "Sending..." : "Send Reset Instructions"}
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              className="w-full"
+              onClick={() => window.history.back()}
+              disabled={isPending}
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back
+            </Button>
+          </CardFooter>
         </form>
-      </CardContent>
-      <CardFooter className="flex justify-center">
-        <Link href="/sign-in">
-          <Button variant="link" className="px-0">
-            Back to sign in
-          </Button>
-        </Link>
-      </CardFooter>
+      </Form>
     </Card>
   );
 }
