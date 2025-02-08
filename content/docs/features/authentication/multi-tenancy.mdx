@@ -1,0 +1,273 @@
+export const metadata = {
+  title: "Multi-Tenancy",
+  description:
+    "Learn about the multi-tenant architecture and organization management",
+  section: "Authentication",
+  order: 2,
+};
+
+# Multi-Tenant Architecture
+
+## Overview
+
+Our application implements a robust multi-tenant architecture with organization-based isolation and role-based access control (RBAC). This document outlines the complete architecture from database to client-side implementation.
+
+## Database Schema
+
+### Core Tables
+
+```typescript
+// Organizations
+export const organization = sqliteTable("organization", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  slug: text("slug").unique(),
+  logo: text("logo"),
+  metadata: text("metadata"),
+  createdAt: integer("created_at", { mode: "timestamp" }),
+  updatedAt: integer("updated_at", { mode: "timestamp" }),
+});
+
+// Organization Members
+export const member = sqliteTable("member", {
+  id: text("id").primaryKey(),
+  organizationId: text("organization_id")
+    .notNull()
+    .references(() => organization.id),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id),
+  role: text("role").notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
+});
+
+// Invitations
+export const invitation = sqliteTable("invitation", {
+  id: text("id").primaryKey(),
+  organizationId: text("organization_id")
+    .notNull()
+    .references(() => organization.id),
+  email: text("email").notNull(),
+  role: text("role"),
+  status: text("status").notNull(),
+  expiresAt: integer("expires_at", { mode: "timestamp" }).notNull(),
+  inviterId: text("inviter_id")
+    .notNull()
+    .references(() => user.id),
+});
+```
+
+## Access Control Model
+
+### User Roles
+
+1. **System Roles**
+
+   - `admin`: Global system administrator
+   - `user`: Standard user
+
+2. **Organization Roles**
+   - `owner`: Full organization control
+   - `admin`: Administrative access within organization
+   - `member`: Basic member access
+
+### Role Hierarchy
+
+```
+System Level:
+admin > user
+
+Organization Level:
+owner > admin > member
+```
+
+## Server-Side Implementation
+
+### Middleware
+
+The `requireOrganizationAccess` middleware handles role-based access control:
+
+```typescript
+export async function requireOrganizationAccess(
+  request: Request,
+  organizationId: string,
+  requiredRole?: "owner" | "admin" | "member"
+) {
+  // 1. Validate session
+  // 2. Check system admin override
+  // 3. Verify organization membership
+  // 4. Check role hierarchy
+}
+```
+
+### API Routes
+
+Organization-specific routes follow this pattern:
+
+```typescript
+// app/api/organizations/[organizationId]/route.ts
+export async function GET(
+  request: Request,
+  { params: { organizationId } }: { params: { organizationId: string } }
+) {
+  const accessCheck = await requireOrganizationAccess(request, organizationId);
+  if (accessCheck) return accessCheck;
+
+  // Handle request
+}
+```
+
+## Client-Side Implementation
+
+### Hooks
+
+1. **Session Management**
+
+```typescript
+export function useSession() {
+  // Manages user session and system-level roles
+  return {
+    session,
+    user,
+    isAuthenticated,
+    isAdmin,
+    requireAuth,
+    requireAdmin,
+  };
+}
+```
+
+2. **Organization Access**
+
+```typescript
+export function useOrganizationAccess(organizationId?: string) {
+  // Manages organization-level access and roles
+  return {
+    organization,
+    member,
+    isLoading,
+    isMember,
+    isAdmin,
+    isOwner,
+    role,
+    requireAccess,
+    requireAdmin,
+    requireOwner,
+  };
+}
+```
+
+### Data Fetching
+
+We use React Query for data management:
+
+```typescript
+export const queryKeys = {
+  organizations: {
+    all: ["organizations"] as const,
+    list: () => [...queryKeys.organizations.all, "list"] as const,
+    access: (organizationId: string) =>
+      [...queryKeys.organizations.all, "access", organizationId] as const,
+  },
+};
+```
+
+## Organization Management
+
+### Creation Flow
+
+1. User creates organization
+2. Automatically assigned 'owner' role
+3. Organization slug generated for URL routing
+
+### Invitation Flow
+
+1. Organization admin/owner sends invitation
+2. Email sent to invitee
+3. Invitee accepts and joins organization
+4. Role assigned based on invitation
+
+## URL Structure
+
+```
+/organizations                    # List user's organizations
+/organizations/create            # Create new organization
+/organizations/[slug]            # Organization dashboard
+/organizations/[slug]/settings   # Organization settings
+/organizations/[slug]/members    # Member management
+```
+
+## Security Considerations
+
+1. **Data Isolation**
+
+   - Each request validates organization access
+   - Queries scoped to organization context
+   - Middleware prevents cross-organization access
+
+2. **Role Enforcement**
+
+   - System admin override for emergencies
+   - Strict role hierarchy enforcement
+   - No role escalation allowed
+
+3. **API Security**
+   - All organization routes protected
+   - Rate limiting on sensitive operations
+   - Audit logging for important actions
+
+## Best Practices
+
+1. **Organization Context**
+
+   - Always use `useOrganizationAccess` in organization routes
+   - Verify organization access server-side
+   - Keep organization ID in URL/context
+
+2. **Role Checks**
+
+   - Use appropriate role check functions
+   - Combine client and server validation
+   - Never trust client-side only
+
+3. **Data Management**
+   - Cache organization data appropriately
+   - Invalidate caches on role changes
+   - Handle loading/error states
+
+## Example Usage
+
+### Protected Route
+
+```typescript
+export default function OrganizationSettingsPage({
+  params: { slug }
+}: {
+  params: { slug: string }
+}) {
+  const { requireAdmin } = useOrganizationAccess(slug);
+
+  return (
+    <ProtectedContent onAccess={requireAdmin}>
+      <SettingsForm />
+    </ProtectedContent>
+  );
+}
+```
+
+### Protected Component
+
+```typescript
+export function DeleteOrganizationButton() {
+  const { isOwner } = useOrganizationAccess();
+
+  if (!isOwner) return null;
+
+  return (
+    <Button onClick={handleDelete}>
+      Delete Organization
+    </Button>
+  );
+}
+```
