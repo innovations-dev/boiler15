@@ -3,6 +3,7 @@
  * @module hooks/organization/use-switch-organization
  */
 
+import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -71,6 +72,7 @@ import { queryKeys } from "@/lib/query/keys";
  * @see {@link useBaseMutation} For the base mutation hook being used
  */
 export function useSwitchOrganization() {
+  const router = useRouter();
   const queryClient = useQueryClient();
 
   return useBaseMutation({
@@ -82,7 +84,7 @@ export function useSwitchOrganization() {
       return result;
     },
     onSuccess: async () => {
-      // First invalidate all relevant queries
+      // Invalidate relevant queries
       await Promise.all([
         queryClient.invalidateQueries({
           queryKey: queryKeys.organizations.list(),
@@ -92,13 +94,11 @@ export function useSwitchOrganization() {
         }),
       ]);
 
-      // Show success message before refresh
+      // Show success message
       toast.success("Organization switched successfully");
 
-      // Use a slight delay before refresh to ensure toast is visible
-      setTimeout(() => {
-        window.location.reload();
-      }, 500);
+      // Use Next.js router to refresh the page state
+      router.refresh();
     },
     errorMessage: "Failed to switch organization",
     ...cacheConfig.queries.organization,

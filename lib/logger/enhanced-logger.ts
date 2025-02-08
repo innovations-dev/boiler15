@@ -83,14 +83,22 @@ class ErrorLogger {
     );
     const validatedMetadata = errorMetadataSchema.parse(metadata);
 
+    // Ensure message is always a string
+    let message: string;
+    if (error instanceof Error) {
+      message =
+        typeof error.message === "object"
+          ? JSON.stringify(error.message)
+          : error.message;
+    } else if (typeof error === "object" && error !== null) {
+      message = JSON.stringify(error);
+    } else {
+      message = String(error);
+    }
+
     return {
       id: nanoid(),
-      message:
-        error instanceof Error
-          ? typeof error.message === "string"
-            ? error.message
-            : JSON.stringify(error.message)
-          : String(error),
+      message,
       stack: error instanceof Error ? error.stack : undefined,
       metadata: validatedMetadata,
     };
@@ -210,12 +218,7 @@ class ErrorLogger {
   private async persistError(entry: ErrorLogEntry): Promise<void> {
     if (process.env.NODE_ENV === "development") {
       console.error(`[${entry.metadata.severity}] ${entry.metadata.source}:`, {
-        message:
-          entry instanceof Error
-            ? typeof entry.message === "string"
-              ? entry.message
-              : JSON.stringify(entry.message)
-            : String(entry),
+        message: entry.message,
         metadata: entry.metadata,
         stack: entry.stack,
       });

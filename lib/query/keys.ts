@@ -29,92 +29,24 @@ export const queryKeys = {
   organizations: {
     /** Base key for all organization queries */
     all: ["organizations"] as const,
-    /** Key for organization list queries */
+    /** Key for organization list */
     list: () => [...queryKeys.organizations.all, "list"] as const,
-    /** Key for specific organization details
-     * @param id - Organization ID
-     */
-    detail: (id: string) =>
-      [...queryKeys.organizations.all, "detail", id] as const,
-    /** Key for organization members
-     * @param id - Organization ID
-     */
-    members: (id: string) =>
-      [...queryKeys.organizations.all, "members", id] as const,
-  },
-
-  /** User-related query keys */
-  users: {
-    /** Base key for all user queries */
-    all: ["users"] as const,
-    /** Key for user list queries */
-    list: () => [...queryKeys.users.all, "list"] as const,
-    /** Key for specific user details
-     * @param id - User ID
-     */
-    detail: (id: string) => [...queryKeys.users.all, "detail", id] as const,
-    /** Key for users filtered by role
-     * @param role - User role
-     */
-    byRole: (role: string) => [...queryKeys.users.all, "role", role] as const,
   },
 
   /** Session-related query keys */
   sessions: {
     /** Base key for all session queries */
     all: ["sessions"] as const,
-    /** Key for current session queries */
+    /** Key for current session */
     current: () => [...queryKeys.sessions.all, "current"] as const,
-    /** Key for session list queries */
-    list: () => [...queryKeys.sessions.all, "list"] as const,
   },
 
-  /** Team-related query keys */
-  team: {
-    /** Base key for all team queries */
-    all: ["team"] as const,
-    /** Key for team members within an organization
-     * @param orgId - Organization ID
-     */
-    members: (orgId: string) =>
-      [...queryKeys.team.all, orgId, "members"] as const,
-  },
-
-  /** Admin-related query keys */
-  admin: {
-    /** Base key for all admin queries */
-    all: ["admin"] as const,
-    /** Key for admin statistics queries */
-    stats: () => [...queryKeys.admin.all, "stats"] as const,
-    /** Key for permission queries with pagination
-     * @param limit - Number of permissions to fetch
-     */
-    permissions: (limit: number) =>
-      [...queryKeys.admin.all, "permissions", limit] as const,
-    /** Key for system health metrics */
-    health: () => [...queryKeys.admin.all, "health"] as const,
-  },
-
-  /** Audit-related query keys */
-  audit: {
-    /** Base key for all audit queries */
-    all: ["audit"] as const,
-    /** Key for audit logs queries with pagination
-     * @param page - Current page number
-     * @param limit - Number of items per page
-     */
-    logs: (page?: number, limit?: number) =>
-      page && limit
-        ? ([...queryKeys.audit.all, "logs", { page, limit }] as const)
-        : ([...queryKeys.audit.all, "logs"] as const),
-  },
-
-  /** Dashboard-related query keys */
-  dashboard: {
-    /** Base key for all dashboard queries */
-    all: ["dashboard"] as const,
-    /** Key for dashboard metrics */
-    metrics: () => [...queryKeys.dashboard.all, "metrics"] as const,
+  /** User-related query keys */
+  users: {
+    /** Base key for all user queries */
+    all: ["users"] as const,
+    /** Key for current user */
+    current: () => [...queryKeys.users.all, "current"] as const,
   },
 } as const;
 
