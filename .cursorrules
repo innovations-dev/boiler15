@@ -1,0 +1,425 @@
+// CHANGE MANAGEMENT
+[deliberate-changes]
+
+- Make changes only when necessary and with clear purpose
+- Validate existing patterns before introducing new ones
+- Preserve existing functionality unless explicitly requested to change
+- Consider the ripple effects of any modification
+- When in doubt, gather more information rather than making assumptions
+
+[breaking-changes]
+
+- Treat every change as potentially breaking
+- Verify dependencies and relationships before modifying
+- Test changes in isolation before integration
+- Document any breaking changes clearly
+- Maintain backward compatibility where possible
+
+// PATTERN RECOGNITION
+[existing-patterns]
+
+1. Before implementing new features:
+
+   - Search for similar component names
+   - Review related hooks and utilities
+   - Check shared/common components
+   - Examine admin implementations
+   - Study similar patterns in the codebase
+
+2. Key directories to check:
+
+   - /components/shared/
+   - /components/ui/
+   - /app/(admin)/\_components/
+   - /hooks/{feature}/
+   - /lib/services/
+   - /lib/utils/
+
+3. Common implementation patterns:
+   - Modal/Dialog implementations
+   - Form handling and validation
+   - Data fetching and mutations
+   - State management approaches
+   - Route protection strategies
+   - Layout structures
+   - Error handling
+
+// SEARCH STRATEGY
+[systematic-search]
+
+1. Broad semantic search first:
+
+   - Feature concepts
+   - Component purposes
+   - Common patterns
+
+2. Specific file search:
+
+   - Component names
+   - Hook names
+   - Utility functions
+
+3. Exact match grep:
+
+   - Function names
+   - Component exports
+   - Type definitions
+
+4. Directory exploration:
+   - Related feature directories
+   - Shared component locations
+   - Similar feature implementations
+
+// CODE CONSISTENCY
+[maintain-consistency]
+
+- Follow established naming conventions
+- Reuse existing components and patterns
+- Maintain consistent file structure
+- Follow existing error handling patterns
+- Use established state management patterns
+- Adhere to existing styling approaches
+
+// VERIFICATION CHECKLIST
+[before-changes]
+
+1. Existing Implementation Check:
+   ☐ Searched for similar components
+   ☐ Reviewed related hooks
+   ☐ Checked shared components
+   ☐ Examined admin patterns
+   ☐ Verified styling patterns
+
+2. Pattern Analysis:
+   ☐ Reviewed modal/dialog patterns
+   ☐ Checked form implementations
+   ☐ Verified data fetching patterns
+   ☐ Examined state management
+   ☐ Confirmed routing approaches
+
+3. Impact Assessment:
+   ☐ Identified dependent components
+   ☐ Checked for breaking changes
+   ☐ Verified type safety
+   ☐ Confirmed accessibility
+   ☐ Validated performance impact
+
+// DOCUMENTATION
+[documentation]
+
+- Document pattern discoveries
+- Note component relationships
+- Record breaking changes
+- Explain pattern deviations
+- Document complex logic
+
+// ERROR PREVENTION
+[error-prevention]
+
+- Validate assumptions before implementing
+- Test edge cases thoroughly
+- Consider error states
+- Verify type safety
+- Check accessibility impact
+- Assess performance implications
+
+// TECH STACK STANDARDS
+[tech-stack]
+
+- Use TypeScript for all code; prefer interfaces over types
+- Favor React Server Components (RSC) over client components
+- Minimize 'use client' directives
+- Use Tanstack Query for data fetching
+- Implement Zod for runtime type validation
+- Follow Next.js App Router patterns
+- Use Drizzle for database operations
+- Implement shadcn/ui components with Tailwind
+- Use clsx/cn for conditional styling
+
+// STATE MANAGEMENT
+[state-patterns]
+
+- Prefer server state over client state
+- Use React Query for remote state
+- Implement form state with react-hook-form
+- Use URL state with 'nuqs' for shareable states
+- Avoid unnecessary useState/useReducer
+- Keep state as close to usage as possible
+
+// PERFORMANCE GUIDELINES
+[performance]
+
+- Implement proper component boundaries
+- Use proper image optimization
+- Implement correct suspense boundaries
+- Avoid unnecessary client-side JavaScript
+- Utilize proper caching strategies
+- Monitor and optimize bundle sizes
+- Use dynamic imports for large components
+- Implement proper loading states
+
+// ACCESSIBILITY STANDARDS
+[accessibility]
+
+- Implement proper ARIA labels
+- Ensure keyboard navigation
+- Maintain proper heading hierarchy
+- Provide proper alt text for images
+- Ensure sufficient color contrast
+- Test with screen readers
+- Handle focus management
+- Support reduced motion
+
+// SECURITY PRACTICES
+[security]
+
+- Implement proper input validation
+- Use proper authentication guards
+- Sanitize user inputs
+- Implement proper CORS policies
+- Use proper Content Security Policy
+- Handle sensitive data appropriately
+- Implement rate limiting
+- Use proper error handling
+
+// TESTING STRATEGY
+[testing]
+
+- Write unit tests for utilities
+- Implement integration tests for features
+- Add E2E tests for critical paths
+- Test error states
+- Test loading states
+- Test edge cases
+- Implement proper mocking
+- Test accessibility
+
+// CODE ORGANIZATION
+[organization]
+
+1. File Structure:
+
+   - Group by feature first
+   - Maintain clear separation of concerns
+   - Keep related files close
+   - Use proper barrel exports
+   - Maintain clear import hierarchy
+
+2. Component Structure:
+
+   - Props interface at top
+   - Hooks after interface
+   - Helper functions next
+   - Main component last
+   - Export at bottom
+
+3. Hook Organization:
+   - Custom hooks in separate files
+   - Group related hooks
+   - Clear naming convention
+   - Proper error handling
+   - Proper loading states
+
+// NAMING CONVENTIONS
+[naming]
+
+1. Files:
+
+   - kebab-case for files
+   - PascalCase for components
+   - camelCase for utilities
+   - UPPER_CASE for constants
+
+2. Functions:
+
+   - use auxiliary verbs (is, has, should)
+   - clear and descriptive names
+   - consistent verb tense
+   - proper TypeScript types
+
+3. Components:
+   - descriptive and clear
+   - purpose-indicating
+   - consistent across codebase
+   - proper prop naming
+
+// ERROR HANDLING
+[error-handling]
+
+- Implement proper error boundaries
+- Use proper error logging
+- Handle edge cases
+- Provide user feedback
+- Maintain app stability
+- Implement recovery strategies
+- Log errors appropriately
+- Monitor error patterns
+
+// REVIEW CHECKLIST
+[review]
+
+1. Code Quality:
+   ☐ Follows TypeScript best practices
+   ☐ Implements proper error handling
+   ☐ Uses appropriate patterns
+   ☐ Maintains consistency
+   ☐ Proper documentation
+
+2. Performance:
+   ☐ Proper code splitting
+   ☐ Efficient re-renders
+   ☐ Proper caching
+   ☐ Bundle size impact
+   ☐ Loading strategies
+
+3. Accessibility:
+   ☐ ARIA attributes
+   ☐ Keyboard navigation
+   ☐ Screen reader support
+   ☐ Color contrast
+   ☐ Focus management
+
+4. Security:
+   ☐ Input validation
+   ☐ Authentication checks
+   ☐ Authorization rules
+   ☐ Data sanitization
+   ☐ Error exposure
+
+// DOCUMENTATION STANDARDS
+[documentation-standards]
+
+1. JSDoc Comments:
+
+   - Add JSDoc comments for all exported functions, types, and components
+   - Include parameter descriptions and types
+   - Document return values and types
+   - Add examples for complex functions
+   - Document thrown errors and side effects
+   - Include links to related components or documentation
+   - Use TypeScript-aware JSDoc annotations
+
+2. Component Documentation:
+
+   - Document all props with descriptions and types
+   - Include usage examples
+   - Document component variants and states
+   - Note accessibility considerations
+   - Document event handlers and callbacks
+   - Include performance considerations
+   - Document any required context providers
+
+3. Hook Documentation:
+
+   - Document hook parameters and return values
+   - Include usage examples
+   - Document dependencies and side effects
+   - Note cleanup/disposal requirements
+   - Document error states and handling
+   - Include performance considerations
+   - Document stale-time and caching behavior
+
+4. API Documentation:
+
+   - Document all endpoints with OpenAPI/Swagger
+   - Include request/response examples
+   - Document error responses
+   - Note rate limiting and caching
+   - Document authentication requirements
+   - Include curl examples
+   - Document pagination behavior
+
+5. MDX Documentation:
+
+   - Keep docs organized by feature/domain
+   - Include table of contents
+   - Use consistent heading hierarchy
+   - Include code examples
+   - Document breaking changes
+   - Keep version information updated
+   - Include troubleshooting guides
+
+6. Documentation Structure:
+   /docs
+   ├── getting-started/
+   │ ├── introduction.mdx
+   │ ├── installation.mdx
+   │ └── configuration.mdx
+   ├── features/
+   │ ├── authentication.mdx
+   │ ├── organizations.mdx
+   │ └── dashboard.mdx
+   ├── components/
+   │ └── {component-name}/
+   │ ├── usage.mdx
+   │ ├── examples.mdx
+   │ └── api.mdx
+   ├── api-reference/
+   │ └── endpoints/
+   └── deployment/
+
+7. Documentation Maintenance:
+
+   - Update docs with each feature change
+   - Review docs during code review
+   - Keep examples up to date
+   - Maintain changelog
+   - Version documentation with releases
+   - Remove outdated content
+   - Cross-reference related docs
+
+8. Comment Style Guide:
+
+   ````typescript
+   /**
+    * @fileoverview Brief description of the file's purpose
+    * @module path/to/module
+    */
+
+   /**
+    * Component/function description
+    *
+    * @description
+    * Detailed explanation of what this does and why it exists
+    *
+    * @example
+    * ```tsx
+    * // Usage example
+    * ```
+    *
+    * @param {Type} name - Parameter description
+    * @returns {Type} Description of return value
+    *
+    * @throws {ErrorType} Description of when/why errors are thrown
+    *
+    * @see Related components or documentation
+    * @see {@link otherFunction} for related functionality
+    *
+    * @remarks
+    * Additional implementation details, considerations, or constraints
+    */
+   ````
+
+9. Documentation Review Checklist:
+   ☐ All exports are documented
+   ☐ Examples are up to date
+   ☐ Links are valid
+   ☐ Breaking changes noted
+   ☐ Accessibility documented
+   ☐ Security considerations noted
+   ☐ Performance implications documented
+   ☐ Error scenarios covered
+   ☐ Props/params documented
+   ☐ Return values documented
+
+10. Documentation Best Practices:
+    - Write for the target audience
+    - Include practical examples
+    - Document edge cases
+    - Explain rationale, not just mechanics
+    - Keep language clear and concise
+    - Use consistent terminology
+    - Include troubleshooting guides
+    - Document common pitfalls
+    - Provide migration guides
+    - Include performance tips
