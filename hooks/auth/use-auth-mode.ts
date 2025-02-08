@@ -2,7 +2,7 @@
 
 import { useQueryState } from "nuqs";
 
-import { type AuthMode } from "@/lib/auth/types";
+import { type AuthMode } from "@/lib/types";
 
 /**
  * A custom hook that manages authentication mode state through URL search parameters.

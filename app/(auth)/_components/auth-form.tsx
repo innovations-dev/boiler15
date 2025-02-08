@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuthMode } from "@/hooks/auth/use-auth-mode";
-import type { AuthMode } from "@/lib/auth/types";
+import type { AuthMode } from "@/lib/types";
 import { CredentialsForm } from "./credentials-form";
 import { MagicLinkForm } from "./magic-link-form";
 import { RegisterForm } from "./register-form";
