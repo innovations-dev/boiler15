@@ -1,124 +1,94 @@
 "use client";
 
+import { useCallback } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
-import { Button } from "@/components/ui/button";
+import { File, Folder, Tree } from "@/components/ui/extension/tree-view-api";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { cn } from "@/lib/utils";
+import { docsConfig, NavItem } from "../config";
 
-interface NavItem {
-  title: string;
-  href: string;
-  items?: NavItem[];
-}
-
-interface NavSection {
-  title: string;
+function RenderNavItems({
+  items,
+  pathname,
+}: {
   items: NavItem[];
-}
+  pathname: string;
+}) {
+  const router = useRouter();
 
-const docsConfig = {
-  sidebarNav: [
-    {
-      title: "Getting Started",
-      items: [
-        {
-          title: "Introduction",
-          href: "/docs/getting-started/introduction",
-        },
-        {
-          title: "Installation",
-          href: "/docs/getting-started/installation",
-        },
-      ],
+  const handleSelect = useCallback(
+    (href: string) => {
+      router.push(href);
     },
-    {
-      title: "Features",
-      items: [
-        {
-          title: "Authentication",
-          href: "/docs/features/authentication",
-          items: [
-            {
-              title: "Multi-Tenancy",
-              href: "/docs/features/authentication/multi-tenancy",
-            },
-          ],
-        },
-        {
-          title: "Database",
-          href: "/docs/features/database",
-        },
-        {
-          title: "Email",
-          href: "/docs/features/email",
-        },
-        {
-          title: "Error Handling",
-          href: "/docs/features/error-handling",
-        },
-        {
-          title: "Query Patterns",
-          href: "/docs/features/query-patterns",
-        },
-        {
-          title: "UI Components",
-          href: "/docs/features/ui-components",
-        },
-        {
-          title: "Kitchen Sink",
-          href: "/docs/kitchen-sink",
-        },
-      ],
-    },
-  ] satisfies NavSection[],
-} as const;
-
-function NavLink({ item, pathname }: { item: NavItem; pathname: string }) {
-  const isActive = pathname === item.href;
-  const hasChildren = item.items && item.items.length > 0;
+    [router]
+  );
 
   return (
-    <div>
-      <Link href={item.href}>
-        <Button
-          variant={isActive ? "secondary" : "ghost"}
-          className={cn(
-            "w-full justify-start",
-            isActive && "bg-secondary font-medium"
-          )}
-        >
-          {item.title}
-        </Button>
-      </Link>
-      {hasChildren && (
-        <div className="ml-4 mt-1 space-y-1 border-l pl-2">
-          {item.items?.map((child) => (
-            <NavLink key={child.href} item={child} pathname={pathname} />
-          ))}
-        </div>
-      )}
-    </div>
+    <>
+      {items.map((item) => {
+        const hasChildren = item.children && item.children.length > 0;
+
+        if (hasChildren) {
+          return (
+            <Folder key={item.id} element={item.name} value={item.id}>
+              <RenderNavItems items={item.children || []} pathname={pathname} />
+            </Folder>
+          );
+        }
+
+        return (
+          <Link href={item.href}>
+            <File
+              key={item.id}
+              value={item.id}
+              isSelect={pathname === item.href}
+              onClick={() => handleSelect(item.id)}
+            >
+              <span>{item.name}</span>
+            </File>
+          </Link>
+        );
+      })}
+    </>
   );
 }
 
 export function DocsSidebar() {
   const pathname = usePathname();
 
+  // Get all expanded section IDs based on current pathname
+  const getExpandedSections = useCallback((path: string): string[] => {
+    const parts = path.split("/").filter(Boolean);
+    const expanded: string[] = [];
+
+    docsConfig.sidebarNav.forEach((section) => {
+      const matchesSection = section.children.some((item) =>
+        parts.some((part) => item.href.includes(part))
+      );
+      if (matchesSection) {
+        expanded.push(section.id);
+      }
+    });
+
+    return expanded;
+  }, []);
+
   return (
     <ScrollArea className="h-full pl-8 pt-12">
       <div className="space-y-6 py-6">
         {docsConfig.sidebarNav.map((section) => (
-          <div key={section.title} className="px-3 py-2">
+          <div key={section.id} className="px-3 py-2">
             <h4 className="mb-2 text-sm font-semibold tracking-tight">
-              {section.title}
+              {section.name}
             </h4>
-            <div className="grid grid-flow-row auto-rows-max gap-1">
-              {section.items.map((item) => (
-                <NavLink key={item.href} item={item} pathname={pathname} />
-              ))}
-            </div>
+            <Tree
+              initialSelectedId={pathname}
+              initialExpendedItems={getExpandedSections(pathname)}
+              className="h-full w-full overflow-y-auto"
+            >
+              <RenderNavItems items={section.children} pathname={pathname} />
+            </Tree>
           </div>
         ))}
       </div>

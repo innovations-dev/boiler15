@@ -7,30 +7,34 @@ import {
   BreadCrumbItem,
 } from "@/components/ui/extension/breadcrumb";
 import { cn } from "@/lib/utils";
-import { docsConfig, NavItem, NavSection } from "../config";
+import { docsConfig, NavSection } from "../config";
 
 // Generate breadcrumb items from current path
 function getBreadcrumbItems(pathname: string, nav: NavSection[]) {
+  if (!pathname) return [];
+
   const parts = pathname.split("/").filter(Boolean);
   const items: { title: string; href: string }[] = [];
 
   let currentPath = "";
-  parts.forEach((part) => {
+  for (const part of parts) {
     currentPath += `/${part}`;
-    // Find matching nav item
-    nav.forEach((section) => {
-      section.items.forEach((item) => {
+
+    for (const section of nav) {
+      for (const item of section.children) {
         if (item.href === currentPath) {
-          items.push({ title: item.title, href: item.href });
+          items.push({ title: item.name, href: item.href });
         }
-        item.items?.forEach((subItem: NavItem) => {
-          if (subItem.href === currentPath) {
-            items.push({ title: subItem.title, href: subItem.href });
+        if (item.children) {
+          for (const subItem of item.children) {
+            if (subItem.href === currentPath) {
+              items.push({ title: subItem.name, href: subItem.href });
+            }
           }
-        });
-      });
-    });
-  });
+        }
+      }
+    }
+  }
 
   return items;
 }

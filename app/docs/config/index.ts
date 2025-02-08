@@ -1,74 +1,91 @@
 export interface NavItem {
-  title: string;
+  id: string;
+  name: string;
   href: string;
-  items?: NavItem[];
+  children?: NavItem[];
 }
 
 export interface NavSection {
-  title: string;
+  id: string;
+  name: string;
   href: string;
-  items: NavItem[];
+  children: NavItem[];
 }
 
 export const docsConfig = {
   sidebarNav: [
     {
-      title: "Getting Started",
+      id: "getting-started",
+      name: "Getting Started",
       href: "/docs/getting-started",
-      items: [
+      children: [
         {
-          title: "Introduction",
+          id: "introduction",
+          name: "Introduction",
           href: "/docs/getting-started/introduction",
         },
         {
-          title: "Installation",
+          id: "installation",
+          name: "Installation",
           href: "/docs/getting-started/installation",
         },
       ],
     },
     {
-      title: "Features",
+      id: "features",
+      name: "Features",
       href: "/docs/features",
-      items: [
+      children: [
         {
-          title: "Authentication",
+          id: "authentication",
+          name: "Authentication",
           href: "/docs/features/authentication",
-          items: [
+          children: [
             {
-              title: "Multi-Tenancy",
+              id: "multi-tenancy",
+              name: "Multi-Tenancy",
               href: "/docs/features/authentication/multi-tenancy",
             },
           ],
         },
         {
-          title: "Database",
+          id: "database",
+          name: "Database",
           href: "/docs/features/database",
         },
         {
-          title: "Email",
+          id: "email",
+          name: "Email",
           href: "/docs/features/email",
         },
         {
-          title: "Error Handling",
+          id: "error-handling",
+          name: "Error Handling",
           href: "/docs/features/error-handling",
         },
         {
-          title: "Query Patterns",
+          id: "query-patterns",
+          name: "Query Patterns",
           href: "/docs/features/query-patterns",
-          items: [
+          children: [
             {
-              title: "RBAC",
+              id: "rbac",
+              name: "RBAC",
               href: "/docs/features/query-patterns/rbac",
             },
           ],
         },
         {
-          title: "UI Components",
+          id: "ui-components",
+          name: "UI Components",
           href: "/docs/features/ui-components",
-        },
-        {
-          title: "Kitchen Sink",
-          href: "/docs/features/kitchen-sink",
+          children: [
+            {
+              id: "kitchen-sink",
+              name: "Kitchen Sink",
+              href: "/docs/features/ui-components/kitchen-sink",
+            },
+          ],
         },
       ],
     },
