@@ -1,7 +1,8 @@
 import { Metadata } from "next";
 
-import { DocsSidebar } from "@/app/docs/_components/docs-sidebar";
 import { generateMetadata } from "@/config/meta.config";
+import { DocsBreadcrumbs } from "./_components/docs-breadcrumbs";
+import { DocsNavigation } from "./_components/docs-navigation";
 
 export const metadata: Metadata = await generateMetadata({
   title: "Documentation",
@@ -15,15 +16,18 @@ interface DocsLayoutProps {
 
 export default function DocsLayout({ children }: DocsLayoutProps) {
   return (
-    <div className="relative mt-24 flex min-h-screen flex-col">
+    <div className="mt-[var(--header-height)] flex min-h-screen flex-col">
       <div className="container flex-1">
-        <div className="grid grid-cols-[220px_1fr] gap-8 lg:grid-cols-[240px_1fr]">
-          <aside className="fixed top-14 hidden h-[calc(100dvh-var(--footer-height)-3.5rem)] md:block">
-            <DocsSidebar />
+        <div className="grid grid-cols-[220px_1fr] gap-12">
+          <aside className="fixed top-14 z-30 hidden h-[calc(100vh-3.5rem)] w-full shrink-0 overflow-y-auto border-r py-6 pr-2 md:sticky md:block lg:py-10">
+            <DocsNavigation />
           </aside>
-          <article className="relative col-start-2 w-full max-w-3xl py-10">
-            {children}
-          </article>
+          <main className="relative py-6 lg:gap-10 lg:py-10">
+            <div className="flex justify-end">
+              <DocsBreadcrumbs />
+            </div>
+            <div className="mx-auto w-full min-w-0">{children}</div>
+          </main>
         </div>
       </div>
     </div>

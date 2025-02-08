@@ -5,7 +5,7 @@ export function MagicLinkFlow() {
         width="100%"
         height="100%"
         viewBox="0 0 961 482"
-        className="h-auto w-full max-w-[961px] fill-none stroke-none [clip-rule:evenodd] [fill-rule:evenodd] [stroke-linecap:round] [stroke-linejoin:round] [stroke-miterlimit:1.5]"
+        className="h-auto w-full max-w-[961px] fill-none stroke-none [clip-rule:evenodd] [fill-rule:evenodd] [strokeLinecap:round] [strokeLinejoin:round] [strokeMiterlimit:1.5]"
         xmlns="http://www.w3.org/2000/svg"
       >
         <style id="fontImports">
