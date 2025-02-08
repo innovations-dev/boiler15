@@ -3,7 +3,6 @@ import { BetterAuthOptions, User } from "better-auth";
 import { env } from "@/env";
 import { sendEmail } from "@/lib/email/services/email-service";
 import { baseURL } from "@/lib/utils";
-import { sendResetPasswordEmail } from "../emails";
 
 export const githubConfig = {
   enabled: true,
@@ -20,7 +19,12 @@ export const providers: BetterAuthOptions = {
     minPasswordLength: 8,
     async sendResetPassword({ user, url }: { user: User; url: string }) {
       try {
-        await sendResetPasswordEmail({ user, url });
+        await sendEmail({
+          to: user.email,
+          template: "RESET_PASSWORD",
+          data: { url },
+          subject: "Reset your password",
+        });
         return;
       } catch (error) {
         console.error("Failed to send reset password email", error);

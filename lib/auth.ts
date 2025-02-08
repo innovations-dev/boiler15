@@ -95,21 +95,9 @@ export const auth = betterAuth({
       : {}),
   },
   emailVerification: {
-    // ...(enabledProviders.includes("password")
-    //   ? { ...providers.emailVerification }
-    //   : {}),
-    autoSignInAfterVerification: true,
-    sendOnSignUp: true,
-    sendVerificationEmail: async ({ user, url }) => {
-      console.log("Sending verification email to", user.email);
-      await sendEmail({
-        to: user.email,
-        template: "VERIFICATION",
-        data: { url },
-        subject: "Verify your email",
-      });
-      console.log("Verification email sent to", user.email);
-    },
+    ...(enabledProviders.includes("password")
+      ? { ...providers.emailVerification }
+      : {}),
   },
   socialProviders: enabledProviders.includes("github")
     ? {
