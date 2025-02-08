@@ -46,8 +46,6 @@ export function cn(...inputs: ClassValue[]) {
  */
 export const baseURL = (() => {
   try {
-    console.log(env.NEXT_PUBLIC_APP_URL);
-    console.log(process.env.VERCEL_URL);
     return new URL(env.NEXT_PUBLIC_APP_URL);
     // return new URL(
     //   process.env.NODE_ENV === "development"
