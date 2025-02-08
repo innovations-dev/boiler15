@@ -31,6 +31,9 @@ export const queryKeys = {
     all: ["organizations"] as const,
     /** Key for organization list */
     list: () => [...queryKeys.organizations.all, "list"] as const,
+    /** Key for organization access */
+    access: (organizationId: string) =>
+      [...queryKeys.organizations.all, "access", organizationId] as const,
   },
 
   /** Session-related query keys */
