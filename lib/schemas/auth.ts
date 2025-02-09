@@ -111,6 +111,7 @@ export const userWithRoleSchema = z.custom<UserWithRole>();
 export const authSessionSchema = z.object({
   session: z.object({
     user: userWithRoleSchema,
+    activeOrganizationId: z.string().optional().nullish(),
   }),
 });
 

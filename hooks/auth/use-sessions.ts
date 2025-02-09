@@ -40,25 +40,9 @@ import { useQueryClient } from "@tanstack/react-query";
 
 import { useApiQuery } from "@/hooks/query/use-api-query";
 import { authClient } from "@/lib/auth/auth-client";
-import { Session, sessionSelectSchemaCoerced } from "@/lib/db/schema";
+import { sessionSelectSchemaCoerced } from "@/lib/db/schema";
 import { cacheConfig } from "@/lib/query/cache-config";
 import { queryKeys } from "@/lib/query/keys";
-import { createApiResponseSchema } from "@/lib/schemas/api-types";
-
-/**
- * Helper function to transform and validate the API response
- * @param {Awaited<ReturnType<typeof authClient.listSessions>>} response - Raw API response
- * @returns {Object} Parsed and validated session data
- * @private
- */
-const defaultResponse = (
-  response: Awaited<ReturnType<typeof authClient.listSessions>>
-) => ({
-  data:
-    response.data?.map((session: Session) =>
-      sessionSelectSchemaCoerced.parse(session)
-    ) ?? [],
-});
 
 /**
  * Hook for fetching and managing user sessions
@@ -72,8 +56,11 @@ export function useSessions() {
     void queryClient.prefetchQuery({
       queryKey: queryKeys.sessions.all,
       queryFn: async () => {
-        const response = await authClient.listSessions();
-        return defaultResponse(response);
+        const { data } = await authClient.listSessions();
+        return (
+          data?.map((session) => sessionSelectSchemaCoerced.parse(session)) ??
+          []
+        );
       },
     });
   }, [queryClient]);
@@ -81,12 +68,14 @@ export function useSessions() {
   return useApiQuery(
     queryKeys.sessions.all,
     async () => {
-      const response = await authClient.listSessions();
-      return defaultResponse(response);
+      const { data } = await authClient.listSessions();
+      return (
+        data?.map((session) => sessionSelectSchemaCoerced.parse(session)) ?? []
+      );
     },
-    createApiResponseSchema(sessionSelectSchemaCoerced.array()),
+    sessionSelectSchemaCoerced.array(),
     {
-      ...cacheConfig.queries.user,
+      ...cacheConfig.queries.session,
     }
   );
 }

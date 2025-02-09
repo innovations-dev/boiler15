@@ -1,13 +1,8 @@
 import { NextResponse } from "next/server";
 import { betterFetch } from "@better-fetch/fetch";
 
-import { Member, Session, User } from "@/lib/db/schema";
-
-type AuthSession = {
-  session: Session & {
-    user: User;
-  };
-};
+import { Member, User } from "@/lib/db/schema";
+import type { AuthSession } from "@/lib/schemas/auth";
 
 type ActiveMemberResponse = {
   data: Member & {

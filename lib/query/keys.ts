@@ -28,20 +28,22 @@ export const queryKeys = {
   /** Organization-related query keys */
   organizations: {
     /** Base key for all organization queries */
-    all: ["organizations"] as const,
+    all: ["organizations"] as const, // Used as a parent key for invalidating all session-related queries at once
     /** Key for organization list */
-    list: () => [...queryKeys.organizations.all, "list"] as const,
+    list: () => [...queryKeys.organizations.all, "list"] as const, // Specifically for fetching the list of sessions
     /** Key for organization access */
     access: (organizationId: string) =>
-      [...queryKeys.organizations.all, "access", organizationId] as const,
+      [...queryKeys.organizations.all, "access", organizationId] as const, // Specifically for fetching a single organization by ID
+    active: () => [...queryKeys.organizations.all, "active"] as const, // Specifically for fetching the active organization
   },
 
   /** Session-related query keys */
   sessions: {
     /** Base key for all session queries */
     all: ["sessions"] as const,
+    list: () => ["sessions", "list"] as const,
     /** Key for current session */
-    current: () => [...queryKeys.sessions.all, "current"] as const,
+    current: () => ["sessions", "current"] as const,
   },
 
   /** User-related query keys */

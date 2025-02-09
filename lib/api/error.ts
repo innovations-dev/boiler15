@@ -27,7 +27,7 @@ import { API_ERROR_CODES } from "@/lib/schemas/api-types";
 export class ApiError extends Error {
   constructor(
     message: string,
-    public code: string = API_ERROR_CODES.INTERNAL_ERROR,
+    public code: string = API_ERROR_CODES.INTERNAL_SERVER_ERROR,
     public status: number = 500
   ) {
     super(message);
@@ -84,7 +84,7 @@ export const handleApiError = async (
   if (error instanceof z.ZodError) {
     return Response.json(
       {
-        code: API_ERROR_CODES.VALIDATION_ERROR,
+        code: API_ERROR_CODES.BAD_REQUEST,
         message: "Invalid request data",
         errors: error.errors,
       },
@@ -94,7 +94,7 @@ export const handleApiError = async (
 
   return Response.json(
     {
-      code: API_ERROR_CODES.INTERNAL_ERROR,
+      code: API_ERROR_CODES.INTERNAL_SERVER_ERROR,
       message: "Internal server error",
     },
     { status: 500 }

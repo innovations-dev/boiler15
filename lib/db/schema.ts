@@ -1,11 +1,5 @@
-import { InferSelectModel, sql } from "drizzle-orm";
-import {
-  index,
-  integer,
-  primaryKey,
-  sqliteTable,
-  text,
-} from "drizzle-orm/sqlite-core";
+import { sql } from "drizzle-orm";
+import { index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 import {
   createInsertSchema,
   createSelectSchema,
@@ -44,27 +38,41 @@ export const user = sqliteTable(
   })
 );
 
-export const userSelectSchema = createSelectSchema(user);
+export const userSelectSchema = createSelectSchema(user, {
+  image: z.string().optional().nullish(),
+  banned: z.boolean().optional().nullish(),
+  banReason: z.string().optional().nullish(),
+  banExpires: z.coerce.date().optional().nullish(),
+});
 export const userInsertSchema = createInsertSchema(user);
 export const userUpdateSchema = createUpdateSchema(user);
 
 export type User = z.infer<typeof userSelectSchema>;
 export type UserInsert = typeof user.$inferInsert;
 
-export const session = sqliteTable("session", {
-  id: text("id").primaryKey(),
-  expiresAt: integer("expires_at", { mode: "timestamp" }).notNull(),
-  token: text("token").notNull().unique(),
-  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
-  updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
-  ipAddress: text("ip_address"),
-  userAgent: text("user_agent"),
-  userId: text("user_id")
-    .notNull()
-    .references(() => user.id),
-  impersonatedBy: text("impersonated_by"),
-  activeOrganizationId: text("active_organization_id"),
-});
+export const session = sqliteTable(
+  "session",
+  {
+    id: text("id").primaryKey(),
+    expiresAt: integer("expires_at", { mode: "timestamp" }).notNull(),
+    token: text("token").notNull().unique(),
+    createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
+    ipAddress: text("ip_address"),
+    userAgent: text("user_agent"),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id),
+    impersonatedBy: text("impersonated_by"),
+    activeOrganizationId: text("active_organization_id"),
+  },
+  (table) => ({
+    userId: index("user_id_idx").on(table.userId),
+    activeOrganizationId: index("active_organization_id_idx").on(
+      table.activeOrganizationId
+    ),
+  })
+);
 
 export const sessionSelectSchemaCoerced = createSelectSchema(session, {
   expiresAt: z.coerce.string(),
