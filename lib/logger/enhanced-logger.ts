@@ -9,6 +9,7 @@ import { nanoid } from "nanoid";
 import { env } from "@/env";
 import { ApiError } from "../api/error";
 import { HttpError } from "../query/error";
+import { API_ERROR_CODES } from "../schemas/api-types";
 import {
   ErrorLogEntry,
   ErrorMetadata,
@@ -114,7 +115,7 @@ class ErrorLogger {
       severity: ErrorSeverity.ERROR,
       timestamp: new Date().toISOString(),
       environment: env.NODE_ENV,
-      code: "UNKNOWN_ERROR",
+      code: API_ERROR_CODES.INTERNAL_SERVER_ERROR,
       context: additionalMetadata.context,
     };
 
@@ -128,7 +129,7 @@ class ErrorLogger {
       baseMetadata.severity =
         error.statusCode >= 500 ? ErrorSeverity.ERROR : ErrorSeverity.WARNING;
     } else if (error instanceof BetterAuthAPIError) {
-      baseMetadata.code = "UNAUTHORIZED";
+      baseMetadata.code = API_ERROR_CODES.UNAUTHORIZED;
       baseMetadata.severity = ErrorSeverity.WARNING;
     }
 

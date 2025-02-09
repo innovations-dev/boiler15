@@ -6,12 +6,14 @@
 import { APIError as BetterAuthAPIError } from "better-auth/api";
 import {
   adminClient,
+  customSessionClient,
   magicLinkClient,
   multiSessionClient,
   organizationClient,
 } from "better-auth/client/plugins";
 import { createAuthClient } from "better-auth/react";
 
+import { auth } from "../auth";
 import { clientOnError } from "../errors/client-error";
 import { baseURL } from "../utils";
 
@@ -52,6 +54,7 @@ export const authClient = createAuthClient({
     multiSessionClient(),
     adminClient(),
     organizationClient(),
+    customSessionClient<typeof auth>(),
   ],
 });
 

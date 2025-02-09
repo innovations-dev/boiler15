@@ -1,6 +1,9 @@
 import { APIError as BetterAuthAPIError } from "better-auth/api";
-import { magicLink, OrganizationOptions } from "better-auth/plugins";
+import { OrganizationOptions } from "better-auth/plugins";
+import { eq } from "drizzle-orm";
 
+import { db } from "@/lib/db";
+import { member, organization } from "@/lib/db/schema";
 import { EmailRateLimitError } from "@/lib/email";
 import { sendEmail } from "@/lib/email/services/email-service";
 import { baseURL } from "@/lib/utils";
@@ -95,4 +98,38 @@ export const magicLinkConfig = {
       });
     }
   },
+};
+
+export const getActiveOrganization = async ({ userId }: { userId: string }) => {
+  try {
+    // Get active organization from userId using the member table
+    const existingMemberships = await db.query.member.findFirst({
+      where: eq(member.userId, userId),
+    });
+
+    if (!existingMemberships) {
+      console.log(
+        "getActiveOrganization: No active organization found for user:",
+        userId
+      );
+      return null;
+    }
+
+    const activeOrganization = await db.query.organization.findFirst({
+      where: eq(organization.id, existingMemberships.organizationId),
+    });
+
+    if (!activeOrganization) {
+      console.log(
+        "getActiveOrganization: No active organization found for user:",
+        userId
+      );
+      return null;
+    }
+
+    return activeOrganization;
+  } catch (error) {
+    console.error("Failed to get active organization:", error);
+    return null;
+  }
 };

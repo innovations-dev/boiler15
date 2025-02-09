@@ -133,23 +133,31 @@ export const VerificationUpdateSchema = createUpdateSchema(verification);
 export type Verification = z.infer<typeof VerificationSelectSchema>;
 export type VerificationInsert = typeof verification.$inferInsert;
 
-export const organization = sqliteTable("organization", {
-  id: text("id").primaryKey(),
-  name: text("name").notNull(),
-  slug: text("slug").unique(),
-  logo: text("logo"),
-  createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(
-    () => sql`CURRENT_TIMESTAMP`
-  ),
-  updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(
-    () => sql`CURRENT_TIMESTAMP`
-  ),
-  metadata: text("metadata"),
-});
+export const organization = sqliteTable(
+  "organization",
+  {
+    id: text("id").primaryKey(),
+    name: text("name").notNull(),
+    slug: text("slug").unique(),
+    logo: text("logo"),
+    createdAt: integer("created_at", { mode: "timestamp" }).$defaultFn(
+      () => sql`CURRENT_TIMESTAMP`
+    ),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).$defaultFn(
+      () => sql`CURRENT_TIMESTAMP`
+    ),
+    metadata: text("metadata"),
+  },
+  (table) => ({
+    orgIdx: index("org_idx").on(table.id),
+    slugIdx: index("slug_idx").on(table.slug),
+    nameIdx: index("name_idx").on(table.name),
+  })
+);
 
 export const organizationSelectSchema = createSelectSchema(organization, {
-  metadata: z.string().optional(),
-  logo: z.string().nullish(),
+  metadata: z.string().optional().nullish(),
+  logo: z.string().optional().nullish(),
 });
 export const omittedOrganizationSelectSchema = organizationSelectSchema.omit({
   updatedAt: true,
@@ -163,18 +171,27 @@ export const organizationUpdateSchema = createUpdateSchema(organization);
 export type Organization = z.infer<typeof omittedOrganizationSelectSchema>;
 export type OrganizationInsert = z.infer<typeof organizationInsertSchema>;
 
-export const member = sqliteTable("member", {
-  id: text("id").primaryKey(),
-  organizationId: text("organization_id")
-    .notNull()
-    .references(() => organization.id),
-  userId: text("user_id")
-    .notNull()
-    .references(() => user.id),
-  role: text("role").notNull(),
-  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
-  updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
-});
+export const member = sqliteTable(
+  "member",
+  {
+    id: text("id").primaryKey(),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organization.id),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id),
+    role: text("role").notNull(),
+    createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+    updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
+  },
+  (table) => ({
+    userIdIdx: index("member_user_id_idx").on(table.userId),
+    organizationIdIdx: index("member_organization_id_idx").on(
+      table.organizationId
+    ),
+  })
+);
 
 export const memberSelectSchema = createSelectSchema(member);
 export const memberInsertSchema = createInsertSchema(member);
@@ -182,25 +199,6 @@ export const memberUpdateSchema = createUpdateSchema(member);
 
 export type Member = z.infer<typeof memberSelectSchema>;
 export type MemberInsert = typeof member.$inferInsert;
-
-export const teamMemberSelectSchema = z.object({
-  id: z.string(),
-  role: z.string(),
-  createdAt: z.date(),
-  updatedAt: z.date().nullable(),
-  user: z.object({
-    id: z.string(),
-    name: z.string(),
-    email: z.string(),
-    image: z.string().nullable(),
-  }),
-  organization: z.object({
-    id: z.string(),
-    name: z.string(),
-  }),
-});
-
-export type TeamMember = z.infer<typeof teamMemberSelectSchema>;
 
 export const invitation = sqliteTable("invitation", {
   id: text("id").primaryKey(),

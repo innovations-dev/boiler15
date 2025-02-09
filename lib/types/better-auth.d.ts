@@ -1,3 +1,5 @@
+export {};
+
 declare module "better-auth/api" {
   import { Organization, User } from "@/lib/db/schema";
 
@@ -22,8 +24,13 @@ declare module "better-auth/api" {
 }
 
 declare module "better-auth" {
-  export type Session = {
-    activeOrganizationId: string;
+  interface Session {
     user: UserWithRole;
-  };
+    activeOrganizationId: string;
+  }
+  //   export interface User extends UserWithRole {}
+  //   export interface Session extends Omit<BetterAuthSession, "user"> {
+  //     activeOrganizationId: string;
+  //     user: UserWithRole;
+  //   }
 }

@@ -1,8 +1,27 @@
 import { z } from "zod";
 
 import { handleError } from "@/lib/errors/handle-error";
-import { ApiErrorCode, createApiResponse } from "@/lib/schemas/api-types";
-import type { ApiResponse } from "@/lib/schemas/api-types";
+import {
+  API_ERROR_CODES,
+  createApiResponse,
+  type ApiErrorCode,
+  type ApiResponse,
+} from "@/lib/schemas/api-types";
+
+// Create a Zod enum for API error codes
+const errorMetadataSchema = z.object({
+  code: z.enum([
+    API_ERROR_CODES.BAD_REQUEST,
+    API_ERROR_CODES.UNAUTHORIZED,
+    API_ERROR_CODES.FORBIDDEN,
+    API_ERROR_CODES.NOT_FOUND,
+    API_ERROR_CODES.CONFLICT,
+    API_ERROR_CODES.TOO_MANY_REQUESTS,
+    API_ERROR_CODES.INTERNAL_SERVER_ERROR,
+  ]),
+  message: z.string(),
+  status: z.number(),
+});
 
 /**
  * A generic utility function for creating type-safe server actions with input validation and error handling.
@@ -61,23 +80,27 @@ export async function createAction<Input, Output>({
   input: Input;
 }): Promise<ApiResponse<Output | null>> {
   try {
-    // Validate input if schema provided
     const validatedInput = schema ? schema.parse(input) : input;
-
-    // Execute handler with validated input
     const result = await handler(validatedInput);
-
-    // Return successful response
     return createApiResponse(result);
   } catch (error) {
     const handledError = await handleError(error);
+
+    // Ensure error code is valid
+    const errorCode =
+      handledError.error?.code ?? API_ERROR_CODES.INTERNAL_SERVER_ERROR;
+    const errorStatus = handledError.error?.status ?? 500;
+    const errorMessage =
+      handledError.error?.message ?? "An unknown error occurred";
+
     return {
       data: null,
       error: {
-        code: (handledError.error?.code as ApiErrorCode) ?? "UNKNOWN_ERROR",
-        message: handledError.error?.message ?? "An unknown error occurred",
-        status: handledError.error?.status ?? 500,
+        code: errorCode as ApiErrorCode,
+        message: errorMessage,
+        status: errorStatus,
       },
+      success: false,
     };
   }
 }

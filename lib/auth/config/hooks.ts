@@ -6,6 +6,7 @@ import { nanoid } from "nanoid";
 import { db } from "@/lib/db";
 import { auditLog, member, organization } from "@/lib/db/schema";
 import { AUDIT_ACTIONS } from "@/lib/services/audit-log";
+import { baseURL } from "@/lib/utils";
 
 async function createPersonalOrganization(userId: string) {
   const personalOrg = await db.transaction(async (tx) => {
@@ -50,40 +51,47 @@ async function createPersonalOrganization(userId: string) {
   return personalOrg;
 }
 
-export const getActiveOrganization = async (userId: string) => {
-  const org = await db.query.organization.findFirst({
-    where: eq(member.userId, userId),
-    with: {
-      members: true,
-    },
-  });
-
-  if (!org) {
-    // Create personal organization if none exists
-    return createPersonalOrganization(userId);
-  }
-
-  return org;
-};
-
 export const databaseHooks: Partial<typeof betterAuth> = {
   session: {
     create: {
+      // Add active organization to session
       before: async (session: Session) => {
-        console.log("Session hook triggered with userId:", session.userId);
+        console.log(
+          "CreateSessionDBHook: triggered with userId:",
+          session.user.id
+        );
         try {
           const existingOrg = await db.query.organization.findFirst({
-            where: eq(member.userId, session.userId),
+            where: eq(member.userId, session.user.id),
             with: {
               members: true,
             },
           });
 
-          console.log("Existing org check:", existingOrg);
+          console.log("CreateSessionDBHook: Existing org check:", existingOrg);
 
           const organization =
-            existingOrg || (await createPersonalOrganization(session.userId));
-          console.log("Final organization:", organization);
+            existingOrg || (await createPersonalOrganization(session.user.id));
+          console.log("CreateSessionDBHook: Final organization:", organization);
+
+          const endpoint = `${baseURL.toString()}/api/auth/organization/set-active`;
+          const response = await fetch(endpoint, {
+            method: "POST",
+            body: JSON.stringify({
+              organizationId: organization?.id,
+              organizationSlug: organization.slug,
+            }),
+          });
+
+          if (!response.ok) {
+            console.error(
+              "CreateSessionDBHook: Failed to set active organization:",
+              response
+            );
+            throw new Error(
+              "CreateSessionDBHook: Failed to set active organization"
+            );
+          }
 
           return {
             data: {
@@ -92,7 +100,7 @@ export const databaseHooks: Partial<typeof betterAuth> = {
             },
           };
         } catch (error) {
-          console.error("Session hook error:", error);
+          console.error("CreateSessionDBHook: Session hook error:", error);
           return {
             data: session,
           };
@@ -104,13 +112,34 @@ export const databaseHooks: Partial<typeof betterAuth> = {
   user: {
     create: {
       after: async (user: UserWithRole) => {
-        console.log("User creation hook triggered:", user.id);
+        console.log("CreateOrgDBHook: User creation hook triggered:", user.id);
         try {
           const organization = await createPersonalOrganization(user.id);
-          console.log("Personal org created:", organization);
+          console.log("CreateOrgDBHook: Personal org created:", organization);
+
+          const endpoint = `${baseURL.toString()}/api/auth/organization/set-active`;
+          const response = await fetch(endpoint, {
+            method: "POST",
+            body: JSON.stringify({
+              organizationId: organization?.id,
+              organizationSlug: organization.slug,
+            }),
+          });
+
+          if (!response.ok) {
+            console.error(
+              "CreateOrgDBHook: Failed to set active organization:",
+              response
+            );
+            throw new Error(
+              "CreateOrgDBHook: Failed to set active organization"
+            );
+          }
+          console.log("CreateOrgDBHook:Active organization set:", response);
+
           return { data: user };
         } catch (error) {
-          console.error("User creation hook error:", error);
+          console.error("CreateOrgDBHook: User creation hook error:", error);
           return { data: user };
         }
       },

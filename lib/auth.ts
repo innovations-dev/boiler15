@@ -15,6 +15,7 @@ import { APIError as BetterAuthAPIError } from "better-auth/api";
 import { nextCookies } from "better-auth/next-js";
 import {
   admin,
+  customSession,
   magicLink,
   multiSession,
   openAPI,
@@ -26,12 +27,12 @@ import * as schema from "@/lib/db/schema";
 import { databaseHooks } from "./auth/config/hooks";
 import {
   adminConfig,
+  getActiveOrganization,
   magicLinkConfig,
   organizationConfig,
 } from "./auth/config/plugins";
 import { githubConfig, providers } from "./auth/config/providers";
 import { db } from "./db";
-import { sendEmail } from "./email/services/email-service";
 import { serverOnError } from "./errors/server-error";
 import { baseURL } from "./utils";
 
@@ -104,7 +105,6 @@ export const auth = betterAuth({
         github: githubConfig,
       }
     : {},
-  // databaseHooks: Object.keys(databaseHooks).length ? databaseHooks :
   databaseHooks,
   plugins: [
     admin(adminConfig),
@@ -112,6 +112,28 @@ export const auth = betterAuth({
     magicLink(magicLinkConfig),
     openAPI(),
     multiSession(),
+    customSession(async ({ user, session }) => {
+      try {
+        const activeOrganization = await getActiveOrganization({
+          userId: user.id,
+        });
+        console.log(
+          "🚀 ~ customSession ~ activeOrganization:",
+          activeOrganization?.id
+        );
+
+        return {
+          session: { ...session, activeOrganizationId: activeOrganization?.id },
+          user,
+        };
+      } catch (error) {
+        console.error("customSession error:", error);
+        return {
+          session,
+          user,
+        };
+      }
+    }),
     nextCookies(),
   ],
   user: {
@@ -125,6 +147,16 @@ export const auth = betterAuth({
             cause: "Admin accounts can't be deleted",
           });
         }
+        // TODO: Delete user from all organizations
+        // await db.delete(schema.member).where(eq(schema.member.userId, user.id));
+        // TODO: Delete user from all member
+        // await db.delete(schema.member).where(eq(schema.member.userId, user.id));
+        // TODO: Delete user from all invitations
+        // await db.delete(schema.invitation).where(eq(schema.invitation.userId, user.id));
+        // TODO: Delete user from all sessions
+        // await db.delete(schema.session).where(eq(schema.session.userId, user.id));
+        // TODO: Delete user from all accounts
+        // await db.delete(schema.account).where(eq(schema.account.userId, user.id));
       },
     },
   },

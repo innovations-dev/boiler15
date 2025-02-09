@@ -60,6 +60,7 @@ import { errorLogger } from "@/lib/logger/enhanced-logger";
 import { logError } from "@/lib/logger/error";
 import { ErrorSource } from "@/lib/logger/types";
 import { isQueryError } from "@/lib/query/types";
+import { API_ERROR_CODES } from "@/lib/schemas/api-types";
 
 /**
  * Custom hook that combines React Query with Zod schema validation and error handling for API requests.
@@ -95,13 +96,17 @@ export function useApiQuery<T extends z.ZodType>(
         }
 
         if (error instanceof z.ZodError) {
-          throw new ApiError("Validation error", "VALIDATION_ERROR", 400);
+          throw new ApiError(
+            "Validation error",
+            API_ERROR_CODES.BAD_REQUEST,
+            400
+          );
         }
 
         // For unknown errors, throw a generic error
         throw new ApiError(
           "An unexpected error occurred",
-          "INTERNAL_SERVER_ERROR",
+          API_ERROR_CODES.INTERNAL_SERVER_ERROR,
           500
         );
       }
