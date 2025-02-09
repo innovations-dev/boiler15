@@ -102,32 +102,15 @@ export const magicLinkConfig = {
 
 export const getActiveOrganization = async ({ userId }: { userId: string }) => {
   try {
-    // Get active organization from userId using the member table
-    const existingMemberships = await db.query.member.findFirst({
+    // return activeOrganization;
+    const memberWithOrg = await db.query.member.findFirst({
       where: eq(member.userId, userId),
+      with: {
+        organization: true,
+      },
     });
 
-    if (!existingMemberships) {
-      console.log(
-        "getActiveOrganization: No active organization found for user:",
-        userId
-      );
-      return null;
-    }
-
-    const activeOrganization = await db.query.organization.findFirst({
-      where: eq(organization.id, existingMemberships.organizationId),
-    });
-
-    if (!activeOrganization) {
-      console.log(
-        "getActiveOrganization: No active organization found for user:",
-        userId
-      );
-      return null;
-    }
-
-    return activeOrganization;
+    return memberWithOrg?.organization ?? null;
   } catch (error) {
     console.error("Failed to get active organization:", error);
     return null;

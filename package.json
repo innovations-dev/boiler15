@@ -12,6 +12,8 @@
     "auth:generate": "npx @better-auth/cli@latest generate",
     "auth:migrate": "npx @better-auth/cli@latest migrate",
     "db:prod:generate": "drizzle-kit generate --config=./config/drizzle-prod.config.ts",
+    "db:prod:drop-migration": "drizzle-kit drop --config=./config/drizzle-prod.config.ts",
+    "db:drop-migration": "drizzle-kit drop --config=./config/drizzle-dev.config.ts",
     "db:generate": "drizzle-kit generate --config=./config/drizzle-dev.config.ts",
     "db:prod:migrate": "drizzle-kit migrate --config=./config/drizzle-prod.config.ts",
     "db:migrate": "drizzle-kit migrate --config=./config/drizzle-dev.config.ts",

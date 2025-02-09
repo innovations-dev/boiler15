@@ -15,6 +15,19 @@ CREATE TABLE `account` (
 	FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
+CREATE TABLE `audit_log` (
+	`id` text PRIMARY KEY NOT NULL,
+	`action` text NOT NULL,
+	`entity_type` text NOT NULL,
+	`entity_id` text NOT NULL,
+	`actor_id` text NOT NULL,
+	`metadata` text,
+	`ip_address` text,
+	`user_agent` text,
+	`created_at` integer NOT NULL,
+	FOREIGN KEY (`actor_id`) REFERENCES `user`(`id`) ON UPDATE no action ON DELETE no action
+);
+--> statement-breakpoint
 CREATE TABLE `invitation` (
 	`id` text PRIMARY KEY NOT NULL,
 	`organization_id` text NOT NULL,
@@ -33,6 +46,7 @@ CREATE TABLE `member` (
 	`user_id` text NOT NULL,
 	`role` text NOT NULL,
 	`created_at` integer NOT NULL,
+	`updated_at` integer NOT NULL,
 	FOREIGN KEY (`organization_id`) REFERENCES `organization`(`id`) ON UPDATE no action ON DELETE no action,
 	FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON UPDATE no action ON DELETE no action
 );
@@ -42,7 +56,8 @@ CREATE TABLE `organization` (
 	`name` text NOT NULL,
 	`slug` text,
 	`logo` text,
-	`created_at` integer NOT NULL,
+	`created_at` integer,
+	`updated_at` integer,
 	`metadata` text
 );
 --> statement-breakpoint
@@ -77,6 +92,9 @@ CREATE TABLE `user` (
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `user_email_unique` ON `user` (`email`);--> statement-breakpoint
+CREATE INDEX `user_email_idx` ON `user` (`email`);--> statement-breakpoint
+CREATE INDEX `user_name_idx` ON `user` (`name`);--> statement-breakpoint
+CREATE INDEX `user_role_idx` ON `user` (`role`);--> statement-breakpoint
 CREATE TABLE `verification` (
 	`id` text PRIMARY KEY NOT NULL,
 	`identifier` text NOT NULL,

@@ -1,8 +1,8 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "b50651c8-6b19-44cd-b4c1-b1d8eeeb1953",
-  "prevId": "49d0e38d-f984-47c4-bec2-4610224f63cd",
+  "id": "490e86fd-bf47-4e95-9b1e-e3949277b11d",
+  "prevId": "b4fd71f1-3e8e-40fa-835f-809d022c730b",
   "tables": {
     "account": {
       "name": "account",
@@ -99,7 +99,29 @@
           "autoincrement": false
         }
       },
-      "indexes": {},
+      "indexes": {
+        "account_user_id_idx": {
+          "name": "account_user_id_idx",
+          "columns": [
+            "user_id"
+          ],
+          "isUnique": false
+        },
+        "account_account_id_idx": {
+          "name": "account_account_id_idx",
+          "columns": [
+            "account_id"
+          ],
+          "isUnique": false
+        },
+        "account_provider_id_idx": {
+          "name": "account_provider_id_idx",
+          "columns": [
+            "provider_id"
+          ],
+          "isUnique": false
+        }
+      },
       "foreignKeys": {
         "account_user_id_user_id_fk": {
           "name": "account_user_id_user_id_fk",
@@ -107,6 +129,101 @@
           "tableTo": "user",
           "columnsFrom": [
             "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
+    "audit_log": {
+      "name": "audit_log",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "action": {
+          "name": "action",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "entity_type": {
+          "name": "entity_type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "entity_id": {
+          "name": "entity_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "actor_id": {
+          "name": "actor_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "metadata": {
+          "name": "metadata",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "ip_address": {
+          "name": "ip_address",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "user_agent": {
+          "name": "user_agent",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "audit_log_actor_id_idx": {
+          "name": "audit_log_actor_id_idx",
+          "columns": [
+            "actor_id"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {
+        "audit_log_actor_id_user_id_fk": {
+          "name": "audit_log_actor_id_user_id_fk",
+          "tableFrom": "audit_log",
+          "tableTo": "user",
+          "columnsFrom": [
+            "actor_id"
           ],
           "columnsTo": [
             "id"
@@ -172,7 +289,15 @@
           "autoincrement": false
         }
       },
-      "indexes": {},
+      "indexes": {
+        "invitation_inviter_id_idx": {
+          "name": "invitation_inviter_id_idx",
+          "columns": [
+            "inviter_id"
+          ],
+          "isUnique": false
+        }
+      },
       "foreignKeys": {
         "invitation_organization_id_organization_id_fk": {
           "name": "invitation_organization_id_organization_id_fk",
@@ -251,7 +376,22 @@
           "autoincrement": false
         }
       },
-      "indexes": {},
+      "indexes": {
+        "member_user_id_idx": {
+          "name": "member_user_id_idx",
+          "columns": [
+            "user_id"
+          ],
+          "isUnique": false
+        },
+        "member_organization_id_idx": {
+          "name": "member_organization_id_idx",
+          "columns": [
+            "organization_id"
+          ],
+          "isUnique": false
+        }
+      },
       "foreignKeys": {
         "member_organization_id_organization_id_fk": {
           "name": "member_organization_id_organization_id_fk",
@@ -319,14 +459,14 @@
           "name": "created_at",
           "type": "integer",
           "primaryKey": false,
-          "notNull": true,
+          "notNull": false,
           "autoincrement": false
         },
         "updated_at": {
           "name": "updated_at",
           "type": "integer",
           "primaryKey": false,
-          "notNull": true,
+          "notNull": false,
           "autoincrement": false
         },
         "metadata": {
@@ -432,6 +572,20 @@
             "token"
           ],
           "isUnique": true
+        },
+        "session_user_id_idx": {
+          "name": "session_user_id_idx",
+          "columns": [
+            "user_id"
+          ],
+          "isUnique": false
+        },
+        "session_active_organization_id_idx": {
+          "name": "session_active_organization_id_idx",
+          "columns": [
+            "active_organization_id"
+          ],
+          "isUnique": false
         }
       },
       "foreignKeys": {
@@ -569,6 +723,57 @@
       "uniqueConstraints": {},
       "checkConstraints": {}
     },
+    "users_to_organizations": {
+      "name": "users_to_organizations",
+      "columns": {
+        "user_id": {
+          "name": "user_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "users_to_organizations_user_id_user_id_fk": {
+          "name": "users_to_organizations_user_id_user_id_fk",
+          "tableFrom": "users_to_organizations",
+          "tableTo": "user",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "users_to_organizations_organization_id_organization_id_fk": {
+          "name": "users_to_organizations_organization_id_organization_id_fk",
+          "tableFrom": "users_to_organizations",
+          "tableTo": "organization",
+          "columnsFrom": [
+            "organization_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {}
+    },
     "verification": {
       "name": "verification",
       "columns": {
@@ -615,7 +820,15 @@
           "autoincrement": false
         }
       },
-      "indexes": {},
+      "indexes": {
+        "verification_identifier_idx": {
+          "name": "verification_identifier_idx",
+          "columns": [
+            "identifier"
+          ],
+          "isUnique": false
+        }
+      },
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
