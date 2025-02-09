@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { Check, ChevronsUpDown, PlusCircle } from "lucide-react";
 import { toast } from "sonner";
 
@@ -22,28 +23,39 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useActiveOrganization } from "@/hooks/organizations/use-active-organization";
 import { useOrganizations } from "@/hooks/organizations/use-organizations";
 import { authClient } from "@/lib/auth/auth-client";
 import { Organization } from "@/lib/db/schema";
 import { useSetActiveOrganization } from "@/lib/mutations/use-set-active-organization";
+import { queryKeys } from "@/lib/query/keys";
 
 export function OrganizationSwitcher() {
   const router = useRouter();
   const [open, setOpen] = React.useState(false);
-  let [activeOrg, setActiveOrg] = React.useState<Organization | null>(null);
-  const { data: session, isPending: isSessionPending } =
-    authClient.useSession();
-  const { data: organizations, isLoading: isOrgsLoading } = useOrganizations();
-  const { data: activeOrganization, isLoading: isActiveOrgLoading } =
-    useActiveOrganization();
+  const { data: session } = authClient.useSession();
+  const { data: activeOrg, isPending: isActiveOrgPending } =
+    authClient.useActiveOrganization();
+  const { data: organizations } = useOrganizations();
   const { mutate: setActiveOrganization } = useSetActiveOrganization();
-  activeOrg = activeOrganization ?? activeOrg;
-  console.log(
-    "🚀 ~ OrganizationSwitcher ~ activeOrganization:",
-    activeOrganization
-  );
-  const isLoading = isSessionPending || isOrgsLoading || isActiveOrgLoading;
+  const queryClient = useQueryClient();
+
+  // Single loading check
+  const isLoading = !session || isActiveOrgPending;
+
+  // Optimistic updates
+  const handleOrgChange = async (org: Organization) => {
+    const previousOrg = activeOrg;
+
+    // Optimistically update UI
+    queryClient.setQueryData(queryKeys.organizations.active(), org);
+
+    try {
+      await setActiveOrganization({ organizationId: org.id });
+    } catch (error) {
+      // Revert on failure
+      queryClient.setQueryData(queryKeys.organizations.active(), previousOrg);
+    }
+  };
 
   // Show loading state
   if (isLoading) {
@@ -111,8 +123,7 @@ export function OrganizationSwitcher() {
                   key={org.id}
                   onSelect={async () => {
                     try {
-                      await setActiveOrganization({ organizationId: org.id });
-                      setActiveOrg(org);
+                      await handleOrgChange(org);
                       setOpen(false);
                     } catch (error) {
                       toast.error("Failed to set active organization");
@@ -130,7 +141,7 @@ export function OrganizationSwitcher() {
                     <AvatarFallback>{org.name.charAt(0)}</AvatarFallback>
                   </Avatar>
                   {org.name}
-                  {activeOrganization?.id === org.id && (
+                  {activeOrg?.id === org.id && (
                     <Check className="ml-auto h-4 w-4" />
                   )}
                 </CommandItem>

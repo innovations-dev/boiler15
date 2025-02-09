@@ -24,13 +24,9 @@ declare module "better-auth/api" {
 }
 
 declare module "better-auth" {
+  // #See: @/lib/auth:customSession plugin for implementation
   interface Session {
     user: UserWithRole;
     activeOrganizationId: string;
   }
-  //   export interface User extends UserWithRole {}
-  //   export interface Session extends Omit<BetterAuthSession, "user"> {
-  //     activeOrganizationId: string;
-  //     user: UserWithRole;
-  //   }
 }

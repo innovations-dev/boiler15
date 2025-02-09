@@ -36,12 +36,28 @@ export function useSetActiveOrganization(): UseMutationResult<
         throw new Error("Failed to set active organization");
       }
     },
+    onMutate: async (variables) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({
+        queryKey: queryKeys.organizations.active(),
+      });
+
+      // Save previous value
+      const previousOrg = queryClient.getQueryData(
+        queryKeys.organizations.active()
+      );
+
+      return { previousOrg };
+    },
     onSuccess: () => {
       console.log(
         "useSetActiveOrganization: onSuccess: Setting active organization"
       );
       toast.success("Active organization set");
-      queryClient.invalidateQueries({ queryKey: queryKeys.sessions.current() });
+      // Selective invalidation
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.sessions.current(),
+      });
       queryClient.invalidateQueries({
         queryKey: queryKeys.organizations.active(),
       });

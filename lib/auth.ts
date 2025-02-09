@@ -117,10 +117,6 @@ export const auth = betterAuth({
         const activeOrganization = await getActiveOrganization({
           userId: user.id,
         });
-        console.log(
-          "🚀 ~ customSession ~ activeOrganization:",
-          activeOrganization?.id
-        );
 
         return {
           session: { ...session, activeOrganizationId: activeOrganization?.id },
