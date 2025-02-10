@@ -20,7 +20,7 @@ export class HttpError extends Error {
   constructor(
     public statusCode: number,
     message: string,
-    public code: string = API_ERROR_CODES.INTERNAL_ERROR
+    public code: string = API_ERROR_CODES.INTERNAL_SERVER_ERROR
   ) {
     super(message);
     this.name = "HttpError";
@@ -86,7 +86,7 @@ export class BadRequestError extends HttpError {
    * @param {string} message - Error message
    */
   constructor(message: string) {
-    super(400, message, API_ERROR_CODES.VALIDATION_ERROR);
+    super(400, message, API_ERROR_CODES.BAD_REQUEST);
     this.name = "BadRequestError";
   }
 }
@@ -102,7 +102,7 @@ export class RateLimitError extends HttpError {
    * @param {string} [message="Too many requests. Please try again later."] - Error message
    */
   constructor(message: string = "Too many requests. Please try again later.") {
-    super(429, message, API_ERROR_CODES.RATE_LIMIT);
+    super(429, message, API_ERROR_CODES.TOO_MANY_REQUESTS);
     this.name = "RateLimitError";
   }
 }

@@ -27,7 +27,6 @@ import {
   type BetterAuthResponse,
 } from "@/hooks/actions/use-server-action";
 import { authClient } from "@/lib/auth/auth-client";
-import { API_ERROR_CODES } from "@/lib/schemas/api-types";
 
 const forgotPasswordSchema = z.object({
   email: z.string().email("Please enter a valid email address"),

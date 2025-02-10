@@ -59,7 +59,6 @@ import { ApiError } from "@/lib/api/error";
 import { errorLogger } from "@/lib/logger/enhanced-logger";
 import { logError } from "@/lib/logger/error";
 import { ErrorSource } from "@/lib/logger/types";
-import { isQueryError } from "@/lib/query/types";
 import { API_ERROR_CODES } from "@/lib/schemas/api-types";
 
 /**

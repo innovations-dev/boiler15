@@ -3,7 +3,7 @@ import { OrganizationOptions } from "better-auth/plugins";
 import { eq } from "drizzle-orm";
 
 import { db } from "@/lib/db";
-import { member, organization } from "@/lib/db/schema";
+import { member } from "@/lib/db/schema";
 import { EmailRateLimitError } from "@/lib/email";
 import { sendEmail } from "@/lib/email/services/email-service";
 import { baseURL } from "@/lib/utils";

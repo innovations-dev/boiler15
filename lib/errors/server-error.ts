@@ -31,9 +31,8 @@ export const serverOnError = async (error: BetterAuthAPIError) => {
         timestamp: new Date().toISOString(),
       });
       throw new BetterAuthAPIError("BAD_REQUEST", {
-        message:
+        cause:
           "Verification link has expired or is invalid. Please request a new one.",
-        statusCode: 400,
       });
     }
 

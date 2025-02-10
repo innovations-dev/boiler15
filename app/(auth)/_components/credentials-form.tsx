@@ -20,7 +20,6 @@ import {
   BetterAuthResponse,
   useServerAction,
 } from "@/hooks/actions/use-server-action";
-import { useAuthMode } from "@/hooks/auth/use-auth-mode";
 import { authClient } from "@/lib/auth/auth-client";
 
 const credentialsSchema = z.object({
@@ -32,7 +31,6 @@ type CredentialsFormValues = z.infer<typeof credentialsSchema>;
 
 export function CredentialsForm() {
   const router = useRouter();
-  const { setMode } = useAuthMode();
   const form = useForm<CredentialsFormValues>({
     resolver: zodResolver(credentialsSchema),
     defaultValues: {

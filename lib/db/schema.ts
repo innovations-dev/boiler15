@@ -1,4 +1,3 @@
-// import { organization as organizationPlugin } from "better-auth/plugins";
 import { relations, sql } from "drizzle-orm";
 import {
   index,
@@ -204,10 +203,10 @@ export const VerificationUpdateSchema = createUpdateSchema(verification);
 export type Verification = z.infer<typeof VerificationSelectSchema>;
 export type VerificationInsert = typeof verification.$inferInsert;
 
-export const verificationRelations = relations(verification, ({ one }) => ({
-  // Optional one-to-one with user since not all verifications are tied to existing users
-  // The identifier field is used to link verifications to users/emails
-}));
+// export const verificationRelations = relations(verification, ({ one }) => ({
+//   // Optional one-to-one with user since not all verifications are tied to existing users
+//   // The identifier field is used to link verifications to users/emails
+// }));
 
 export const organization = sqliteTable("organization", {
   id: text("id").primaryKey(),
@@ -412,35 +411,3 @@ export const preferencesUpdateSchema = createUpdateSchema(preferences);
 
 export type Preferences = z.infer<typeof preferencesSelectSchema>;
 export type PreferencesInsert = typeof preferences.$inferInsert;
-
-/**
- * Usage Examples:
- *
- * @example
- * // Create a new organization with a member
- * ```typescript
- * await db.transaction(async (tx) => {
- *   const org = await tx.insert(organization).values({
- *     name: "Acme Inc",
- *     slug: "acme"
- *   }).returning();
- *
- *   await tx.insert(member).values({
- *     organizationId: org.id,
- *     userId: currentUser.id,
- *     role: "admin"
- *   });
- * });
- * ```
- *
- * @example
- * // Query user with their organizations
- * ```typescript
- * const userWithOrgs = await db
- *   .select()
- *   .from(user)
- *   .leftJoin(member, eq(user.id, member.userId))
- *   .leftJoin(organization, eq(member.organizationId, organization.id))
- *   .where(eq(user.id, userId));
- * ```
- */

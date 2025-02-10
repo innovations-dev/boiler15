@@ -4,7 +4,6 @@ import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
-import { toast } from "sonner";
 import * as z from "zod";
 
 import { FloatingLabelInput } from "@/components/floating-input";
@@ -21,7 +20,6 @@ import {
   useServerAction,
   type BetterAuthResponse,
 } from "@/hooks/actions/use-server-action";
-import { useAuthMode } from "@/hooks/auth/use-auth-mode";
 import { authClient } from "@/lib/auth/auth-client";
 
 const registerSchema = z.object({
@@ -34,7 +32,6 @@ const registerSchema = z.object({
 type RegisterFormValues = z.infer<typeof registerSchema>;
 
 export function RegisterForm() {
-  const { setMode } = useAuthMode();
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const form = useForm<RegisterFormValues>({

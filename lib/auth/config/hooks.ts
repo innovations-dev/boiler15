@@ -135,7 +135,7 @@ export const databaseHooks: Partial<typeof betterAuth> = {
     create: {
       after: async (user: UserWithRole) => {
         try {
-          const organization = await createPersonalOrganization(user.id);
+          await createPersonalOrganization(user.id);
           return { data: user };
         } catch (error) {
           errorLogger.log(error, ErrorSource.AUTH, {

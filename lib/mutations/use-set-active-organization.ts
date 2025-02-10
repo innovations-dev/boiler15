@@ -36,7 +36,7 @@ export function useSetActiveOrganization(): UseMutationResult<
         throw new Error("Failed to set active organization");
       }
     },
-    onMutate: async (variables) => {
+    onMutate: async () => {
       // Cancel outgoing refetches
       await queryClient.cancelQueries({
         queryKey: queryKeys.organizations.active(),

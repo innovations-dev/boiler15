@@ -4,24 +4,8 @@ import { handleError } from "@/lib/errors/handle-error";
 import {
   API_ERROR_CODES,
   createApiResponse,
-  type ApiErrorCode,
   type ApiResponse,
 } from "@/lib/schemas/api-types";
-
-// Create a Zod enum for API error codes
-const errorMetadataSchema = z.object({
-  code: z.enum([
-    API_ERROR_CODES.BAD_REQUEST,
-    API_ERROR_CODES.UNAUTHORIZED,
-    API_ERROR_CODES.FORBIDDEN,
-    API_ERROR_CODES.NOT_FOUND,
-    API_ERROR_CODES.CONFLICT,
-    API_ERROR_CODES.TOO_MANY_REQUESTS,
-    API_ERROR_CODES.INTERNAL_SERVER_ERROR,
-  ]),
-  message: z.string(),
-  status: z.number(),
-});
 
 /**
  * A generic utility function for creating type-safe server actions with input validation and error handling.
