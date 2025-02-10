@@ -49,6 +49,11 @@ export const docsConfig = {
               name: "Multi-Tenancy",
               href: "/docs/features/authentication/multi-tenancy",
             },
+            {
+              id: "better-auth-apis",
+              name: "Better Auth APIs",
+              href: "/api/auth/reference",
+            },
           ],
         },
         {
