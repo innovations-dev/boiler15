@@ -90,7 +90,7 @@ export const handleApiError = async (
 
 ## Query Error Handling
 
-Our custom hooks use a base mutation configuration for consistent error handling:
+Our custom hooks use a base mutation configuration for consistent error handling with consistent defaults:
 
 ```typescript
 export function useApiQuery<T extends z.ZodType>(
@@ -123,6 +123,49 @@ export function useApiQuery<T extends z.ZodType>(
     },
     ...options,
   });
+}
+```
+
+We also implement a base mutation hook that provides consistent error handling across all mutations:
+
+```typescript
+export function useBaseMutation<TData, TError, TVariables, TContext>(
+  options: UseMutationOptions<TData, TError, TVariables, TContext>
+) {
+  return useMutation({
+    // rest of the mutation options
+    onError: (error) => {
+      const message =
+        error instanceof Error ? error.message : "An unexpected error occurred";
+      toast.error(message);
+    },
+    ...options,
+  });
+}
+```
+
+## Authentication Error Handling
+
+We handle authentication errors through session management and automatic redirects:
+
+```typescript
+export function useSession() {
+  const session = useQuery({
+    queryKey: ["session"],
+    queryFn: async () => {
+      const response = await fetch("/api/auth/session");
+      if (!response.ok) {
+        throw new UnauthorizedError("Session expired or invalid");
+      }
+      return response.json();
+    },
+    retry: false,
+  });
+
+  return {
+    ...session,
+    isAuthenticated: !!session.data,
+  };
 }
 ```
 
@@ -210,6 +253,8 @@ export function RouteError({
 }
 ```
 
+Note: Error boundaries are particularly useful for handling rendering errors and providing fallback UIs. They should be strategically placed to isolate failures and prevent entire app crashes.
+
 ## Error Logging
 
 Our enhanced error logging system provides detailed error tracking:
@@ -278,10 +323,24 @@ export function logError(
    - Handle authentication and authorization errors
 
 6. **Query Error Management**
+
    - Use React Query error boundaries
    - Implement optimistic updates with rollback
    - Handle cache invalidation on errors
    - Provide retry mechanisms for failed queries
+
+7. **Authentication & Authorization**
+
+   - Handle session expiration gracefully
+   - Implement proper role-based access control error handling
+   - Provide clear feedback for unauthorized actions
+   - Maintain secure session management
+
+8. **Network Error Handling**
+   - Handle offline scenarios
+   - Implement retry strategies for network failures
+   - Cache responses for offline access
+   - Provide offline indicators and recovery options
 
 ## Next Steps
 
