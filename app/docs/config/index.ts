@@ -40,6 +40,11 @@ export const docsConfig = {
           href: "/docs/features/authentication",
           children: [
             {
+              id: "rbac",
+              name: "RBAC",
+              href: "/docs/features/query-patterns/rbac",
+            },
+            {
               id: "multi-tenancy",
               name: "Multi-Tenancy",
               href: "/docs/features/authentication/multi-tenancy",
@@ -65,13 +70,6 @@ export const docsConfig = {
           id: "query-patterns",
           name: "Query Patterns",
           href: "/docs/features/query-patterns",
-          children: [
-            {
-              id: "rbac",
-              name: "RBAC",
-              href: "/docs/features/query-patterns/rbac",
-            },
-          ],
         },
         {
           id: "ui-components",
