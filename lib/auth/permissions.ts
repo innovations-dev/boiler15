@@ -1,6 +1,7 @@
-import { ApiError } from "../api/error";
-import { API_ERROR_CODES } from "../schemas/api-types";
-
+/**
+ * System and organization role definitions
+ * @constant
+ */
 export const ROLES = {
   OWNER: "owner",
   ADMIN: "admin",
@@ -8,6 +9,23 @@ export const ROLES = {
   GUEST: "guest",
 } as const;
 
+/**
+ * Granular permission definitions for different access levels
+ * @constant
+ * @example
+ * ```ts
+ * // Check specific permission
+ * if (hasPermission(userRole, PERMISSIONS.ORGANIZATION.MANAGE_MEMBERS)) {
+ *   // Allow member management
+ * }
+ *
+ * // Use in API route
+ * export async function POST(request: Request) {
+ *   await withPermission(request, PERMISSIONS.ADMIN.MANAGE_USERS);
+ *   // Handle admin-only operation
+ * }
+ * ```
+ */
 export const PERMISSIONS = {
   ORGANIZATION: {
     VIEW: "organization:view",
@@ -28,6 +46,10 @@ export const PERMISSIONS = {
   },
 } as const;
 
+/**
+ * Maps roles to their allowed permissions
+ * @private
+ */
 const ROLE_PERMISSIONS: Record<string, string[]> = {
   [ROLES.OWNER]: [
     ...Object.values(PERMISSIONS.ORGANIZATION),
@@ -46,16 +68,27 @@ const ROLE_PERMISSIONS: Record<string, string[]> = {
   [ROLES.GUEST]: [PERMISSIONS.ORGANIZATION.VIEW],
 };
 
+/**
+ * Checks if a role has a specific permission
+ *
+ * @param role - The role to check
+ * @param permission - The permission to verify
+ * @returns boolean indicating if the role has the permission
+ *
+ * @example
+ * ```ts
+ * // Basic permission check
+ * if (hasPermission('admin', PERMISSIONS.ORGANIZATION.MANAGE_MEMBERS)) {
+ *   // Allow member management
+ * }
+ *
+ * // With user service
+ * const userRole = await userService.getUserOrganizationRole(userId, orgId);
+ * if (hasPermission(userRole, PERMISSIONS.MEMBER.EDIT)) {
+ *   // Allow member edit
+ * }
+ * ```
+ */
 export function hasPermission(role: string, permission: string): boolean {
   return ROLE_PERMISSIONS[role]?.includes(permission) ?? false;
-}
-
-export function requirePermission(role: string, permission: string): void {
-  if (!hasPermission(role, permission)) {
-    throw new ApiError(
-      "Insufficient permissions",
-      API_ERROR_CODES.FORBIDDEN,
-      403
-    );
-  }
 }
