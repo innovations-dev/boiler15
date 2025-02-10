@@ -34,6 +34,8 @@ export const queryKeys = {
     /** Key for organization access */
     access: (organizationId: string) =>
       [...queryKeys.organizations.all, "access", organizationId] as const, // Specifically for fetching a single organization by ID
+    member: (organizationId: string) =>
+      [...queryKeys.organizations.all, "member", organizationId] as const, // Specifically for fetching the member of an organization
     active: () => [...queryKeys.organizations.all, "active"] as const, // Specifically for fetching the active organization
   },
 
