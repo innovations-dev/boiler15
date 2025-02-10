@@ -2,7 +2,7 @@ export const metadata = {
   title: "RBAC Patterns",
   description:
     "Role-Based Access Control patterns for client and server-side authorization",
-  section: "Query Patterns",
+  section: "Authentication",
 };
 
 # Role-Based Access Control (RBAC) Patterns
@@ -29,7 +29,7 @@ type OrganizationRole = "owner" | "admin" | "member";
 
 ### useSession Hook
 
-The `useSession` hook manages authentication state and system-level roles:
+The `useSession` hook manages authentication state and system-level roles. It now includes additional functionality for handling organization context:
 
 ```typescript
 import { useSession } from "@/hooks/auth/use-session";
@@ -42,7 +42,10 @@ function AdminPanel() {
     isAuthenticated,// Authentication state
     isAdmin,       // System admin check
     requireAuth,   // Auth guard function
-    requireAdmin   // Admin guard function
+    requireAdmin,  // Admin guard function
+    organizations, // List of user's organizations
+    currentOrg,    // Currently selected organization
+    setCurrentOrg  // Function to switch current organization
   } = useSession();
 
   // Guard example
@@ -251,6 +254,38 @@ export default function SettingsPage({
 }
 ```
 
+### 4. Organization Context Management
+
+Always use the organization context when making organization-specific requests:
+
+```typescript
+function OrganizationFeature() {
+  const { currentOrg } = useSession();
+  const { isAdmin } = useOrganizationAccess(currentOrg?.id);
+
+  // Organization-specific operations should check currentOrg
+  const handleAction = async () => {
+    if (!currentOrg) {
+      toast.error("Please select an organization");
+      return;
+    }
+
+    // Proceed with organization-specific action
+    await performAction(currentOrg.id);
+  };
+
+  return (
+    <div>
+      {currentOrg ? (
+        <button onClick={handleAction}>Perform Action</button>
+      ) : (
+        <p>Please select an organization to continue</p>
+      )}
+    </div>
+  );
+}
+```
+
 ## Error Handling
 
 ### Client-Side
@@ -294,24 +329,26 @@ export async function POST(request: Request) {
 
 ## Query Patterns
 
-### Using with React Query
+### Using with React Query and Organization Context
 
 ```typescript
 import { useQuery } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/query/keys";
 
-function OrganizationData({ organizationId }: { organizationId: string }) {
+function OrganizationData() {
+  const { currentOrg } = useSession();
   const { isAuthenticated } = useSession();
-  const { isMember } = useOrganizationAccess(organizationId);
+  const { isMember } = useOrganizationAccess(currentOrg?.id);
 
   const { data } = useQuery({
-    queryKey: queryKeys.organizations.detail(organizationId),
+    queryKey: queryKeys.organizations.detail(currentOrg?.id),
     queryFn: async () => {
-      const response = await fetch(`/api/organizations/${organizationId}`);
+      if (!currentOrg?.id) throw new Error("No organization selected");
+      const response = await fetch(`/api/organizations/${currentOrg.id}`);
       return response.json();
     },
-    // Only fetch if user is authenticated and a member
-    enabled: isAuthenticated && isMember,
+    // Only fetch if user is authenticated, a member, and org is selected
+    enabled: isAuthenticated && isMember && !!currentOrg,
   });
 
   return <div>{/* Render data */}</div>;

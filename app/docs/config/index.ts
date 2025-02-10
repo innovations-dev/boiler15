@@ -42,7 +42,7 @@ export const docsConfig = {
             {
               id: "rbac",
               name: "RBAC",
-              href: "/docs/features/query-patterns/rbac",
+              href: "/docs/features/authentication/rbac",
             },
             {
               id: "multi-tenancy",
