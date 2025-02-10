@@ -6,7 +6,7 @@ export const metadata = {
   order: 4,
 };
 
-Our email system uses [React Email](https://react.email) with [Resend](https://resend.com) for building and sending beautiful, type-safe transactional emails.
+Our email system uses [React Email](https://react.email) with [Resend](https://resend.com) for building and sending beautiful, type-safe transactional emails. Some email functionality is provided through Better-Auth plugins.
 
 ## Overview
 
@@ -15,14 +15,20 @@ Our email system uses [React Email](https://react.email) with [Resend](https://r
 - 🎨 **Tailwind CSS**: Styled components in emails
 - 🔍 **Preview Mode**: Local development preview
 - 📱 **Responsive**: Mobile-friendly email templates
-- ⚡ **Rate Limiting**: Built-in protection against abuse
 - 🔒 **Type Safety**: Full TypeScript support
 - 🎯 **Error Handling**: Robust error management
-- 📊 **Logging**: Comprehensive activity tracking
 
-## Configuration
+## Authentication Emails
 
-The email system is configured in `lib/email/config.ts`:
+Some authentication-related emails are handled by Better-Auth plugins:
+
+1. **Magic Link Emails**: Configured through the `magicLink` plugin in `lib/auth.ts`
+2. **Verification Emails**: Handled by Better-Auth's email verification system
+3. **Password Reset**: Managed through Better-Auth's password reset flow
+
+## Custom Email Configuration
+
+For custom emails (like organization invites), the system is configured in `lib/email/config.ts`:
 
 ```ts
 export const emailConfig = {
@@ -30,49 +36,28 @@ export const emailConfig = {
   replyTo: env.EMAIL_FROM,
   baseUrl: env.NEXT_PUBLIC_APP_URL,
   templates: {
-    MAGIC_LINK: {
-      subject: "Login to your account",
-      expiresIn: "15 minutes",
-    },
     VERIFICATION: {
       subject: "Verify your email address",
-      expiresIn: "24 hours",
-    },
-    INVITATION: {
-      subject: "Invitation to join {organizationName}",
-      expiresIn: "48 hours",
     },
     RESET_PASSWORD: {
       subject: "Reset your password",
-      expiresIn: "30 minutes",
     },
-    EMAIL_CHANGE: {
-      subject: "Confirm your new email address",
-      expiresIn: "1 hour",
+    INVITATION: {
+      subject: "You've been invited to join {organizationName}",
     },
-  },
-  rateLimits: {
-    maxPerHour: 10,
-    maxPerDay: 50,
   },
 };
 ```
 
 ## Type Definitions
 
-Our email system uses TypeScript for type safety:
+Our custom email system uses TypeScript for type safety:
 
 ```ts
-export type EmailTemplate =
-  | "MAGIC_LINK"
-  | "VERIFICATION"
-  | "INVITATION"
-  | "RESET_PASSWORD"
-  | "EMAIL_CHANGE";
+export type EmailTemplate = "VERIFICATION" | "RESET_PASSWORD" | "INVITATION";
 
 export interface EmailOptions {
   to: string;
-  subject: string;
   template: EmailTemplate;
   data: Record<string, unknown>;
 }
@@ -80,39 +65,7 @@ export interface EmailOptions {
 export interface EmailResult {
   success: boolean;
   data?: unknown;
-  error?: EmailError;
-}
-```
-
-## Email Service
-
-Our email service (`lib/email/services/email-service.ts`) provides a type-safe way to send templated emails:
-
-```ts
-export async function sendEmail(options: EmailOptions): Promise<EmailResult> {
-  try {
-    const template = templateComponents[options.template];
-    const templateConfig = emailConfig.templates[options.template];
-    const element = createElement(template, options.data);
-    const html = await render(element);
-
-    const result = await resend.emails.send({
-      from: emailConfig.from,
-      to: options.to,
-      subject: templateConfig.subject.replace(
-        /{(\w+)}/g,
-        (_, key) => options.data[key] as string
-      ),
-      html,
-    });
-
-    return { success: true, data: result };
-  } catch (error) {
-    if (error instanceof Error && error.message.includes("rate limit")) {
-      throw new EmailRateLimitError("Email rate limit exceeded");
-    }
-    throw new EmailDeliveryError("Failed to send email", error);
-  }
+  error?: Error;
 }
 ```
 
@@ -120,28 +73,21 @@ export async function sendEmail(options: EmailOptions): Promise<EmailResult> {
 
 ### Authentication Emails
 
-1. **Magic Link Email** (`emails/magic-link.tsx`):
+1. **Verification Email** (`emails/verification-email.tsx`):
 
-   - Purpose: Passwordless authentication
-   - Expiry: 15 minutes
-   - Features: Responsive design, security warnings
-
-2. **Verification Email** (`emails/verification-email.tsx`):
-
-   - Purpose: Email verification
-   - Expiry: 24 hours
+   - Purpose: Email verification for new accounts
    - Features: Clear CTA, security information
+   - Note: Used in conjunction with Better-Auth's verification system
 
-3. **Reset Password Email** (`emails/reset-password.tsx`):
-   - Purpose: Password reset
-   - Expiry: 30 minutes
-   - Features: Expiry time display, one-time use warning
+2. **Reset Password Email** (`emails/reset-password.tsx`):
+   - Purpose: Password reset flow
+   - Features: One-time use token, security warnings
+   - Note: Integrated with Better-Auth's password reset functionality
 
 ### Organization Emails
 
 1. **Invitation Email** (`emails/invitation.tsx`):
    - Purpose: Organization invitations
-   - Expiry: 48 hours
    - Features: Organization context, inviter information
 
 ### Common Template Features
@@ -152,52 +98,22 @@ All email templates include:
 - Company branding and logo
 - Clear call-to-action buttons
 - Security warnings and disclaimers
-- Footer with legal links
+- Footer with legal information
 - ARIA labels for accessibility
 - Mobile-optimized layout
-
-## Error Handling
-
-Our system includes robust error handling:
-
-```ts
-export class EmailError extends Error {
-  constructor(
-    message: string,
-    public cause?: unknown
-  ) {
-    super(message);
-    this.name = "EmailError";
-  }
-}
-
-export class EmailRateLimitError extends EmailError {
-  constructor(message: string) {
-    super(message);
-    this.name = "EmailRateLimitError";
-  }
-}
-
-export class EmailDeliveryError extends EmailError {
-  constructor(message: string, cause?: unknown) {
-    super(message, cause);
-    this.name = "EmailDeliveryError";
-  }
-}
-```
 
 ## Usage Examples
 
 ### Sending Authentication Emails
 
 ```ts
-// Magic Link Authentication
+// Verification Email
 await sendEmail({
   to: user.email,
-  template: "MAGIC_LINK",
-  subject: "Login to your account",
+  template: "VERIFICATION",
   data: {
-    url: magicLinkUrl,
+    verificationUrl,
+    username: user.name,
   },
 });
 
@@ -205,10 +121,9 @@ await sendEmail({
 await sendEmail({
   to: user.email,
   template: "RESET_PASSWORD",
-  subject: "Reset your password",
   data: {
-    url: resetUrl,
-    expiryTime: new Date(Date.now() + 30 * 60 * 1000).toISOString(),
+    resetUrl,
+    username: user.name,
   },
 });
 ```
@@ -219,11 +134,10 @@ await sendEmail({
 await sendEmail({
   to: inviteeEmail,
   template: "INVITATION",
-  subject: `Invitation to join ${org.name}`,
   data: {
-    url: inviteUrl,
+    inviteUrl,
     organizationName: org.name,
-    invitedByUsername: inviter.name,
+    inviterName: inviter.name,
   },
 });
 ```
@@ -235,56 +149,10 @@ await sendEmail({
 Start the email preview server:
 
 ```bash
-pnpm mail:dev
+pnpm email:preview
 ```
 
 This starts a local server at `http://localhost:3001` where you can preview your email templates.
-
-### Testing Emails
-
-For testing, we recommend:
-
-1. Using the preview server during development
-2. Setting up a test email account in your `.env`:
-   ```
-   TEST_EMAIL=your-test@email.com
-   ```
-3. Using Resend's test mode for integration testing
-
-## Best Practices
-
-1. **Rate Limiting**
-
-   - Implement per-user and global rate limits
-   - Use exponential backoff for retries
-   - Monitor usage patterns
-
-2. **Security**
-
-   - Never expose sensitive data in emails
-   - Use short-lived tokens
-   - Implement click tracking
-   - Log all email activities
-
-3. **Accessibility**
-
-   - Use semantic HTML
-   - Include text alternatives
-   - Test with screen readers
-   - Maintain color contrast
-
-4. **Error Handling**
-
-   - Implement proper error boundaries
-   - Log failed attempts
-   - Provide user-friendly error messages
-   - Handle rate limits gracefully
-
-5. **Performance**
-   - Optimize images
-   - Minimize HTML size
-   - Use async sending
-   - Implement retries with backoff
 
 ## Environment Variables
 
@@ -300,4 +168,3 @@ NEXT_PUBLIC_APP_URL=https://yourdomain.com # Your app's URL
 
 - [Authentication](/docs/features/authentication) - Email in authentication flows
 - [Organizations](/docs/features/organizations) - Team and invite management
-- [Testing](/docs/guides/testing) - Testing email functionality

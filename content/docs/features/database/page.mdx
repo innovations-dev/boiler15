@@ -18,7 +18,7 @@ Our database system uses [Drizzle ORM](https://orm.drizzle.team) with [Turso](ht
 
 ## Schema Definition
 
-Our database schema is defined in `lib/db/schema.ts`:
+Our database schema is defined in `lib/db/schema.ts`. Here's a simplified version of our core tables:
 
 ```ts
 import { relations, sql } from "drizzle-orm";
@@ -34,6 +34,8 @@ export const users = sqliteTable("user", {
   id: text("id").primaryKey(),
   name: text("name"),
   email: text("email").notNull(),
+  emailVerified: integer("email_verified", { mode: "timestamp" }),
+  image: text("image"),
   role: text("role", { enum: ["user", "admin"] })
     .notNull()
     .default("user"),
@@ -47,6 +49,7 @@ export const organizations = sqliteTable("organization", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
   slug: text("slug").notNull().unique(),
+  image: text("image"),
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .default(sql`CURRENT_TIMESTAMP`),
@@ -122,14 +125,14 @@ export default {
 
 ## Database Client
 
-The database client is initialized in `lib/db.ts`:
+The database client is initialized in `lib/db/index.ts`:
 
 ```ts
 import { createClient } from "@libsql/client";
 import { drizzle } from "drizzle-orm/libsql";
 
 import { env } from "@/env";
-import * as schema from "./db/schema";
+import * as schema from "./schema";
 
 const client = createClient({
   url: env.TURSO_DATABASE_URL,
@@ -147,41 +150,45 @@ export const db = drizzle(client, { schema });
 // Simple Select
 const users = await db.select().from(schema.users);
 
-// With Relations
-const orgsWithMembers = await db
+// With Relations and Conditions
+const orgMembers = await db
   .select()
-  .from(schema.organizations)
+  .from(schema.organizationMembers)
+  .where(eq(schema.organizationMembers.organizationId, orgId))
   .leftJoin(
-    schema.organizationMembers,
-    eq(schema.organizations.id, schema.organizationMembers.organizationId)
+    schema.users,
+    eq(schema.users.id, schema.organizationMembers.userId)
   );
 
-// With Conditions
+// With Multiple Conditions
 const adminUsers = await db
   .select()
   .from(schema.users)
-  .where(eq(schema.users.role, "admin"));
+  .where(
+    and(eq(schema.users.role, "admin"), isNotNull(schema.users.emailVerified))
+  );
 ```
 
 ### Inserting Data
 
 ```ts
-// Single Insert
+// Single Insert with Return
 const newUser = await db
   .insert(schema.users)
   .values({
     id: crypto.randomUUID(),
-    email: "user@example.com",
-    name: "John Doe",
+    email,
+    name,
+    image,
   })
   .returning();
 
 // Batch Insert
-const newOrgs = await db
-  .insert(schema.organizations)
+const newMembers = await db
+  .insert(schema.organizationMembers)
   .values([
-    { id: "1", name: "Org 1", slug: "org-1" },
-    { id: "2", name: "Org 2", slug: "org-2" },
+    { organizationId, userId: user1Id, role: "admin" },
+    { organizationId, userId: user2Id, role: "member" },
   ])
   .returning();
 ```
@@ -191,7 +198,7 @@ const newOrgs = await db
 ```ts
 const updated = await db
   .update(schema.users)
-  .set({ name: "Jane Doe" })
+  .set({ name, image })
   .where(eq(schema.users.id, userId))
   .returning();
 ```
@@ -224,7 +231,7 @@ import * as schema from "./schema";
 type User = InferModel<typeof schema.users>;
 type NewUser = InferModel<typeof schema.users, "insert">;
 
-// Type-safe queries
+// Type-safe queries with inferred results
 const user: User = await db
   .select()
   .from(schema.users)
@@ -238,8 +245,16 @@ const user: User = await db
 
    ```ts
    await db.transaction(async (tx) => {
-     const user = await tx.insert(schema.users).values(/*...*/).returning();
-     await tx.insert(schema.organizationMembers).values(/*...*/);
+     const [org] = await tx
+       .insert(schema.organizations)
+       .values({ id, name, slug })
+       .returning();
+
+     await tx.insert(schema.organizationMembers).values({
+       organizationId: org.id,
+       userId,
+       role: "owner",
+     });
    });
    ```
 
@@ -254,17 +269,29 @@ const user: User = await db
    ```
 
 3. **Error Handling**: Use try-catch blocks and handle database errors gracefully
+
    ```ts
    try {
-     await db.insert(schema.users).values(/*...*/);
+     await db.insert(schema.users).values(userData);
    } catch (error) {
      if (error.message.includes("UNIQUE constraint failed")) {
-       throw new Error("User already exists");
+       throw new Error("Email already exists");
      }
      throw error;
    }
    ```
 
+## Environment Variables
+
+Required environment variables for database configuration:
+
+```bash
+TURSO_DATABASE_URL="libsql://your-database-url"
+TURSO_AUTH_TOKEN="your-auth-token"
+```
+
 ## Next Steps
 
-- [Query Patterns](/docs/features/query-patterns) - Common query patterns
+- [Authentication](/docs/features/authentication) - User authentication and sessions
+- [Multi-tenancy](/docs/features/authentication/multi-tenancy) - Organization-based multi-tenancy
+- [RBAC](/docs/features/authentication/rbac) - Role-based access control
