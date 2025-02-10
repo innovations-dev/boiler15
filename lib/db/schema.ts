@@ -1,6 +1,12 @@
 // import { organization as organizationPlugin } from "better-auth/plugins";
 import { eq, relations, sql } from "drizzle-orm";
-import { index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import {
+  index,
+  integer,
+  primaryKey,
+  sqliteTable,
+  text,
+} from "drizzle-orm/sqlite-core";
 import {
   createInsertSchema,
   createSelectSchema,
@@ -365,6 +371,47 @@ export const auditLogInsertSchema = createInsertSchema(auditLog, {
 
 export type AuditLog = z.infer<typeof auditLogSelectSchema>;
 export type AuditLogInsert = z.infer<typeof auditLogInsertSchema>;
+
+export const preferences = sqliteTable(
+  "preferences",
+  {
+    entityId: text("entity_id").notNull(),
+    entityType: text("entity_type").notNull(),
+    key: text("key").notNull(),
+    value: text("value").notNull(),
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .notNull()
+      .$defaultFn(() => sql`CURRENT_TIMESTAMP`),
+    updatedAt: integer("updated_at", { mode: "timestamp" })
+      .notNull()
+      .$defaultFn(() => sql`CURRENT_TIMESTAMP`),
+  },
+  (table) => ({
+    entityIdIdx: index("preferences_entity_id_idx").on(table.entityId),
+    entityTypeIdx: index("preferences_entity_type_idx").on(table.entityType),
+    pk: primaryKey({ columns: [table.entityId, table.entityType, table.key] }),
+  })
+);
+
+export const preferencesRelations = relations(preferences, ({ one }) => ({
+  user: one(user, {
+    fields: [preferences.entityId],
+    references: [user.id],
+    relationName: "userPreferences",
+  }),
+  organization: one(organization, {
+    fields: [preferences.entityId],
+    references: [organization.id],
+    relationName: "organizationPreferences",
+  }),
+}));
+
+export const preferencesSelectSchema = createSelectSchema(preferences);
+export const preferencesInsertSchema = createInsertSchema(preferences);
+export const preferencesUpdateSchema = createUpdateSchema(preferences);
+
+export type Preferences = z.infer<typeof preferencesSelectSchema>;
+export type PreferencesInsert = typeof preferences.$inferInsert;
 
 /**
  * Usage Examples:
