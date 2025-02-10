@@ -1,8 +1,6 @@
 export {};
 
 declare module "better-auth/api" {
-  import { Organization, User } from "@/lib/db/schema";
-
   export type BetterAuthError = {
     code: string;
     message: string;

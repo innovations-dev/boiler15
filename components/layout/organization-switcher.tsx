@@ -52,6 +52,10 @@ export function OrganizationSwitcher() {
     try {
       await setActiveOrganization({ organizationId: org.id });
     } catch (error) {
+      console.error(
+        "OrganizationSwitcher: Failed to set active organization:",
+        error
+      );
       // Revert on failure
       queryClient.setQueryData(queryKeys.organizations.active(), previousOrg);
     }

@@ -3,17 +3,14 @@
 import { UseMutationResult, useQueryClient } from "@tanstack/react-query";
 import type { BetterAuthResponse } from "better-auth/api";
 import { toast } from "sonner";
-import { z } from "zod";
 
 import { useBaseMutation } from "@/hooks/query/use-base-mutation";
 import { authClient } from "@/lib/auth/auth-client";
 import { queryKeys } from "@/lib/query/keys";
 
-const setActiveOrgSchema = z.object({
-  organizationId: z.string(),
-});
-
-type SetActiveOrgInput = z.infer<typeof setActiveOrgSchema>;
+interface SetActiveOrgInput {
+  organizationId: string;
+}
 
 export function useSetActiveOrganization(): UseMutationResult<
   BetterAuthResponse<void>,
@@ -33,7 +30,13 @@ export function useSetActiveOrganization(): UseMutationResult<
         );
         return { data: undefined, success: true };
       } catch (error) {
-        throw new Error("Failed to set active organization");
+        console.error(
+          "useSetActiveOrganization: error: Failed to set active organization",
+          error
+        );
+        throw new Error(
+          "useSetActiveOrganization: Failed to set active organization"
+        );
       }
     },
     onMutate: async () => {
@@ -62,7 +65,7 @@ export function useSetActiveOrganization(): UseMutationResult<
         queryKey: queryKeys.organizations.active(),
       });
     },
-    context: "setActiveOrganization",
-    errorMessage: "Failed to set active organization",
+    context: "useSetActiveOrganization",
+    errorMessage: "useSetActiveOrganization: Failed to set active organization",
   });
 }
