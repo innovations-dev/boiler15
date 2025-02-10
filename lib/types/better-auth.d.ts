@@ -22,9 +22,29 @@ declare module "better-auth/api" {
 }
 
 declare module "better-auth" {
-  // #See: @/lib/auth:customSession plugin for implementation
+  import type { UserWithRole } from "better-auth/plugins";
+
   interface Session {
+    session: {
+      id: string;
+      expiresAt: Date;
+      token: string;
+      userId: string;
+      activeOrganizationId?: string | null;
+      ipAddress?: string | null;
+      userAgent?: string | null;
+      impersonatedBy?: string | null;
+      createdAt: Date;
+      updatedAt: Date;
+      userId: string;
+    };
     user: UserWithRole;
-    activeOrganizationId: string;
+  }
+
+  interface CustomSession extends Session {
+    session: Session["session"] & {
+      activeOrganizationId: string | null;
+    };
+    user: UserWithRole;
   }
 }

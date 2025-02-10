@@ -55,6 +55,14 @@ export const queryKeys = {
     /** Key for current user */
     current: () => [...queryKeys.users.all, "current"] as const,
   },
+
+  /** Admin-related query keys */
+  admin: {
+    /** Base key for all admin queries */
+    all: ["admin"] as const,
+    /** Key for admin stats */
+    stats: () => [...queryKeys.admin.all, "stats"] as const,
+  },
 } as const;
 
 /**
