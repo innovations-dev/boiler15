@@ -1,4 +1,6 @@
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import type { UserWithRole } from "better-auth/plugins";
 
 import { useApiQuery } from "@/hooks/query/use-api-query";
@@ -9,6 +11,22 @@ import { authSessionSchema } from "@/lib/schemas/auth";
 
 export function useSession() {
   const router = useRouter();
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    void queryClient.prefetchQuery({
+      queryKey: queryKeys.sessions.current(),
+      queryFn: async () => {
+        const { data } = await authClient.getSession();
+        return {
+          session: {
+            user: data?.user as UserWithRole,
+            activeOrganizationId: data?.session.activeOrganizationId,
+          },
+        };
+      },
+    });
+  }, [queryClient]);
 
   const { data, isLoading } = useApiQuery(
     queryKeys.sessions.current(),

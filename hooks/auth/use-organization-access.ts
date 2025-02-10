@@ -12,6 +12,7 @@ export type OrganizationAccess = {
 };
 
 /**
+ * TODO: This is unused and needs to be refactored to use the update ApiQuery api.
  * Hook for managing organization access control
  * @param organizationId - The ID of the organization to check access for
  * @returns Organization access data and utility functions
@@ -26,7 +27,7 @@ export function useOrganizationAccess(organizationId?: string) {
       if (!organizationId || !isAuthenticated) return null;
       try {
         const { data } = await betterFetch<OrganizationAccess>(
-          `/api/organizations/${organizationId}/access`
+          `/api/organizations/${organizationId}/access` // NOTE:  This endpoint doesn't exist yet
         );
         return data;
       } catch (error) {
