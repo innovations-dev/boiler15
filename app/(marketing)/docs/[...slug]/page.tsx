@@ -20,7 +20,7 @@ export default async function DocPage({ params }: PageProps) {
 
   try {
     const { default: MDXContent, metadata } = await import(
-      `../../../content/docs/${resolvedParams.slug.join("/")}/page.mdx`
+      `@/content/docs/${resolvedParams.slug.join("/")}/page.mdx`
     );
 
     return (

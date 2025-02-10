@@ -58,10 +58,7 @@ export default function RootLayout({
               >
                 Skip to main content
               </a>
-              <SiteHeader />
-              <main id="main-content" className="relative w-full flex-1">
-                {children}
-              </main>
+              {children}
               <div className="absolute bottom-4 right-4">
                 <ThemeToggle />
               </div>

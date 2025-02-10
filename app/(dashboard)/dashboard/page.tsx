@@ -19,8 +19,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="flex min-h-screen">
-      <nav className="mt-24 w-64 border-r px-4">{/* Sidebar content */}</nav>
-      <main className="mt-24 flex-1 px-8">
+      <main className="flex-1 px-8">
         <Suspense fallback={<DashboardSkeleton />}>
           {data?.user?.role === "admin" ? (
             <AdminDashboard />
