@@ -8,7 +8,6 @@ export async function getOrganizationStats(organizationId: string) {
     handler: async () => {
       const response =
         await organizationService.getOrganizationStats(organizationId);
-      console.log("🚀 ~ response:", response);
       return response;
     },
     input: organizationId,

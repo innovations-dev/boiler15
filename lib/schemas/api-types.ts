@@ -69,36 +69,6 @@ export interface ApiResponse<T> {
 }
 
 /**
- * Creates a standardized API response object used by useBaseMutation
- * @template T - The type of data to be included in the response
- * @param {T} data - The response payload
- * @param {Partial<ApiError>} [error] - Optional error information
- * @returns {ApiResponse<T>} Formatted API response
- *
- * @example
- * // Success response
- * const response = createApiResponse({ user: { id: 1, name: 'John' } });
- *
- * // Error response
- * const errorResponse = createApiResponse(null, {
- *   code: 'NOT_FOUND',
- *   message: 'User not found',
- *   status: 404
- * });
- */
-
-export function createApiResponse<T>(
-  data: T,
-  error?: Omit<ApiError, "code"> & { code?: ApiErrorCode }
-): ApiResponse<T> {
-  return {
-    success: !error,
-    data,
-    ...(error?.code && { error: { ...error, code: error.code } }),
-  };
-}
-
-/**
  * Creates a Zod schema for validating API responses
  * @template T - The Zod schema type for the data
  * @param {T} dataSchema - Zod schema for validating the response data
@@ -166,11 +136,14 @@ export type PaginationParams = z.infer<typeof paginationParamsSchema>;
 export function createPaginatedResponseSchema<T extends z.ZodType>(
   itemSchema: T
 ) {
-  return createApiResponseSchema(
-    paginationSchema.extend({
+  return z.object({
+    success: z.boolean(),
+    data: paginationSchema.extend({
       items: z.array(itemSchema),
-    })
-  );
+    }),
+    message: z.string().optional(),
+    error: apiErrorSchema.optional(),
+  });
 }
 
 /**

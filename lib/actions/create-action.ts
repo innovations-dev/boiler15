@@ -1,11 +1,7 @@
 import { z } from "zod";
 
 import { handleError } from "@/lib/errors/handle-error";
-import {
-  API_ERROR_CODES,
-  createApiResponse,
-  type ApiResponse,
-} from "@/lib/schemas/api-types";
+import { API_ERROR_CODES, type ApiResponse } from "@/lib/schemas/api-types";
 
 /**
  * A generic utility function for creating type-safe server actions with input validation and error handling.
@@ -64,26 +60,26 @@ export async function createAction<Input, Output>({
   handler: (validatedInput: Input) => Promise<Output>;
   input: Input;
   context?: string;
-}): Promise<ApiResponse<Output | null>> {
+}): Promise<ApiResponse<Output>> {
   try {
     const validatedInput = schema ? schema.parse(input) : input;
     const result = await handler(validatedInput);
 
-    return createApiResponse(result, {
-      message: "Operation completed successfully",
-      status: 200,
-    });
+    return {
+      success: true,
+      data: result,
+    };
   } catch (error) {
     const handledError = await handleError(error, context);
 
     return {
-      data: null,
+      success: false,
+      data: null as Output,
       error: {
         code: handledError.error?.code ?? API_ERROR_CODES.INTERNAL_SERVER_ERROR,
         message: handledError.error?.message ?? "An unknown error occurred",
         status: handledError.error?.status ?? 500,
       },
-      success: false,
     };
   }
 }

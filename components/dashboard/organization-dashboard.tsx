@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import { useOrganizationAccess } from "@/hooks/auth/use-organization-access";
 import { useSession } from "@/hooks/auth/use-session";
 import { useApiQuery } from "@/hooks/query/use-api-query";
+import { cacheConfig } from "@/lib/query/cache-config";
 import { queryKeys } from "@/lib/query/keys";
 import { DashboardSkeleton } from "./dashboard-skeleton";
 
@@ -32,23 +33,23 @@ export function OrganizationDashboard({
     requireAccess,
   } = useOrganizationAccess(organizationId);
 
-  const { data: stats, isLoading: isStatsLoading } = useApiQuery(
+  const response = useApiQuery(
     queryKeys.organizations.stats(organizationId ?? ""),
     async () => {
       const response = await getOrganizationStats(organizationId ?? "");
-      console.log("🚀 ~ dashboard:response:", response);
       if (!response.success || !response.data)
         throw new Error(
           response.error?.message ?? "Failed to fetch organization stats"
         );
-      return response.data;
+      return response.data ?? null;
     },
     organizationStatsSchema,
     {
+      ...cacheConfig.queries.organization,
       enabled: Boolean(organizationId) && isAuthenticated,
     }
   );
-  console.log("🚀 ~ stats:", stats);
+  const { data: stats, isLoading: isStatsLoading } = response;
 
   const content =
     isOrgLoading || isStatsLoading ? (
