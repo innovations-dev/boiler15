@@ -1,22 +1,11 @@
 import { useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { UserWithRole } from "better-auth/plugins";
 
 import { useApiQuery } from "@/hooks/query/use-api-query";
 import { authClient } from "@/lib/auth/auth-client";
 import { userSelectSchema } from "@/lib/db/schema";
 import { cacheConfig } from "@/lib/query/cache-config";
 import { queryKeys } from "@/lib/query/keys";
-import { createApiResponseSchema } from "@/lib/schemas/api-types";
-
-const defaultResponse = (
-  response: Awaited<ReturnType<typeof authClient.admin.listUsers>>
-) => ({
-  data:
-    response.data?.users.map((user: UserWithRole) =>
-      userSelectSchema.parse(user)
-    ) ?? [],
-});
 
 /**
  * Custom hook for fetching and managing user data in the application.
@@ -64,8 +53,13 @@ export function useUsers() {
     void queryClient.prefetchQuery({
       queryKey: queryKeys.users.all,
       queryFn: async () => {
-        const response = await authClient.admin.listUsers({ query: {} });
-        return defaultResponse(response);
+        const { data } = await authClient.admin.listUsers({ query: {} });
+        return (
+          data?.users.map((user) => ({
+            ...user,
+            role: user.role ?? null,
+          })) ?? []
+        );
       },
     });
   }, [queryClient]);
@@ -73,10 +67,15 @@ export function useUsers() {
   return useApiQuery(
     queryKeys.users.all,
     async () => {
-      const response = await authClient.admin.listUsers({ query: {} });
-      return defaultResponse(response);
+      const { data } = await authClient.admin.listUsers({ query: {} });
+      return (
+        data?.users.map((user) => ({
+          ...user,
+          role: user.role ?? null,
+        })) ?? []
+      );
     },
-    createApiResponseSchema(userSelectSchema.array()),
+    userSelectSchema.array(),
     {
       ...cacheConfig.queries.user,
     }

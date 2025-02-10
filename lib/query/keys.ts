@@ -28,67 +28,32 @@ export const queryKeys = {
   /** Organization-related query keys */
   organizations: {
     /** Base key for all organization queries */
-    all: ["organizations"] as const,
-    /** Key for organization list queries */
-    list: () => [...queryKeys.organizations.all, "list"] as const,
-    /** Key for specific organization details
-     * @param id - Organization ID
-     */
-    detail: (id: string) =>
-      [...queryKeys.organizations.all, "detail", id] as const,
-    /** Key for organization members
-     * @param id - Organization ID
-     */
-    members: (id: string) =>
-      [...queryKeys.organizations.all, id, "members"] as const,
-  },
-
-  /** User-related query keys */
-  users: {
-    /** Base key for all user queries */
-    all: ["users"] as const,
-    /** Key for user list queries */
-    list: () => [...queryKeys.users.all, "list"] as const,
-    /** Key for specific user details
-     * @param id - User ID
-     */
-    detail: (id: string) => [...queryKeys.users.all, "detail", id] as const,
-    /** Key for users filtered by role
-     * @param role - User role
-     */
-    byRole: (role: string) => [...queryKeys.users.all, "role", role] as const,
+    all: ["organizations"] as const, // Used as a parent key for invalidating all session-related queries at once
+    /** Key for organization list */
+    list: () => [...queryKeys.organizations.all, "list"] as const, // Specifically for fetching the list of sessions
+    /** Key for organization access */
+    access: (organizationId: string) =>
+      [...queryKeys.organizations.all, "access", organizationId] as const, // Specifically for fetching a single organization by ID
+    member: (organizationId: string) =>
+      [...queryKeys.organizations.all, "member", organizationId] as const, // Specifically for fetching the member of an organization
+    active: () => [...queryKeys.organizations.all, "active"] as const, // Specifically for fetching the active organization
   },
 
   /** Session-related query keys */
   sessions: {
     /** Base key for all session queries */
     all: ["sessions"] as const,
-    /** Key for current session queries */
-    current: () => [...queryKeys.sessions.all, "current"] as const,
+    list: () => ["sessions", "list"] as const,
+    /** Key for current session */
+    current: () => ["sessions", "current"] as const,
   },
 
-  /** Team-related query keys */
-  team: {
-    /** Base key for all team queries */
-    all: ["team"] as const,
-    /** Key for team members within an organization
-     * @param orgId - Organization ID
-     */
-    members: (orgId: string) =>
-      [...queryKeys.team.all, orgId, "members"] as const,
-  },
-
-  /** Admin-related query keys */
-  admin: {
-    /** Base key for all admin queries */
-    all: ["admin"] as const,
-    /** Key for admin statistics queries */
-    stats: () => [...queryKeys.admin.all, "stats"] as const,
-    /** Key for permission queries with pagination
-     * @param limit - Number of permissions to fetch
-     */
-    permissions: (limit: number) =>
-      [...queryKeys.admin.all, "permissions", limit] as const,
+  /** User-related query keys */
+  users: {
+    /** Base key for all user queries */
+    all: ["users"] as const,
+    /** Key for current user */
+    current: () => [...queryKeys.users.all, "current"] as const,
   },
 } as const;
 

@@ -22,15 +22,22 @@ We use [Tanstack Query](https://tanstack.com/query) (React Query) along with our
 
 ## Query Client Configuration
 
-Our query client is configured with sensible defaults in `app/_providers/query-client-provider.tsx`:
+Our query client configuration has been updated to include better defaults and error handling:
 
 ```tsx
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 60 * 1000, // 1 minute
-      retry: 1,
-      refetchOnWindowFocus: false,
+      gcTime: 5 * 60 * 1000, // 5 minutes
+      retry: (failureCount, error) => {
+        if (error instanceof ApiError && error.status === 404) return false;
+        return failureCount < 3;
+      },
+      refetchOnWindowFocus: process.env.NODE_ENV === "production",
+    },
+    mutations: {
+      retry: false,
     },
   },
 });
@@ -43,6 +50,10 @@ const queryClient = new QueryClient({
 We use a base query hook that ensures type safety and consistent error handling:
 
 ```tsx
+/**
+ * Custom hook that combines React Query with Zod schema validation and error handling for API requests.
+ * Expects raw data from queryFn and handles validation/error wrapping internally.
+ */
 export function useApiQuery<T extends z.ZodType>(
   key: readonly unknown[],
   queryFn: () => Promise<z.infer<T>>,
@@ -53,21 +64,47 @@ export function useApiQuery<T extends z.ZodType>(
     queryKey: key,
     queryFn: async () => {
       try {
-        const data = await queryFn();
-        return schema.parse(data);
+        // Get raw data from query function
+        const rawData = await queryFn();
+
+        // Validate data against schema
+        const validatedData = schema.parse(rawData);
+
+        return validatedData;
       } catch (error) {
+        // Log the error with context
         logError(error, `useApiQuery:${key.join(":")}`);
         errorLogger.log(error, ErrorSource.QUERY, {
           context: `useApiQuery:${key.join(":")}`,
         });
-        throw error;
+
+        // Handle specific error types
+        if (error instanceof ApiError) {
+          throw error; // Let React Query handle API errors directly
+        }
+
+        if (error instanceof z.ZodError) {
+          throw new ApiError(
+            "Validation error",
+            API_ERROR_CODES.BAD_REQUEST,
+            400
+          );
+        }
+
+        // For unknown errors, throw a generic error
+        throw new ApiError(
+          "An unexpected error occurred",
+          API_ERROR_CODES.INTERNAL_SERVER_ERROR,
+          500
+        );
       }
     },
     meta: {
       onError: (error: unknown) => {
-        const message = isQueryError(error)
-          ? error.message
-          : "An unexpected error occurred";
+        const message =
+          error instanceof ApiError
+            ? error.message
+            : "An unexpected error occurred";
         toast.error(message);
       },
     },
@@ -81,11 +118,17 @@ export function useApiQuery<T extends z.ZodType>(
 Our base mutation hook provides consistent error handling and logging:
 
 ```tsx
+/**
+ * A base mutation hook that provides error handling, logging, and toast notifications.
+ *
+ * @template TData The type of data returned by the mutation
+ * @template TError The type of error that can occur (defaults to unknown)
+ * @template TVariables The type of variables passed to the mutation (defaults to void)
+ *
+ */
 export function useBaseMutation<TData, TError = unknown, TVariables = void>({
   mutationFn,
   onSuccess,
-  onMutate,
-  onError,
   errorMessage = "An error occurred",
   context = "mutation",
   options = {},
@@ -103,11 +146,12 @@ export function useBaseMutation<TData, TError = unknown, TVariables = void>({
         throw handleApiError(error);
       }
     },
-    onSuccess,
+    onSuccess: async (data) => {
+      await onSuccess?.(data);
+    },
     onError: (error) => {
       const message = error instanceof ApiError ? error.message : errorMessage;
       toast.error(message);
-      onError?.(error);
     },
     ...options,
   });
@@ -179,6 +223,14 @@ export function useOrganizations() {
 Handle data mutations with proper error handling, cache updates, and optimistic updates:
 
 ```tsx
+/**
+ * Custom hook for updating user profile information
+ *
+ * @remarks
+ * This hook provides optimistic updates for the user profile, automatically
+ * handling loading states, error handling, and cache invalidation.
+ *
+ */
 export function useUpdateProfile() {
   const queryClient = useQueryClient();
 
@@ -191,51 +243,87 @@ export function useUpdateProfile() {
       }
     },
     onMutate: async (newData) => {
-      // Cancel outgoing refetches
       await queryClient.cancelQueries({
         queryKey: queryKeys.sessions.current(),
       });
 
-      // Snapshot previous value
-      const previousData = queryClient.getQueryData<SessionQueryData>(
+      const previousData = queryClient.getQueryData<AuthSession>(
         queryKeys.sessions.current()
       );
 
-      // Optimistically update
-      queryClient.setQueryData<SessionQueryData | undefined>(
+      queryClient.setQueryData<AuthSession | undefined>(
         queryKeys.sessions.current(),
         (old) => {
           if (!old) return undefined;
           return {
-            ...old,
-            data: {
-              ...old.data,
-              name: newData.name,
+            session: {
+              ...old.session,
+              user: {
+                ...old.session.user,
+                name: newData.name,
+              },
             },
           };
         }
       );
 
-      return { previousData };
+      return { previousData } as const;
     },
-    onError: (_err, _newData, context) => {
-      // Rollback on error
-      if (context?.previousData) {
-        queryClient.setQueryData(
-          queryKeys.sessions.current(),
-          context.previousData
-        );
+    onError: (_err, _newData, context: unknown) => {
+      if (context && typeof context === "object" && "previousData" in context) {
+        const { previousData } = context as { previousData: AuthSession };
+        queryClient.setQueryData(queryKeys.sessions.current(), previousData);
       }
     },
     onSuccess: () => {
-      // Invalidate and refetch
+      toast.success("Profile updated successfully");
       queryClient.invalidateQueries({
         queryKey: queryKeys.sessions.current(),
       });
     },
     errorMessage: "Failed to update profile",
+    ...cacheConfig.queries.user,
   });
 }
+```
+
+## Query Key Management
+
+We maintain a centralized query key configuration:
+
+```tsx
+export const queryKeys = {
+  sessions: {
+    all: ["sessions"] as const,
+    current: () => [...queryKeys.sessions.all, "current"] as const,
+  },
+  organizations: {
+    all: ["organizations"] as const,
+    list: () => [...queryKeys.organizations.all, "list"] as const,
+    detail: (id: string) => [...queryKeys.organizations.all, id] as const,
+  },
+  // ... more query keys
+};
+```
+
+## Cache Configuration
+
+We maintain consistent cache configurations:
+
+```tsx
+export const cacheConfig = {
+  queries: {
+    default: {
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      gcTime: 10 * 60 * 1000, // 10 minutes
+    },
+    user: {
+      staleTime: 60 * 1000, // 1 minute
+      gcTime: 5 * 60 * 1000, // 5 minutes
+    },
+    // ... more configurations
+  },
+};
 ```
 
 ## Best Practices
@@ -283,48 +371,21 @@ export function useUpdateProfile() {
    - Handle cache invalidation consistently
 
 8. **Testing**
+
    - Mock query responses in tests
    - Test error scenarios
    - Verify cache behavior
 
-## Query Key Management
+9. **Suspense Integration**
 
-We maintain a centralized query key configuration:
+   - Use suspense boundaries effectively
+   - Implement skeleton loaders for loading states
+   - Handle errors within suspense boundaries
 
-```tsx
-export const queryKeys = {
-  sessions: {
-    all: ["sessions"] as const,
-    current: () => [...queryKeys.sessions.all, "current"] as const,
-  },
-  organizations: {
-    all: ["organizations"] as const,
-    list: () => [...queryKeys.organizations.all, "list"] as const,
-    detail: (id: string) => [...queryKeys.organizations.all, id] as const,
-  },
-  // ... more query keys
-};
-```
-
-## Cache Configuration
-
-We maintain consistent cache configurations:
-
-```tsx
-export const cacheConfig = {
-  queries: {
-    default: {
-      staleTime: 1000 * 60, // 1 minute
-      gcTime: 1000 * 60 * 5, // 5 minutes
-    },
-    user: {
-      staleTime: 1000 * 60 * 5, // 5 minutes
-      gcTime: 1000 * 60 * 15, // 15 minutes
-    },
-    // ... more configurations
-  },
-};
-```
+10. **Type Inference**
+    - Leverage TypeScript's type inference
+    - Use proper generic constraints
+    - Maintain consistent type patterns
 
 ## Next Steps
 

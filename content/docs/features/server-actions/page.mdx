@@ -1,0 +1,308 @@
+# Server Actions
+
+This guide explains how to use our server action handling pattern with the `useServerAction` hook. This pattern provides a consistent way to handle server-side mutations with proper error handling, loading states, and type safety.
+
+## Overview
+
+The `useServerAction` hook provides:
+
+- Type-safe server action execution
+- Consistent error handling for both API and Better-Auth responses
+- Input validation with Zod
+- Loading states with React transitions
+- Toast notifications for success/error states
+- Error logging with proper severity levels
+- Support for success/error callbacks
+
+## Installation
+
+The hook is available in the `@/hooks/actions` directory:
+
+```typescript
+import { useServerAction } from "@/hooks/actions/use-server-action";
+```
+
+## Basic Usage
+
+Here's a simple example of using the hook:
+
+```typescript
+import { useServerAction } from "@/hooks/actions/use-server-action";
+import { z } from "zod";
+
+// Define your input validation schema
+const createUserSchema = z.object({
+  name: z.string().min(2),
+  email: z.string().email(),
+});
+
+// Define your input type
+type CreateUserInput = z.infer<typeof createUserSchema>;
+
+// Define your response type
+interface User {
+  id: string;
+  name: string;
+  email: string;
+}
+
+function CreateUserForm() {
+  const { execute, isPending } = useServerAction<User, CreateUserInput>({
+    action: async (input) => {
+      // Your server action logic here
+      const response = await createUser(input);
+      return response;
+    },
+    schema: createUserSchema,
+    context: "createUser",
+    successMessage: "User created successfully",
+    errorMessage: "Failed to create user",
+  });
+
+  const handleSubmit = async (data: CreateUserInput) => {
+    await execute(data);
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      {/* Your form fields */}
+      <button type="submit" disabled={isPending}>
+        {isPending ? "Creating..." : "Create User"}
+      </button>
+    </form>
+  );
+}
+```
+
+## API Reference
+
+### Hook Options
+
+The `useServerAction` hook accepts the following options:
+
+```typescript
+interface UseServerActionOptions<TData, TInput> {
+  // The server action to execute
+  action: (
+    input: TInput
+  ) => Promise<ApiResponse<TData> | BetterAuthResponse<TData>>;
+
+  // Optional success callback
+  onSuccess?: (data: TData) => void | Promise<void>;
+
+  // Optional error callback
+  onError?: (error: Error) => void | Promise<void>;
+
+  // Optional validation schema for input
+  schema?: z.ZodType<TInput>;
+
+  // Context for error logging
+  context?: string;
+
+  // Custom success message
+  successMessage?: string;
+
+  // Custom error message
+  errorMessage?: string;
+}
+```
+
+### Return Value
+
+The hook returns an object with:
+
+```typescript
+{
+  execute: (input: TInput) => Promise<void>;
+  isPending: boolean;
+}
+```
+
+## Error Handling
+
+The hook handles several types of errors:
+
+1. **Validation Errors**: When input fails schema validation
+2. **API Errors**: Standard API error responses
+3. **Better-Auth Errors**: Errors from Better-Auth responses
+4. **Network Errors**: Connection or request failures
+
+### Error Types
+
+Better-Auth errors are automatically mapped to our API error codes:
+
+```typescript
+type BetterAuthErrorCode =
+  | "UNAUTHORIZED" // → 401
+  | "FORBIDDEN" // → 403
+  | "NOT_FOUND" // → 404
+  | "VALIDATION_ERROR" // → 400
+  | "RATE_LIMIT" // → 429
+  | "INTERNAL_ERROR" // → 500
+  | "UNKNOWN_ERROR" // → 400
+  | "FETCH_ERROR"; // → 400
+```
+
+## Best Practices
+
+1. **Always Define Types**:
+
+   ```typescript
+   useServerAction<ResponseType, InputType>({
+     // options
+   });
+   ```
+
+2. **Use Input Validation**:
+
+   ```typescript
+   const schema = z.object({
+     // your validation rules
+   });
+   ```
+
+3. **Provide Context**:
+
+   ```typescript
+   {
+     context: "descriptiveActionName",
+   }
+   ```
+
+4. **Handle Loading States**:
+
+   ```typescript
+   const { isPending } = useServerAction(...);
+
+   <button disabled={isPending}>
+     {isPending ? "Loading..." : "Submit"}
+   </button>
+   ```
+
+5. **Use Success/Error Callbacks**:
+   ```typescript
+   {
+     onSuccess: async (data) => {
+       // Handle success (e.g., redirect, refetch queries)
+     },
+     onError: async (error) => {
+       // Handle error (e.g., reset form, show additional UI)
+     }
+   }
+   ```
+
+## Examples
+
+### With React Query
+
+```typescript
+import { useQueryClient } from "@tanstack/react-query";
+
+import { useServerAction } from "@/hooks/actions/use-server-action";
+
+function UpdateUserForm() {
+  const queryClient = useQueryClient();
+
+  const { execute } = useServerAction({
+    action: updateUser,
+    onSuccess: async () => {
+      // Invalidate and refetch
+      await queryClient.invalidateQueries({ queryKey: ["users"] });
+    },
+    successMessage: "User updated successfully",
+  });
+}
+```
+
+### With Form Libraries
+
+```typescript
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+
+function CreateItemForm() {
+  const form = useForm({
+    resolver: zodResolver(schema),
+  });
+
+  const { execute } = useServerAction({
+    action: createItem,
+    schema, // Same schema as form validation
+    onSuccess: () => {
+      form.reset(); // Reset form on success
+    },
+  });
+
+  return (
+    <form onSubmit={form.handleSubmit(execute)}>
+      {/* form fields */}
+    </form>
+  );
+}
+```
+
+### With Better-Auth
+
+```typescript
+import { authClient } from "@/lib/auth/auth-client";
+
+function ForgotPasswordForm() {
+  const { execute } = useServerAction({
+    action: (data) =>
+      authClient.forgetPassword({
+        email: data.email,
+        redirectTo: "/reset-password",
+      }),
+    schema: forgotPasswordSchema,
+    context: "forgotPassword",
+    successMessage: "Password reset instructions sent",
+  });
+}
+```
+
+## Error Logging
+
+The hook automatically logs errors with appropriate severity levels:
+
+- 5xx errors → `ErrorSeverity.ERROR`
+- 4xx errors → `ErrorSeverity.WARNING`
+
+Errors are logged with:
+
+- Error code
+- Severity
+- Context
+- Input data
+- Error details
+
+## TypeScript Support
+
+The hook is fully typed and provides type inference for:
+
+- Input data
+- Response data
+- Error types
+- Better-Auth responses
+
+## Troubleshooting
+
+Common issues and solutions:
+
+1. **Type Errors**:
+
+   - Ensure you're providing both generic types: `useServerAction<TData, TInput>`
+   - Verify your schema matches your input type
+
+2. **Validation Errors**:
+
+   - Check your Zod schema matches the expected input
+   - Use `schema.parse()` to debug validation issues
+
+3. **Response Handling**:
+
+   - Better-Auth responses are automatically normalized
+   - Custom responses should follow `ApiResponse` or `BetterAuthResponse` types
+
+4. **Loading States**:
+   - The `isPending` state tracks the entire action lifecycle
+   - Use it to disable forms/buttons during submission

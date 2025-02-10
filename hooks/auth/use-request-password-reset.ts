@@ -1,31 +1,8 @@
-import type { UserWithRole } from "better-auth/plugins";
 import { toast } from "sonner";
 
 import { useBaseMutation } from "@/hooks/query/use-base-mutation";
 import { sendPasswordResetEmailAction } from "@/lib/email/actions/send-password-reset-email";
 import { cacheConfig } from "@/lib/query/cache-config";
-
-/**
- * Input parameters for the password reset request
- * @interface RequestPasswordResetInput
- */
-interface RequestPasswordResetInput {
-  /** The user object containing email and role information */
-  user: UserWithRole;
-  /** The complete URL for the password reset page */
-  url: string;
-}
-
-/**
- * Error structure for profile-related errors
- * @interface ProfileError
- */
-interface ProfileError {
-  /** Error message describing what went wrong */
-  message: string;
-  /** Optional error code for specific error types */
-  code?: string;
-}
 
 /**
  * Custom hook for handling password reset request mutations.

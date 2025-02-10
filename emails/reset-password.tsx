@@ -15,6 +15,7 @@ import {
 } from "@react-email/components";
 import { render } from "@react-email/render";
 
+import { baseURL } from "@/lib/utils";
 import tailwindConfig from "@/tailwind.config";
 
 interface ResetPasswordEmailProps {
@@ -26,10 +27,6 @@ export default function ResetPasswordEmail({
   url,
   expiryTime,
 }: ResetPasswordEmailProps) {
-  const baseUrl = process.env.VERCEL_URL
-    ? `https://${process.env.VERCEL_URL}`
-    : (process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000");
-
   return (
     <Html>
       <Head />
@@ -39,7 +36,7 @@ export default function ResetPasswordEmail({
           <Container className="mx-auto my-[40px] w-full max-w-3xl rounded border border-solid border-[#eaeaea] bg-white p-5">
             <Section className="mt-[32px]">
               <Img
-                src={`${baseUrl}/logo.png`}
+                src={`${baseURL}/logo.png`}
                 width="40"
                 height="40"
                 alt="Logo"
@@ -86,19 +83,19 @@ export default function ResetPasswordEmail({
                 email, please contact support.
               </Text>
               <Text className="m-0 text-[12px] leading-[24px] text-[#666666]">
-                <Link href={`${baseUrl}`} className="text-[#666666] underline">
+                <Link href={`${baseURL}`} className="text-[#666666] underline">
                   Your Company, Inc
                 </Link>
                 {" • "}
                 <Link
-                  href={`${baseUrl}/privacy`}
+                  href={`${baseURL}/privacy`}
                   className="text-[#666666] underline"
                 >
                   Privacy Policy
                 </Link>
                 {" • "}
                 <Link
-                  href={`${baseUrl}/terms`}
+                  href={`${baseURL}/terms`}
                   className="text-[#666666] underline"
                 >
                   Terms of Service

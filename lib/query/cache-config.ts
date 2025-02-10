@@ -27,6 +27,11 @@ export const cacheConfig = {
       staleTime: 10 * 60 * 1000, // 10 minutes
       gcTime: 30 * 60 * 1000, // 30 minutes
     },
+    session: {
+      staleTime: 30 * 1000, // 30 seconds
+      gcTime: 5 * 60 * 1000, // 5 minutes
+    },
+
     // Static data - long cache times
     static: {
       staleTime: 24 * 60 * 60 * 1000, // 24 hours

@@ -1,7 +1,10 @@
 import { Metadata } from "next";
 
-import { DocsSidebar } from "@/app/docs/_components/docs-sidebar";
+import { Container } from "@/components/container";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { generateMetadata } from "@/config/meta.config";
+import { DocsBreadcrumbs } from "./_components/docs-breadcrumbs";
+import { DocsNavigation } from "./_components/docs-navigation";
 
 export const metadata: Metadata = await generateMetadata({
   title: "Documentation",
@@ -15,17 +18,29 @@ interface DocsLayoutProps {
 
 export default function DocsLayout({ children }: DocsLayoutProps) {
   return (
-    <div className="relative mt-24 flex min-h-screen flex-col">
-      <div className="container flex-1">
-        <div className="grid grid-cols-[220px_1fr] gap-8 lg:grid-cols-[240px_1fr]">
-          <aside className="fixed top-14 hidden h-[calc(100dvh-var(--footer-height)-3.5rem)] md:block">
-            <DocsSidebar />
-          </aside>
-          <article className="relative col-start-2 w-full max-w-3xl py-10">
-            {children}
-          </article>
+    <div className="relative mt-[var(--header-height)] min-h-[calc(100vh-var(--header-height))]">
+      <Container>
+        <div className="mt-24 flex h-full w-full items-center justify-end">
+          <div className="sticky top-[var(--header-height)] z-20 h-6 border-b bg-background">
+            <DocsBreadcrumbs />
+          </div>
         </div>
-      </div>
+        <div className="relative flex gap-6">
+          {/* Sidebar */}
+          <aside className="sticky top-[calc(var(--header-height)+3.5rem)] hidden h-[calc(100vh-var(--header-height)-3.5rem)] w-60 shrink-0 overflow-y-auto border-r md:block">
+            <ScrollArea className="h-full max-h-full">
+              <DocsNavigation />
+            </ScrollArea>
+          </aside>
+
+          {/* Main Content */}
+          <main className="flex-1 py-6 lg:py-10">
+            <div className="prose prose-invert mx-auto max-w-[880px]">
+              {children}
+            </div>
+          </main>
+        </div>
+      </Container>
     </div>
   );
 }

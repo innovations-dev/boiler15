@@ -12,6 +12,8 @@
     "auth:generate": "npx @better-auth/cli@latest generate",
     "auth:migrate": "npx @better-auth/cli@latest migrate",
     "db:prod:generate": "drizzle-kit generate --config=./config/drizzle-prod.config.ts",
+    "db:prod:drop-migration": "drizzle-kit drop --config=./config/drizzle-prod.config.ts",
+    "db:drop-migration": "drizzle-kit drop --config=./config/drizzle-dev.config.ts",
     "db:generate": "drizzle-kit generate --config=./config/drizzle-dev.config.ts",
     "db:prod:migrate": "drizzle-kit migrate --config=./config/drizzle-prod.config.ts",
     "db:migrate": "drizzle-kit migrate --config=./config/drizzle-dev.config.ts",
@@ -46,6 +48,7 @@
     "@t3-oss/env-nextjs": "^0.12.0",
     "@tanstack/react-query": "^5.65.1",
     "@tanstack/react-query-devtools": "^5.65.1",
+    "@tanstack/react-virtual": "^3.13.0",
     "@types/mdx": "^2.0.13",
     "better-auth": "^1.1.14",
     "class-variance-authority": "^0.7.1",
@@ -69,6 +72,7 @@
     "sugar-high": "^0.8.4",
     "tailwind-merge": "^2.6.0",
     "tailwindcss-animate": "^1.0.7",
+    "use-resize-observer": "^9.1.0",
     "zod": "^3.24.1"
   },
   "devDependencies": {

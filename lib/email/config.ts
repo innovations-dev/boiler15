@@ -1,9 +1,10 @@
 import { env } from "@/env";
+import { baseURL } from "../utils";
 
 export const emailConfig = {
   from: env.EMAIL_FROM,
   replyTo: env.EMAIL_FROM,
-  baseUrl: env.NEXT_PUBLIC_APP_URL,
+  baseUrl: baseURL,
   templates: {
     MAGIC_LINK: {
       subject: "Login to your account",

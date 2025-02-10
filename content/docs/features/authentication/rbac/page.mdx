@@ -1,0 +1,372 @@
+export const metadata = {
+  title: "RBAC Patterns",
+  description:
+    "Role-Based Access Control patterns for client and server-side authorization",
+  section: "Query Patterns",
+};
+
+# Role-Based Access Control (RBAC) Patterns
+
+## Overview
+
+Our application implements a comprehensive role-based access control system that works across both client and server sides. This guide covers the patterns and utilities available for implementing RBAC in your application.
+
+## Role Hierarchy
+
+```typescript
+// System Level Roles
+type SystemRole = "admin" | "user";
+
+// Organization Level Roles
+type OrganizationRole = "owner" | "admin" | "member";
+
+// Role Hierarchy:
+// System: admin > user
+// Organization: owner > admin > member
+```
+
+## Client-Side Utilities
+
+### useSession Hook
+
+The `useSession` hook manages authentication state and system-level roles:
+
+```typescript
+import { useSession } from "@/hooks/auth/use-session";
+
+function AdminPanel() {
+  const {
+    session,        // Current session data
+    user,          // Current user data
+    isLoading,     // Loading state
+    isAuthenticated,// Authentication state
+    isAdmin,       // System admin check
+    requireAuth,   // Auth guard function
+    requireAdmin   // Admin guard function
+  } = useSession();
+
+  // Guard example
+  return (
+    <div>
+      <button
+        onClick={() =>
+          requireAdmin(() => {
+            // Only runs if user is system admin
+            performAdminAction();
+          })
+        }
+      >
+        Admin Action
+      </button>
+    </div>
+  );
+}
+```
+
+### useOrganizationAccess Hook
+
+The `useOrganizationAccess` hook manages organization-level access control:
+
+```typescript
+import { useOrganizationAccess } from "@/hooks/auth/use-organization-access";
+
+function OrganizationSettings({ organizationId }: { organizationId: string }) {
+  const {
+    organization,    // Current organization data
+    member,         // Current member data
+    isLoading,      // Loading state
+    isMember,       // Basic membership check
+    isAdmin,        // Admin role check
+    isOwner,        // Owner role check
+    role,           // Current role
+    requireAccess,  // Member guard function
+    requireAdmin,   // Admin guard function
+    requireOwner    // Owner guard function
+  } = useOrganizationAccess(organizationId);
+
+  // Guard examples
+  return (
+    <div>
+      {/* Basic member access */}
+      <button
+        onClick={() =>
+          requireAccess(() => {
+            // Only runs if user is a member
+            viewOrganizationData();
+          })
+        }
+      >
+        View Data
+      </button>
+
+      {/* Admin access */}
+      <button
+        onClick={() =>
+          requireAdmin(() => {
+            // Only runs if user is admin or owner
+            updateOrganizationSettings();
+          })
+        }
+      >
+        Update Settings
+      </button>
+
+      {/* Owner access */}
+      <button
+        onClick={() =>
+          requireOwner(() => {
+            // Only runs if user is owner
+            deleteOrganization();
+          })
+        }
+      >
+        Delete Organization
+      </button>
+    </div>
+  );
+}
+```
+
+## Server-Side Utilities
+
+### requireOrganizationAccess Middleware
+
+Server-side middleware for organization access control:
+
+```typescript
+import { requireOrganizationAccess } from "@/lib/auth/middleware/require-organization-access";
+
+// In your API route
+export async function GET(
+  request: Request,
+  { params: { organizationId } }: { params: { organizationId: string } }
+) {
+  // Check basic membership
+  const accessCheck = await requireOrganizationAccess(request, organizationId);
+  if (accessCheck) return accessCheck;
+
+  // Check specific role
+  const adminCheck = await requireOrganizationAccess(
+    request,
+    organizationId,
+    "admin"
+  );
+  if (adminCheck) return adminCheck;
+
+  // Proceed with request
+  // ...
+}
+```
+
+## Best Practices
+
+### 1. Combine Client and Server Checks
+
+Always implement RBAC at both client and server levels:
+
+```typescript
+// Client-side component
+function DeleteOrgButton({ organizationId }: { organizationId: string }) {
+  const { requireOwner } = useOrganizationAccess(organizationId);
+
+  const deleteOrg = async () => {
+    // Client-side check
+    requireOwner(async () => {
+      // Server will also verify ownership
+      await fetch(`/api/organizations/${organizationId}`, {
+        method: 'DELETE'
+      });
+    });
+  };
+
+  return <button onClick={deleteOrg}>Delete Organization</button>;
+}
+
+// Server-side API route
+export async function DELETE(
+  request: Request,
+  { params: { organizationId } }: { params: { organizationId: string } }
+) {
+  // Server-side check
+  const accessCheck = await requireOrganizationAccess(request, organizationId, "owner");
+  if (accessCheck) return accessCheck;
+
+  // Proceed with deletion
+  // ...
+}
+```
+
+### 2. Role-Based UI Rendering
+
+Use role checks to conditionally render UI elements:
+
+```typescript
+function OrganizationDashboard({ organizationId }: { organizationId: string }) {
+  const { isAdmin, isOwner } = useOrganizationAccess(organizationId);
+
+  return (
+    <div>
+      {/* Available to all members */}
+      <DashboardMetrics />
+
+      {/* Only visible to admins and owners */}
+      {isAdmin && (
+        <AdminControls />
+      )}
+
+      {/* Only visible to owners */}
+      {isOwner && (
+        <OwnerControls />
+      )}
+    </div>
+  );
+}
+```
+
+### 3. Protected Routes
+
+Implement route protection using the hooks:
+
+```typescript
+// app/organizations/[organizationId]/settings/page.tsx
+export default function SettingsPage({
+  params: { organizationId }
+}: {
+  params: { organizationId: string }
+}) {
+  const { requireAdmin } = useOrganizationAccess(organizationId);
+  const [isAuthorized, setIsAuthorized] = useState(false);
+
+  useEffect(() => {
+    requireAdmin(() => {
+      setIsAuthorized(true);
+    });
+  }, [requireAdmin]);
+
+  if (!isAuthorized) {
+    return <div>Unauthorized</div>;
+  }
+
+  return <SettingsForm />;
+}
+```
+
+## Error Handling
+
+### Client-Side
+
+```typescript
+function OrganizationAction() {
+  const { requireAdmin } = useOrganizationAccess();
+
+  const handleAction = () => {
+    try {
+      requireAdmin(() => {
+        // Action logic
+      });
+    } catch (error) {
+      // Handle error (e.g., show toast notification)
+      toast.error("You don't have permission to perform this action");
+    }
+  };
+}
+```
+
+### Server-Side
+
+```typescript
+export async function POST(request: Request) {
+  try {
+    const accessCheck = await requireOrganizationAccess(
+      request,
+      organizationId,
+      "admin"
+    );
+    if (accessCheck) return accessCheck;
+
+    // Proceed with action
+  } catch (error) {
+    console.error("Access check failed:", error);
+    return new NextResponse("Internal Server Error", { status: 500 });
+  }
+}
+```
+
+## Query Patterns
+
+### Using with React Query
+
+```typescript
+import { useQuery } from "@tanstack/react-query";
+import { queryKeys } from "@/lib/query/keys";
+
+function OrganizationData({ organizationId }: { organizationId: string }) {
+  const { isAuthenticated } = useSession();
+  const { isMember } = useOrganizationAccess(organizationId);
+
+  const { data } = useQuery({
+    queryKey: queryKeys.organizations.detail(organizationId),
+    queryFn: async () => {
+      const response = await fetch(`/api/organizations/${organizationId}`);
+      return response.json();
+    },
+    // Only fetch if user is authenticated and a member
+    enabled: isAuthenticated && isMember,
+  });
+
+  return <div>{/* Render data */}</div>;
+}
+```
+
+## Security Considerations
+
+1. **Defense in Depth**
+
+   - Always implement checks at both client and server levels
+   - Never trust client-side role checks alone
+
+2. **Principle of Least Privilege**
+
+   - Grant minimum required permissions
+   - Use specific role checks instead of generic ones
+
+3. **Audit Logging**
+
+   - Log access control decisions
+   - Track role changes and permission checks
+
+4. **Error Handling**
+   - Provide clear but safe error messages
+   - Don't leak role information in errors
+
+## Testing
+
+```typescript
+import { render, screen } from "@testing-library/react";
+import { useOrganizationAccess } from "@/hooks/auth/use-organization-access";
+
+// Mock the hook
+jest.mock("@/hooks/auth/use-organization-access");
+
+describe("OrganizationSettings", () => {
+  it("shows admin controls for admin users", () => {
+    (useOrganizationAccess as jest.Mock).mockReturnValue({
+      isAdmin: true,
+      isLoading: false,
+    });
+
+    render(<OrganizationSettings organizationId="org-123" />);
+    expect(screen.getByTestId("admin-controls")).toBeInTheDocument();
+  });
+
+  it("hides admin controls for regular members", () => {
+    (useOrganizationAccess as jest.Mock).mockReturnValue({
+      isAdmin: false,
+      isLoading: false,
+    });
+
+    render(<OrganizationSettings organizationId="org-123" />);
+    expect(screen.queryByTestId("admin-controls")).not.toBeInTheDocument();
+  });
+});
+```

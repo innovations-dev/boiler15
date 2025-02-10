@@ -5,9 +5,9 @@ import { z } from "zod";
 import { useBaseMutation } from "@/hooks/query/use-base-mutation";
 import { handleApiError } from "@/lib/api/error";
 import { authClient } from "@/lib/auth/auth-client";
-import { Session } from "@/lib/db/schema";
 import { cacheConfig } from "@/lib/query/cache-config";
 import { queryKeys } from "@/lib/query/keys";
+import { type AuthSession } from "@/lib/schemas/auth";
 
 /**
  * Schema for profile update validation
@@ -18,10 +18,6 @@ export const updateProfileSchema = z.object({
 });
 
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
-
-interface SessionQueryData {
-  data: Session;
-}
 
 /**
  * Custom hook for updating user profile information
@@ -77,34 +73,32 @@ export function useUpdateProfile() {
         queryKey: queryKeys.sessions.current(),
       });
 
-      const previousData = queryClient.getQueryData<SessionQueryData>(
+      const previousData = queryClient.getQueryData<AuthSession>(
         queryKeys.sessions.current()
       );
 
-      queryClient.setQueryData<SessionQueryData | undefined>(
+      queryClient.setQueryData<AuthSession | undefined>(
         queryKeys.sessions.current(),
         (old) => {
           if (!old) return undefined;
           return {
-            ...old,
-            data: {
-              ...old.data,
-              name: newData.name,
+            session: {
+              ...old.session,
+              user: {
+                ...old.session.user,
+                name: newData.name,
+              },
             },
           };
         }
       );
 
-      return { previousData };
+      return { previousData } as const;
     },
     onError: (_err, _newData, context: unknown) => {
-      // TODO: ensure that type unknown doesn't break functionality
-      const ctx = context as { previousData?: SessionQueryData };
-      if (ctx?.previousData) {
-        queryClient.setQueryData(
-          queryKeys.sessions.current(),
-          ctx.previousData
-        );
+      if (context && typeof context === "object" && "previousData" in context) {
+        const { previousData } = context as { previousData: AuthSession };
+        queryClient.setQueryData(queryKeys.sessions.current(), previousData);
       }
     },
     onSuccess: () => {

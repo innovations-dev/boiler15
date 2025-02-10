@@ -1,4 +1,5 @@
 import { ApiError } from "../api/error";
+import { HttpError } from "../query/error";
 
 interface ErrorLogData {
   message: string;
@@ -43,6 +44,9 @@ export function logError(
   if (error instanceof ApiError) {
     errorData.code = error.code;
     errorData.status = error.status;
+  } else if (error instanceof HttpError) {
+    errorData.code = error.code;
+    errorData.status = error.statusCode;
   }
 
   // Add to error reporting service

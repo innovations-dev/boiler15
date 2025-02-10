@@ -6,21 +6,22 @@
 import { z } from "zod";
 
 /**
- * Standardized API error codes used throughout the application
+ * Standardized API error codes from Better-Auth's OpenAPI spec
+ * @see https://github.com/better-auth/better-auth/blob/aaa5c60a037bc7486d45e16264d2672b6e82f064/docs/open-api.json
  * @constant
  */
 export const API_ERROR_CODES = {
-  UNAUTHORIZED: "UNAUTHORIZED",
-  FORBIDDEN: "FORBIDDEN",
-  NOT_FOUND: "NOT_FOUND",
-  VALIDATION_ERROR: "VALIDATION_ERROR",
-  RATE_LIMIT: "RATE_LIMIT",
-  INTERNAL_ERROR: "INTERNAL_ERROR",
-  UNKNOWN_ERROR: "UNKNOWN_ERROR",
-  FETCH_ERROR: "FETCH_ERROR",
+  BAD_REQUEST: "BAD_REQUEST", // 400
+  UNAUTHORIZED: "UNAUTHORIZED", // 401
+  FORBIDDEN: "FORBIDDEN", // 403
+  NOT_FOUND: "NOT_FOUND", // 404
+  CONFLICT: "CONFLICT", // 409
+  TOO_MANY_REQUESTS: "TOO_MANY_REQUESTS", // 429
+  INTERNAL_SERVER_ERROR: "INTERNAL_SERVER_ERROR", // 500
 } as const;
 
-export type ApiErrorCode = keyof typeof API_ERROR_CODES;
+export type ApiErrorCode =
+  (typeof API_ERROR_CODES)[keyof typeof API_ERROR_CODES];
 
 /**
  * Base schema for API errors
@@ -33,22 +34,26 @@ export type ApiErrorCode = keyof typeof API_ERROR_CODES;
  * };
  */
 export const apiErrorSchema = z.object({
+  message: z.string(),
   code: z.enum([
+    "BAD_REQUEST",
     "UNAUTHORIZED",
     "FORBIDDEN",
     "NOT_FOUND",
-    "VALIDATION_ERROR",
-    "RATE_LIMIT",
-    "INTERNAL_ERROR",
-    "UNKNOWN_ERROR",
-    "FETCH_ERROR",
+    "CONFLICT",
+    "TOO_MANY_REQUESTS",
+    "INTERNAL_SERVER_ERROR",
   ]),
-  message: z.string(),
   status: z.number(),
-  details: z.union([z.array(z.any()), z.record(z.unknown())]).optional(),
+  details: z.record(z.unknown()).optional(),
 });
 
-export type ApiError = z.infer<typeof apiErrorSchema>;
+export interface ApiError {
+  message: string;
+  code: ApiErrorCode;
+  status: number;
+  details?: Record<string, unknown>;
+}
 
 /**
  * Generic interface for API responses
@@ -57,7 +62,9 @@ export type ApiError = z.infer<typeof apiErrorSchema>;
  * @property {ApiError} [error] - Error information if the request failed
  */
 export interface ApiResponse<T> {
+  success: boolean;
   data: T;
+  message?: string;
   error?: ApiError;
 }
 
@@ -81,21 +88,12 @@ export interface ApiResponse<T> {
  */
 export function createApiResponse<T>(
   data: T,
-  error?: Omit<ApiError, "status"> & { status?: number }
+  error?: Omit<ApiError, "code"> & { code: ApiErrorCode }
 ): ApiResponse<T> {
   return {
+    success: !error,
     data,
-    error: error
-      ? {
-          code: error.code ?? API_ERROR_CODES.UNKNOWN_ERROR,
-          message:
-            typeof error.message === "string"
-              ? error.message
-              : JSON.stringify(error.message),
-          status: error.status ?? 500,
-          details: error.details,
-        }
-      : undefined,
+    error,
   };
 }
 
@@ -109,11 +107,13 @@ export function createApiResponse<T>(
  * const userSchema = z.object({ id: z.number(), name: z.string() });
  * const userResponseSchema = createApiResponseSchema(userSchema);
  */
-export function createApiResponseSchema<T extends z.ZodType>(dataSchema: T) {
+export function createApiResponseSchema<T extends z.ZodType>(schema: T) {
   return z.object({
-    data: dataSchema,
+    success: z.boolean(),
+    data: schema,
+    message: z.string().optional(),
     error: apiErrorSchema.optional(),
-  }) as z.ZodType<ApiResponse<z.infer<T>>>;
+  });
 }
 
 /**
@@ -210,9 +210,10 @@ export function createErrorResponse(
   error: Partial<ApiError> & { message: string }
 ): ApiResponse<never> {
   return {
+    success: false,
     data: null as never,
     error: {
-      code: error.code ?? API_ERROR_CODES.UNKNOWN_ERROR,
+      code: error.code ?? API_ERROR_CODES.INTERNAL_SERVER_ERROR,
       message: error.message,
       status: error.status ?? 500,
       details: error.details,

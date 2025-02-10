@@ -1,8 +1,11 @@
 import { z } from "zod";
 
 import { handleError } from "@/lib/errors/handle-error";
-import { ApiErrorCode, createApiResponse } from "@/lib/schemas/api-types";
-import type { ApiResponse } from "@/lib/schemas/api-types";
+import {
+  API_ERROR_CODES,
+  createApiResponse,
+  type ApiResponse,
+} from "@/lib/schemas/api-types";
 
 /**
  * A generic utility function for creating type-safe server actions with input validation and error handling.
@@ -55,29 +58,36 @@ export async function createAction<Input, Output>({
   schema,
   handler,
   input,
+  context = "unknown",
 }: {
   schema?: z.ZodType<Input>;
   handler: (validatedInput: Input) => Promise<Output>;
   input: Input;
+  context?: string;
 }): Promise<ApiResponse<Output | null>> {
   try {
-    // Validate input if schema provided
     const validatedInput = schema ? schema.parse(input) : input;
-
-    // Execute handler with validated input
     const result = await handler(validatedInput);
 
-    // Return successful response
-    return createApiResponse(result);
+    return createApiResponse(result, {
+      message: "Operation completed successfully",
+      code: API_ERROR_CODES.INTERNAL_SERVER_ERROR,
+      status: 500,
+      details: {
+        success: true,
+      },
+    });
   } catch (error) {
-    const handledError = await handleError(error);
+    const handledError = await handleError(error, context);
+
     return {
       data: null,
       error: {
-        code: (handledError.error?.code as ApiErrorCode) ?? "UNKNOWN_ERROR",
+        code: handledError.error?.code ?? API_ERROR_CODES.INTERNAL_SERVER_ERROR,
         message: handledError.error?.message ?? "An unknown error occurred",
         status: handledError.error?.status ?? 500,
       },
+      success: false,
     };
   }
 }

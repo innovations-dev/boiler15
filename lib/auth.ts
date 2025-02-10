@@ -9,12 +9,13 @@
  * - Account linking
  */
 
-import { betterAuth, User } from "better-auth";
+import { betterAuth, BetterAuthOptions, User } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { APIError as BetterAuthAPIError } from "better-auth/api";
 import { nextCookies } from "better-auth/next-js";
 import {
   admin,
+  customSession,
   magicLink,
   multiSession,
   openAPI,
@@ -23,9 +24,16 @@ import {
 
 import { env } from "@/env";
 import * as schema from "@/lib/db/schema";
+import { databaseHooks } from "./auth/config/hooks";
+import {
+  adminConfig,
+  getActiveOrganization,
+  magicLinkConfig,
+  organizationConfig,
+} from "./auth/config/plugins";
+import { githubConfig, providers } from "./auth/config/providers";
 import { db } from "./db";
-import { EmailRateLimitError } from "./email";
-import { sendEmail } from "./email/services/email-service";
+import { serverOnError } from "./errors/server-error";
 import { baseURL } from "./utils";
 
 /**
@@ -67,6 +75,9 @@ import { baseURL } from "./utils";
  * - "INTERNAL_SERVER_ERROR" when email sending fails
  * - "BAD_REQUEST" for invalid operations (e.g., deleting admin accounts)
  */
+
+const enabledProviders = ["password", "github"];
+
 export const auth = betterAuth({
   baseURL: baseURL.toString(),
   secret: env.BETTER_AUTH_SECRET,
@@ -77,115 +88,47 @@ export const auth = betterAuth({
   trustedOrigins: [baseURL.toString()],
   fetchOptions: {
     credentials: "include",
-    onError: (error: BetterAuthAPIError) => {
-      console.error("BetterAuth error:", error);
-      throw new Error(error.message);
-    },
+    onError: serverOnError,
+  },
+  emailAndPassword: {
+    ...(enabledProviders.includes("password")
+      ? { ...providers.emailAndPassword }
+      : {}),
   },
   emailVerification: {
-    sendVerificationEmail: async ({ user, url }) => {
-      await sendEmail({
-        to: user.email,
-        template: "VERIFICATION",
-        data: { url },
-        subject: "Verify your email",
-      });
-    },
-    verificationEmailLifetime: 60 * 60 * 24, // 24 hours
+    ...(enabledProviders.includes("password")
+      ? { ...providers.emailVerification }
+      : {}),
   },
-  socialProviders: {
-    github: {
-      enabled: true,
-      clientId: env.GITHUB_CLIENT_ID,
-      clientSecret: env.GITHUB_CLIENT_SECRET,
-    },
-  },
+  socialProviders: enabledProviders.includes("github")
+    ? {
+        github: githubConfig,
+      }
+    : {},
+  databaseHooks,
   plugins: [
+    admin(adminConfig),
+    organization(organizationConfig),
+    magicLink(magicLinkConfig),
     openAPI(),
     multiSession(),
-    admin({
-      defaultBanReason: "Violated terms of service",
-      defaultBanExpiresIn: 60 * 60 * 24 * 30, // 30 days
-      impersonationSessionDuration: 60 * 60, // 1 hour
-    }),
-    organization({
-      async sendInvitationEmail(data) {
-        if (!data?.id || !data?.organization?.name || !data?.inviter?.userId) {
-          throw new BetterAuthAPIError("BAD_REQUEST", {
-            message: "Invalid invitation data",
-          });
-        }
+    customSession(async ({ user, session }) => {
+      try {
+        const activeOrganization = await getActiveOrganization({
+          userId: user.id,
+        });
 
-        try {
-          const result = await sendEmail({
-            to: data.email,
-            template: "INVITATION",
-            subject: `Invitation to join organization ${data.organization.name}`,
-            data: {
-              url: `${baseURL.toString()}/accept-invite/${data.id}`,
-              organizationName: data.organization.name,
-              invitedByUsername: data.inviter.userId,
-            },
-          });
-
-          if (!result.success) {
-            throw result.error;
-          }
-
-          // Log successful invitation email sent (without sensitive data)
-          console.log("Organization invitation email sent successfully:", {
-            to: data.email.split("@")[0] + "@***",
-            organization: data.organization.name,
-            invitedBy: data.inviter.userId,
-            timestamp: new Date().toISOString(),
-          });
-        } catch (error) {
-          // Handle rate limiting specifically
-          if (error instanceof EmailRateLimitError) {
-            throw new BetterAuthAPIError("TOO_MANY_REQUESTS", {
-              message: "Too many invitation attempts. Please try again later.",
-            });
-          }
-
-          // Log the error with appropriate context
-          console.error("Failed to send organization invitation email:", {
-            error: error instanceof Error ? error.message : "Unknown error",
-            organization: data.organization.name,
-            timestamp: new Date().toISOString(),
-          });
-
-          // Throw appropriate auth error
-          throw new BetterAuthAPIError("INTERNAL_SERVER_ERROR", {
-            message: "Failed to send invitation email. Please try again later.",
-          });
-        }
-      },
-    }),
-    magicLink({
-      async sendMagicLink({ email, url }) {
-        console.log("🚀 ~ sendMagicLink ~ { email, url }:", { email, url });
-        try {
-          const result = await sendEmail({
-            to: email,
-            subject: "Login to your account",
-            template: "MAGIC_LINK",
-            data: { url },
-          });
-
-          if (!result.success) {
-            throw result.error;
-          }
-        } catch (error) {
-          if (error instanceof EmailRateLimitError) {
-            throw new BetterAuthAPIError("TOO_MANY_REQUESTS", {
-              message: "Too many login attempts. Please try again later.",
-            });
-          }
-          throw new BetterAuthAPIError("INTERNAL_SERVER_ERROR", {
-            message: "Failed to send login email. Please try again later.",
-          });
-        }
-      },
+        return {
+          session: { ...session, activeOrganizationId: activeOrganization?.id },
+          user,
+        };
+      } catch (error) {
+        console.error("customSession error:", error);
+        return {
+          session,
+          user,
+        };
+      }
     }),
     nextCookies(),
   ],
@@ -197,9 +140,19 @@ export const auth = betterAuth({
       beforeDelete: async (user: User) => {
         if (user.email.includes("admin")) {
           throw new BetterAuthAPIError("BAD_REQUEST", {
-            message: "Admin accounts can't be deleted",
+            cause: "Admin accounts can't be deleted",
           });
         }
+        // TODO: Delete user from all organizations
+        // await db.delete(schema.member).where(eq(schema.member.userId, user.id));
+        // TODO: Delete user from all member
+        // await db.delete(schema.member).where(eq(schema.member.userId, user.id));
+        // TODO: Delete user from all invitations
+        // await db.delete(schema.invitation).where(eq(schema.invitation.userId, user.id));
+        // TODO: Delete user from all sessions
+        // await db.delete(schema.session).where(eq(schema.session.userId, user.id));
+        // TODO: Delete user from all accounts
+        // await db.delete(schema.account).where(eq(schema.account.userId, user.id));
       },
     },
   },
@@ -209,4 +162,4 @@ export const auth = betterAuth({
       trustedProviders: ["github"],
     },
   },
-});
+} as BetterAuthOptions);

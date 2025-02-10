@@ -5,7 +5,7 @@ export function SocialFlow() {
         width="100%"
         height="100%"
         viewBox="0 0 1058 614"
-        className="h-auto w-full max-w-[1058px] fill-none stroke-none [clip-rule:evenodd] [fill-rule:evenodd] [stroke-linecap:round] [stroke-linejoin:round] [stroke-miterlimit:1.5]"
+        className="h-auto w-full max-w-[1058px] fill-none stroke-none [clip-rule:evenodd] [fill-rule:evenodd] [strokeLinecap:round] [strokeLinejoin:round] [strokeMiterlimit:1.5]"
         xmlns="http://www.w3.org/2000/svg"
       >
         <style id="fontImports">
@@ -537,11 +537,11 @@ export function SocialFlow() {
                 d="M30.2 22.7H21c-2.6 0-4.8 2.2-4.8 4.8v24.2c0 2.6 2.2 4.8 4.8 4.8h11.8c2.4 0 4.4-2 4.4-4.4v-9.6m0 6h-21m26-25a6 6 0 1 0 0-12 6 6 0 0 0 0 12Zm9 12c0-5-4-9-9-9s-9 4-9 9M42.2 26.5v7"
                 id="phon_93dagbmiucy4-stroke"
                 fill="none"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-miterlimit="4"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeMiterlimit="4"
                 stroke="#484848"
-                stroke-width="2"
+                strokeWidth="2"
               />
             </g>
             <g
@@ -553,11 +553,11 @@ export function SocialFlow() {
                 d="M48 41.002h9v-9M56.316 41a12 12 0 1 0-1.936 11.484M27 45H11a14 14 0 0 1 21.566-11.78m-14.89-18.036A14.098 14.098 0 0 0 27.834 19.5c1.922.002 3.823-.39 5.588-1.15M16.5 19.5a8.5 8.5 0 1 0 17 0 8.5 8.5 0 0 0-17 0Z"
                 id="sync_4goh7vmiue4h-stroke"
                 fill="none"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-miterlimit="4"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeMiterlimit="4"
                 stroke="#484848"
-                stroke-width="2"
+                strokeWidth="2"
               />
             </g>
           </g>

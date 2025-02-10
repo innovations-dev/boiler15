@@ -59,9 +59,12 @@ import { ApiError } from "@/lib/api/error";
 import { errorLogger } from "@/lib/logger/enhanced-logger";
 import { logError } from "@/lib/logger/error";
 import { ErrorSource } from "@/lib/logger/types";
-import { isQueryError } from "@/lib/query/types";
-import { createApiResponse, type ApiErrorCode } from "@/lib/schemas/api-types";
+import { API_ERROR_CODES } from "@/lib/schemas/api-types";
 
+/**
+ * Custom hook that combines React Query with Zod schema validation and error handling for API requests.
+ * Expects raw data from queryFn and handles validation/error wrapping internally.
+ */
 export function useApiQuery<T extends z.ZodType>(
   key: readonly unknown[],
   queryFn: () => Promise<z.infer<T>>,
@@ -72,37 +75,45 @@ export function useApiQuery<T extends z.ZodType>(
     queryKey: key,
     queryFn: async () => {
       try {
-        const data = await queryFn();
-        return schema.parse(data);
+        // Get raw data from query function
+        const rawData = await queryFn();
+
+        // Validate data against schema
+        return schema.parse(rawData);
       } catch (error) {
+        // Log the error with context
         logError(error, `useApiQuery:${key.join(":")}`);
         errorLogger.log(error, ErrorSource.QUERY, {
           context: `useApiQuery:${key.join(":")}`,
         });
 
+        // Handle specific error types
         if (error instanceof ApiError) {
-          throw createApiResponse(null, {
-            message: error.message,
-            code: error.code as ApiErrorCode,
-            status: error.status,
-          });
+          throw error; // Let React Query handle API errors directly
         }
+
         if (error instanceof z.ZodError) {
-          throw createApiResponse(null, {
-            message: "Validation error",
-            code: "VALIDATION_ERROR",
-            status: 400,
-            details: { errors: error.errors },
-          });
+          throw new ApiError(
+            "Validation error",
+            API_ERROR_CODES.BAD_REQUEST,
+            400
+          );
         }
-        throw error;
+
+        // For unknown errors, throw a generic error
+        throw new ApiError(
+          "An unexpected error occurred",
+          API_ERROR_CODES.INTERNAL_SERVER_ERROR,
+          500
+        );
       }
     },
     meta: {
       onError: (error: unknown) => {
-        const message = isQueryError(error)
-          ? error.message
-          : "An unexpected error occurred";
+        const message =
+          error instanceof ApiError
+            ? error.message
+            : "An unexpected error occurred";
         toast.error(message);
       },
     },

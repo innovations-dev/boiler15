@@ -3,6 +3,7 @@
  * @see ApiError
  */
 import { ApiError } from "../api/error";
+import { API_ERROR_CODES } from "../schemas/api-types";
 
 /**
  * Fetches data from a given URL with type safety
@@ -27,13 +28,16 @@ export async function fetchData<T>(url: string): Promise<T> {
   const response = await fetch(url);
 
   if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
     throw new ApiError(
-      response.status.toString(),
-      `API Error: ${response.statusText}`
+      errorData.message || `API Error: ${response.statusText}`,
+      errorData.code || API_ERROR_CODES.INTERNAL_SERVER_ERROR,
+      response.status
     );
   }
 
-  return response.json();
+  const data = await response.json();
+  return data;
 }
 
 /**

@@ -62,14 +62,14 @@ export async function handleError(
   if (error instanceof Error) {
     return createApiResponse(null, {
       message: error.message,
-      code: "INTERNAL_ERROR",
+      code: API_ERROR_CODES.INTERNAL_SERVER_ERROR,
       status: 500,
     });
   }
 
   return createApiResponse(null, {
     message: "An unexpected error occurred",
-    code: "UNKNOWN_ERROR",
+    code: API_ERROR_CODES.INTERNAL_SERVER_ERROR,
     status: 500,
   });
 }
