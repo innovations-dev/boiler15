@@ -1,5 +1,5 @@
 // import { organization as organizationPlugin } from "better-auth/plugins";
-import { eq, relations, sql } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 import {
   index,
   integer,
