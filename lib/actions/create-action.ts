@@ -74,31 +74,34 @@ export async function createAction<Input, Output>({
   schema,
   handler,
   input,
+  context = "unknown",
 }: {
   schema?: z.ZodType<Input>;
   handler: (validatedInput: Input) => Promise<Output>;
   input: Input;
+  context?: string;
 }): Promise<ApiResponse<Output | null>> {
   try {
     const validatedInput = schema ? schema.parse(input) : input;
     const result = await handler(validatedInput);
-    return createApiResponse(result);
-  } catch (error) {
-    const handledError = await handleError(error);
 
-    // Ensure error code is valid
-    const errorCode =
-      handledError.error?.code ?? API_ERROR_CODES.INTERNAL_SERVER_ERROR;
-    const errorStatus = handledError.error?.status ?? 500;
-    const errorMessage =
-      handledError.error?.message ?? "An unknown error occurred";
+    return createApiResponse(result, {
+      message: "Operation completed successfully",
+      code: API_ERROR_CODES.INTERNAL_SERVER_ERROR,
+      status: 500,
+      details: {
+        success: true,
+      },
+    });
+  } catch (error) {
+    const handledError = await handleError(error, context);
 
     return {
       data: null,
       error: {
-        code: errorCode as ApiErrorCode,
-        message: errorMessage,
-        status: errorStatus,
+        code: handledError.error?.code ?? API_ERROR_CODES.INTERNAL_SERVER_ERROR,
+        message: handledError.error?.message ?? "An unknown error occurred",
+        status: handledError.error?.status ?? 500,
       },
       success: false,
     };

@@ -80,9 +80,7 @@ export function useApiQuery<T extends z.ZodType>(
         const rawData = await queryFn();
 
         // Validate data against schema
-        const validatedData = schema.parse(rawData);
-
-        return validatedData;
+        return schema.parse(rawData);
       } catch (error) {
         // Log the error with context
         logError(error, `useApiQuery:${key.join(":")}`);
