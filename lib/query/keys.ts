@@ -37,6 +37,10 @@ export const queryKeys = {
     member: (organizationId: string) =>
       [...queryKeys.organizations.all, "member", organizationId] as const, // Specifically for fetching the member of an organization
     active: () => [...queryKeys.organizations.all, "active"] as const, // Specifically for fetching the active organization
+    stats: (organizationId?: string) =>
+      organizationId
+        ? ([...queryKeys.organizations.all, "stats", organizationId] as const)
+        : ([...queryKeys.organizations.all, "stats"] as const),
   },
 
   /** Session-related query keys */

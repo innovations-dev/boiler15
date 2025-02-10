@@ -52,17 +52,17 @@ export function useSetActiveOrganization(): UseMutationResult<
 
       return { previousOrg };
     },
-    onSuccess: () => {
+    onSuccess: (data: BetterAuthResponse<void>) => {
       console.log(
         "useSetActiveOrganization: onSuccess: Setting active organization"
       );
       toast.success("Active organization set");
-      // Selective invalidation
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.sessions.current(),
-      });
+      queryClient.invalidateQueries({ queryKey: queryKeys.sessions.current() });
       queryClient.invalidateQueries({
         queryKey: queryKeys.organizations.active(),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.organizations.stats(),
       });
     },
     context: "useSetActiveOrganization",

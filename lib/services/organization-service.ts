@@ -82,10 +82,11 @@ export const organizationService = {
         )
         .where(eq(schema.member.organizationId, organizationId));
 
+      console.log(stats);
       return {
-        totalMembers: Number(stats.totalMembers) || 0,
-        activeMembers: Number(stats.activeMembers) || 0,
-        pendingInvitations: Number(stats.pendingInvitations) || 0,
+        totalMembers: +stats.totalMembers || 0,
+        activeMembers: +stats.activeMembers || 0,
+        pendingInvitations: +stats.pendingInvitations || 0,
       };
     } catch (error) {
       errorLogger.log(error, ErrorSource.DATABASE, {

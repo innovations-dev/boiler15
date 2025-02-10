@@ -86,14 +86,15 @@ export interface ApiResponse<T> {
  *   status: 404
  * });
  */
+
 export function createApiResponse<T>(
   data: T,
-  error?: Omit<ApiError, "code"> & { code: ApiErrorCode }
+  error?: Omit<ApiError, "code"> & { code?: ApiErrorCode }
 ): ApiResponse<T> {
   return {
     success: !error,
     data,
-    error,
+    ...(error?.code && { error: { ...error, code: error.code } }),
   };
 }
 

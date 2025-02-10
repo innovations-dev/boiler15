@@ -71,11 +71,7 @@ export async function createAction<Input, Output>({
 
     return createApiResponse(result, {
       message: "Operation completed successfully",
-      code: API_ERROR_CODES.INTERNAL_SERVER_ERROR,
-      status: 500,
-      details: {
-        success: true,
-      },
+      status: 200,
     });
   } catch (error) {
     const handledError = await handleError(error, context);
