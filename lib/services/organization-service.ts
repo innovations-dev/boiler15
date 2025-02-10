@@ -173,4 +173,47 @@ export const organizationService = {
       );
     }
   },
+
+  /**
+   * Gets organization preferences with proper error handling
+   *
+   * @param {string} organizationId - The ID of the organization
+   * @returns {Promise<Record<string, unknown>>} Organization preferences
+   * @throws {ApiError} If database query fails
+   *
+   * @example
+   * ```ts
+   * const prefs = await organizationService.getOrganizationPreferences("org_123");
+   * console.log(prefs.theme); // "dark"
+   * console.log(prefs.features?.billing); // true
+   * ```
+   */
+  async getOrganizationPreferences(
+    organizationId: string
+  ): Promise<Record<string, unknown>> {
+    try {
+      const orgPrefs = await db.query.preferences.findMany({
+        where: eq(preferences.entityId, organizationId),
+      });
+
+      return orgPrefs.reduce(
+        (acc, pref) => ({
+          ...acc,
+          [pref.key]: JSON.parse(pref.value),
+        }),
+        {}
+      );
+    } catch (error) {
+      errorLogger.log(error, ErrorSource.DATABASE, {
+        context: "getOrganizationPreferences",
+        severity: ErrorSeverity.ERROR,
+        details: { organizationId },
+      });
+      throw new ApiError(
+        "Failed to fetch organization preferences",
+        API_ERROR_CODES.INTERNAL_SERVER_ERROR,
+        500
+      );
+    }
+  },
 };
