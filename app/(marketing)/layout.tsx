@@ -1,3 +1,4 @@
+import { SiteFooter } from "../_components/layout/footer";
 import { SiteHeader } from "../_components/layout/header";
 
 export default function MarketingLayout({
@@ -9,6 +10,7 @@ export default function MarketingLayout({
     <div className="flex min-h-screen flex-col">
       <SiteHeader />
       <main className="flex-1">{children}</main>
+      <SiteFooter />
     </div>
   );
 }

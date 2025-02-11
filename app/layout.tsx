@@ -9,7 +9,6 @@ import { Toaster } from "@/components/ui/sonner";
 import { generateMetadata } from "@/config/meta.config";
 import { ErrorHandler } from "@/lib/auth/errors";
 import { cn } from "@/lib/utils";
-import { SiteFooter } from "./_components/layout/footer";
 import { ThemeToggle } from "./_components/theme-toggle";
 import { QueryProvider } from "./_providers/query-client-provider";
 import { ThemeProvider } from "./_providers/theme-provider";
@@ -61,7 +60,6 @@ export default function RootLayout({
                 <div className="fixed bottom-4 right-4">
                   <ThemeToggle />
                 </div>
-                <SiteFooter />
               </main>
             </ThemeProvider>
           </QueryProvider>

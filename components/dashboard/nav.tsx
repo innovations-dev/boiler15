@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { OrganizationSwitcher } from "@/components/layout/organization-switcher";
 import { buttonVariants } from "@/components/ui/button";
 import { useSession } from "@/hooks/auth/use-session";
 import { cn } from "@/lib/utils";
@@ -53,7 +52,6 @@ export function DashboardNav() {
           {route.label}
         </Link>
       ))}
-      <OrganizationSwitcher />
     </nav>
   );
 }

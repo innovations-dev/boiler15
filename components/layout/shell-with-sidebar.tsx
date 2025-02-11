@@ -1,5 +1,4 @@
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { cn } from "@/lib/utils";
 
 interface ShellWithSidebarProps {
   header: React.ReactNode;
@@ -15,32 +14,20 @@ export function ShellWithSidebar({
   children,
 }: ShellWithSidebarProps) {
   return (
-    <div className="flex min-h-full flex-col">
-      {header}
-      <div className="flex flex-1">
-        {breadcrumbs && (
-          <div className="sticky top-[var(--header-height)] z-20 h-14 w-full border-b bg-background">
-            {breadcrumbs}
-          </div>
-        )}
-        <div className="container relative flex flex-1">
-          <aside
-            className={cn(
-              "fixed top-[var(--header-height)] z-30 hidden h-[calc(100vh-var(--header-height))] w-[240px] border-r lg:block",
-              breadcrumbs && "top-[calc(var(--header-height)+3.5rem)]"
-            )}
-          >
-            <ScrollArea className="h-full py-6 pr-6">{sidebar}</ScrollArea>
-          </aside>
-          <div
-            className={cn(
-              "w-full pl-0 lg:pl-[240px]",
-              breadcrumbs ? "mt-14" : "mt-6"
-            )}
-          >
-            {children}
-          </div>
-        </div>
+    <div className="relative mt-20 flex min-h-screen flex-col">
+      <header className="sticky top-0 z-50 border-b bg-background">
+        {header}
+      </header>
+      <div className="flex-1 items-start md:grid md:grid-cols-[220px_minmax(0,1fr)] md:gap-6 lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-10">
+        <aside className="fixed top-14 z-30 -ml-2 hidden h-[calc(100vh-8.5rem)] w-full shrink-0 border-r md:sticky md:block">
+          <ScrollArea className="h-full py-6 pl-8 pr-6 lg:py-8">
+            {sidebar}
+          </ScrollArea>
+        </aside>
+        <main className="flex w-full flex-col overflow-hidden px-4 py-6 md:px-6 lg:px-8 lg:py-8">
+          {breadcrumbs}
+          {children}
+        </main>
       </div>
     </div>
   );
