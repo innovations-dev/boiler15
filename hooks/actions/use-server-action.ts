@@ -5,6 +5,7 @@ import { useTransition } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
 
+import { clientOnError } from "@/lib/errors/client-error";
 import { errorLogger } from "@/lib/logger/enhanced-logger";
 import { ErrorSeverity, ErrorSource } from "@/lib/logger/types";
 import {

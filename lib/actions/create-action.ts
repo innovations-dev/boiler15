@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { handleError } from "@/lib/errors/handle-error";
+import { handleActionError } from "@/lib/errors/handle-action-error";
 import { API_ERROR_CODES, type ApiResponse } from "@/lib/schemas/api-types";
 
 /**
@@ -70,15 +70,15 @@ export async function createAction<Input, Output>({
       data: result,
     };
   } catch (error) {
-    const handledError = await handleError(error, context);
+    const { message, status } = await handleActionError(error, context);
 
     return {
       success: false,
       data: null as Output,
       error: {
-        code: handledError.error?.code ?? API_ERROR_CODES.INTERNAL_SERVER_ERROR,
-        message: handledError.error?.message ?? "An unknown error occurred",
-        status: handledError.error?.status ?? 500,
+        code: API_ERROR_CODES.INTERNAL_SERVER_ERROR,
+        message: message ?? "An unknown error occurred",
+        status: status ?? 500,
       },
     };
   }

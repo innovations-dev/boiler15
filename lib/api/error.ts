@@ -36,39 +36,30 @@ export class ApiError extends Error {
 }
 
 /**
- * Handles API errors and converts them into standardized Response objects.
- * Automatically logs errors and provides consistent error responses.
+ * Handles errors specifically for API Routes.
+ * Converts various error types into standardized Response objects with appropriate status codes.
  *
- * @param {unknown} error - The error to handle
- * @param {string} [path="unknown"] - The API route path where the error occurred
- * @returns {Promise<Response>} A formatted JSON response with appropriate status code
+ * @param {unknown} error - The error to be handled
+ * @param {string} [path="unknown"] - API route path where the error occurred
+ * @returns {Promise<Response>} HTTP Response with standardized error format
  *
  * @example
- * ```ts
  * // In an API route
  * export async function POST(req: Request) {
  *   try {
- *     const data = await validateAndProcessRequest(req);
- *     return Response.json({ data });
+ *     const result = await processRequest(req);
+ *     return Response.json(result);
  *   } catch (error) {
- *     return handleApiError(error, "/api/users");
+ *     return handleApiError(error, "/api/users/create");
  *   }
  * }
  *
- * // Custom error handling
- * try {
- *   await db.users.create({ data });
- * } catch (error) {
- *   throw new ApiError("Failed to create user", "USER_CREATE_ERROR", 400);
- * }
- * ```
- *
- * @throws {never} This function always returns a Response and never throws
+ * @see {@link ErrorSource.API} For API-specific error source
  */
-export const handleApiError = async (
+export async function handleApiError(
   error: unknown,
   path = "unknown"
-): Promise<Response> => {
+): Promise<Response> {
   await errorLogger.log(error, ErrorSource.API, {
     path,
     requestId: crypto.randomUUID(),
@@ -99,4 +90,4 @@ export const handleApiError = async (
     },
     { status: 500 }
   );
-};
+}

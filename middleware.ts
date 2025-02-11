@@ -23,10 +23,12 @@ export default async function authMiddleware(request: NextRequest) {
       session?.session
     );
     if (!parsedSession.success) {
+      console.log("Middleware: No session found, redirecting to sign-in");
       return NextResponse.redirect(new URL("/sign-in", request.url));
     }
     return NextResponse.next();
   } catch (error) {
+    console.error("Middleware: Error fetching session", error);
     return NextResponse.redirect(new URL("/sign-in", request.url));
   }
 }

@@ -56,8 +56,25 @@ function mapStatusToBetterAuthError(status?: number): BetterAuthErrorCode {
 }
 
 /**
- * Handles client-side errors from Better-Auth and other sources
- * @param error - The error object containing the original error
+ * Handles Better-Auth specific client-side errors.
+ * This utility is specifically designed for Better-Auth authentication errors and should NOT be used for general error handling.
+ *
+ * @param {Object} params - The error parameters
+ * @param {ErrorWithStatus} params.error - The Better-Auth error object
+ *
+ * @example
+ * // Only use for Better-Auth related errors
+ * try {
+ *   await signIn();
+ * } catch (error) {
+ *   await clientOnError({ error: error as ErrorWithStatus });
+ * }
+ *
+ * @remarks
+ * This handler is specifically for Better-Auth authentication errors.
+ * - For server actions, use handleActionError
+ * - For API routes, use handleApiError
+ * - For general client errors, use appropriate error boundaries or component-level error handling
  */
 export const clientOnError = async (error: { error: ErrorWithStatus }) => {
   // Handle BetterAuthAPIError specifically

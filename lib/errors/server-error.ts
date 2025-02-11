@@ -4,7 +4,28 @@ import { EnhancedBetterAuthAPIError } from "../auth/auth-client";
 import { errorLogger, ErrorSeverity } from "../logger/enhanced-logger";
 import { ErrorSource } from "../logger/types";
 
-export const serverOnError = async (error: BetterAuthAPIError) => {
+/**
+ * Handles Better-Auth specific errors on the server side.
+ * This utility is exclusively for Better-Auth authentication errors occurring server-side.
+ *
+ * @param {BetterAuthAPIError} error - The Better-Auth error to handle
+ * @returns {Promise<void>}
+ *
+ * @example
+ * // In a server-side authentication handler
+ * try {
+ *   await authClient.verifySession(token);
+ * } catch (error) {
+ *   if (error instanceof BetterAuthAPIError) {
+ *     await serverOnError(error);
+ *   }
+ *   throw error;
+ * }
+ *
+ * @see {@link ErrorSource.AUTH} For auth-specific error source
+ * @see {@link clientOnError} For client-side Better-Auth error handling
+ */
+export async function serverOnError(error: BetterAuthAPIError) {
   if (error instanceof BetterAuthAPIError) {
     const betterAuthError = error as EnhancedBetterAuthAPIError;
     const metadata = {
@@ -55,4 +76,4 @@ export const serverOnError = async (error: BetterAuthAPIError) => {
         return;
     }
   }
-};
+}
