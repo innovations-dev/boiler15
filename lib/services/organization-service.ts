@@ -7,12 +7,12 @@
  * - Activity logging
  */
 
-import { eq, sql } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { nanoid } from "nanoid";
 
 import { ApiError } from "../api/error";
 import { db } from "../db";
-import { auditLog, Organization, preferences } from "../db/schema";
+import { auditLog, Member, Organization, preferences } from "../db/schema";
 import * as schema from "../db/schema";
 import { errorLogger } from "../logger/enhanced-logger";
 import { ErrorSeverity, ErrorSource } from "../logger/types";
@@ -212,6 +212,31 @@ export const organizationService = {
       });
       throw new ApiError(
         "Failed to fetch organization preferences",
+        API_ERROR_CODES.INTERNAL_SERVER_ERROR,
+        500
+      );
+    }
+  },
+  async getActiveMember(
+    organizationId: string,
+    userId: string
+  ): Promise<Member | null> {
+    try {
+      const member = await db.query.member.findFirst({
+        where: and(
+          eq(schema.member.organizationId, organizationId),
+          eq(schema.member.userId, userId)
+        ),
+      });
+      return member ?? null;
+    } catch (error) {
+      errorLogger.log(error, ErrorSource.DATABASE, {
+        context: "getActiveMember",
+        severity: ErrorSeverity.ERROR,
+        details: { organizationId, userId },
+      });
+      throw new ApiError(
+        "Failed to get active member",
         API_ERROR_CODES.INTERNAL_SERVER_ERROR,
         500
       );

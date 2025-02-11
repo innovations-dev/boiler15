@@ -1,9 +1,9 @@
 import { useRouter } from "next/navigation";
-import { betterFetch } from "@better-fetch/fetch";
 import { useQuery } from "@tanstack/react-query";
 
 import { Member, Organization } from "@/lib/db/schema";
 import { queryKeys } from "@/lib/query/keys";
+import { organizationService } from "@/lib/services/organization-service";
 import { useSession } from "./use-session";
 
 export interface OrganizationAccess {
@@ -40,10 +40,9 @@ export function useOrganizationAccess(organizationId?: string) {
     queryKey: queryKeys.organizations.access(organizationId ?? ""),
     queryFn: async () => {
       if (!organizationId || !isAuthenticated) return null;
-      const { data } = await betterFetch<{ organization: Organization }>(
-        `/api/organization/get-full-organization?organizationId=${organizationId}`
-      );
-      return data?.organization;
+      const organization =
+        await organizationService.getOrganizationById(organizationId);
+      return organization;
     },
     enabled: Boolean(organizationId) && isAuthenticated,
   });
@@ -52,11 +51,12 @@ export function useOrganizationAccess(organizationId?: string) {
   const { data: member, isLoading: isMemberLoading } = useQuery({
     queryKey: queryKeys.organizations.member(organizationId ?? ""),
     queryFn: async () => {
-      if (!organizationId || !isAuthenticated) return null;
-      const { data } = await betterFetch<{ member: Member }>(
-        `/api/organization/get-active-member?organizationId=${organizationId}`
+      if (!organizationId || !isAuthenticated || !member) return null;
+      const activeMember = await organizationService.getActiveMember(
+        organizationId,
+        member.userId
       );
-      return data?.member;
+      return activeMember;
     },
     enabled: Boolean(organizationId) && isAuthenticated,
   });

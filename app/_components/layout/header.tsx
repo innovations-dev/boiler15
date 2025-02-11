@@ -7,7 +7,6 @@ import { Container } from "@/components/container";
 import { MainNav } from "@/components/header/main-nav";
 import { MobileNav } from "@/components/header/mobile-nav";
 import { UserNav } from "@/components/header/user-nav";
-import { OrganizationSwitcher } from "@/components/layout/organization-switcher";
 import { navigationRoutes } from "@/config/routes.config";
 import { cn } from "@/lib/utils";
 
@@ -194,7 +193,6 @@ export function SiteHeader() {
         />
       </Header.Main>
       <Header.RightElement>
-        <OrganizationSwitcher />
         <UserNav items={navigationRoutes.auth} />
       </Header.RightElement>
       <MobileNav items={navigationRoutes.main} />

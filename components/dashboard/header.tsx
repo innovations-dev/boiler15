@@ -7,12 +7,20 @@ import { navigationRoutes } from "@/config/routes.config";
 
 export function DashboardHeader() {
   return (
-    <Header variant="default" size="default">
+    <Header
+      variant="default"
+      size="default"
+      sticky
+      isFullWidth
+      className="border-b bg-background"
+    >
       <Header.LeftElement>
-        <span className="font-semibold">Dashboard</span>
-      </Header.LeftElement>
-      <Header.RightElement>
         <OrganizationSwitcher />
+      </Header.LeftElement>
+      <Header.Main>
+        {/* Intentionally left empty for now - could add dashboard-specific nav items */}
+      </Header.Main>
+      <Header.RightElement>
         <UserNav items={navigationRoutes.auth} />
       </Header.RightElement>
     </Header>
