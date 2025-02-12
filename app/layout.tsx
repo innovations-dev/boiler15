@@ -22,8 +22,8 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 export const metadata: Metadata = await generateMetadata({
-  title: "Nextjs v15 Test App",
-  description: "Testing Build for Boilerplate",
+  title: "Nextjs v15 Boilerplate",
+  description: "Build everything. Fast.",
 });
 export default function RootLayout({
   children,
@@ -47,7 +47,7 @@ export default function RootLayout({
               enableSystem
               disableTransitionOnChange
             >
-              <main className="relative flex min-h-dvh flex-col">
+              <div className="relative flex min-h-dvh flex-col">
                 <a
                   href="#main-content"
                   className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:p-4"
@@ -60,7 +60,7 @@ export default function RootLayout({
                 <div className="fixed bottom-4 right-4">
                   <ThemeToggle />
                 </div>
-              </main>
+              </div>
             </ThemeProvider>
           </QueryProvider>
         </NuqsAdapter>
